@@ -18,4 +18,6 @@ from django.contrib import admin
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
+    url(r'^$', "main.views.index", name="index"),
+    url(r'^(?P<url>.*)', "main.views.redirect_to_index", name="redirect_to_index")
 ]
