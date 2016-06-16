@@ -19,5 +19,6 @@ from django.contrib import admin
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^$', "main.views.index", name="index"),
+    url(r'^templates/(?P<template_name>.*\.html)$', "main.views.load_partial", name="load_partial"),
     url(r'^(?P<url>.*)', "main.views.redirect_to_index", name="redirect_to_index")
 ]

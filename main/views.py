@@ -7,8 +7,16 @@ def index(request):
     """
     Loads the main page.
     """
-    context = {"role": "miu"}
+    role = request.GET.get("role") or "intern"
+    context = {"role": role}
     return render(request, "index.html", context)
+
+
+def load_partial(request, template_name):
+    """
+    Renders and returns the specified template. Raises 404 if the template is not found.
+    """
+    return render(request, "partials/test-partial.html")
 
 
 def redirect_to_index(request, url):

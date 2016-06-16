@@ -9,8 +9,8 @@
 </head>
 
 {% comment %}
-MIU and intern pages are styled differently.
-MIU personnel get an admin-style page with a sidebar. Interns get a top navigation style page.
+MIU staff and intern pages are styled differently.
+MIU staff get an admin-style page with a sidebar. Interns get a top navigation style page.
 
 There are 5 differences in the HTML code between the templates:
 1- The style attribute on the body tag.
@@ -20,18 +20,18 @@ There are 5 differences in the HTML code between the templates:
 5- ng-view is placed on .content-wrapper for MIU users, while it's placed on .container for interns.
 {% endcomment %}
 
-<body class="hold-transition skin-blue {% if role == "miu" %}sidebar-mini{% else %}layout-top-nav{% endif %}"
+<body class="hold-transition skin-blue {% if role == "staff" %}sidebar-mini{% else %}layout-top-nav{% endif %}"
       ng-app="easyInternship">
 <div class="wrapper">
 
-{% if role == "miu" %}
+{% if role == "staff" %}
   {% include "components/header.html" %}
 {% else %}
   {% include "components/header-topnav.html" %}
 {% endif %}
 
 
-{% if role == "miu" %}
+{% if role == "staff" %}
   {% include "components/sidebar.html" %}
 {% endif %}
 

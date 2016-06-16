@@ -1,16 +1,12 @@
   <!-- Content Wrapper. Contains page content -->
-  <div class="content-wrapper"{% if role == "miu" %} ng-view{% endif %}>
-    {% if not role == "miu" %}<div class="container" ng-view>{% endif %}
+  <div class="content-wrapper">
+    <div ng-view{% if not role == "staff" %} class="container"{% endif %}>
     <!-- Content Header (Page header) -->
     <section class="content-header">
       <h1>
         Page Header
         <small>Optional description</small>
       </h1>
-      <ol class="breadcrumb">
-        <li><a href="#"><i class="fa fa-dashboard"></i> Level</a></li>
-        <li class="active">Here</li>
-      </ol>
     </section>
 
     <!-- Main content -->
@@ -20,6 +16,6 @@
 
     </section>
     <!-- /.content -->
-    {% if role == "intern" %}</div>{% endif %}
+    </div>
   </div>
   <!-- /.content-wrapper -->
