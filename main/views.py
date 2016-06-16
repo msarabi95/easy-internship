@@ -7,7 +7,8 @@ def index(request):
     """
     Loads the main page.
     """
-    return render(request, "starter.html")
+    context = {"role": "miu"}
+    return render(request, "index.html", context)
 
 
 def redirect_to_index(request, url):
