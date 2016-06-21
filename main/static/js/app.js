@@ -14,7 +14,7 @@ app.config(["$routeProvider", function ($routeProvider) {
         redirectTo: "/"
     })
         .when("/planner", {
-        templateUrl: "templates/planner/template.html",
+        templateUrl: "partials/planner/partials/template.html",
         controller: "MyCtrl"
     })
 
