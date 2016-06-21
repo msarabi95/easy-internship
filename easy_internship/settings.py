@@ -39,6 +39,8 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'sitetree',
     'main.apps.MainConfig',
+    'planner.apps.PlannerConfig',
+    'accounts.apps.AccountsConfig',
 )
 
 MIDDLEWARE_CLASSES = (
