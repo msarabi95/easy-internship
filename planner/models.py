@@ -1,16 +1,12 @@
 from __future__ import unicode_literals
 
+from copy import copy
+
 from accounts.models import Intern
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.utils import timezone
 from month.models import MonthField
-
-
-# 3 types of TODO's:
-# 1- Method TODO's
-# 2- Test TODO's
-# 3- Question TODO's
 
 
 class Hospital(models.Model):
@@ -27,15 +23,12 @@ class Specialty(models.Model):
     abbreviation = models.CharField(max_length=4)
     required_months = models.PositiveIntegerField()
     parent_specialty = models.ForeignKey("Specialty", related_name="subspecialties", null=True,
-                                         blank=True)  # TODO: confirm if this works??
+                                         blank=True)
 
     def is_subspecialty(self):
         """
         Return True if the specialty has a parent_specialty.
         """
-        # TODO:
-        # 1- Test with general specialty (no parent)
-        # 2- Test with subspecialty (with parent)
         if self.parent_specialty is not None:
             return True
         else:
@@ -46,9 +39,6 @@ class Specialty(models.Model):
         Return `self` if already a general specialty (no parent specialty).
         Return parent specialty otherwise.
         """
-        # TODO:
-        # 1- Test with general specialty (no parent)
-        # 2- Test with subspecialty (with parent)
         if not self.is_subspecialty():
             return self
         else:
@@ -80,7 +70,7 @@ Subspecialties, Sub-departments (Sections)
 class Department(models.Model):
     hospital = models.ForeignKey(Hospital, related_name="departments")
     parent_department = models.ForeignKey("Department", related_name="sections", null=True,
-                                          blank=True)  # TODO: confirm if this works??
+                                          blank=True)
     name = models.CharField(max_length=128)
     specialty = models.ForeignKey(Specialty, related_name="departments")
     contact_name = models.CharField(max_length=128)
@@ -92,15 +82,16 @@ class Department(models.Model):
         """
         Return the number of available seats for a specific month.
         """
-        # TODO: Test
-        return self.seats.filter(month=month).available_seat_count
+        try:
+            return self.seats.get(month=month).available_seat_count
+        except SeatAvailability.DoesNotExist:
+            return None
 
     def get_contact_details(self):
         """
         Return the contact details of the department if saved.
         If no details are supplied, return the details of the parent department.
         """
-        # TODO: Test
         if self.email != "":
             return {
                 "contact_name": self.contact_name,
@@ -117,7 +108,7 @@ class Department(models.Model):
 
 class SeatAvailability(models.Model):
     month = MonthField()
-    specialty = models.ForeignKey(Specialty, related_name="seats")
+    specialty = models.ForeignKey(Specialty, related_name="seats")  # FIXME: This field is unnecessary
     department = models.ForeignKey(Department, related_name="seats")
     available_seat_count = models.PositiveIntegerField()
 
@@ -125,6 +116,9 @@ class SeatAvailability(models.Model):
         return "Seat availability for %s in %s during %s" % (self.specialty.name,
                                                              self.department.__unicode__(),
                                                              self.month)
+
+    # class Meta:
+    #     unique_together = ("month", "specialty", "department")
 
 
 class Internship(models.Model):
@@ -137,7 +131,6 @@ class Internship(models.Model):
         1- The internship plan consists of exactly 12 rotations.
         2- The internship plan achieves the minimum number of months for each required specialty.
         """
-        # TODO: Test
         errors = []
 
         if self.rotations.count() != 12:
@@ -171,17 +164,15 @@ class PlanRequest(models.Model):
     internship = models.ForeignKey(Internship, related_name="plan_requests")
     creation_datetime = models.DateTimeField(auto_now_add=True)
     is_submitted = models.BooleanField(default=False)
-    submission_datetime = models.DateTimeField()
+    submission_datetime = models.DateTimeField(blank=True, null=True)
     is_closed = models.BooleanField(default=False)
-    closure_datetime = models.DateTimeField()
+    closure_datetime = models.DateTimeField(blank=True, null=True)
 
     def get_predicted_plan(self):
         """
         Returns an `Internship` object representing what the internship plan will look like
         if all the rotation requests in this plan request are accepted.
         """
-        # TODO: Test!
-
         # Make a list of new rotation objects based on the rotation requests attached to the
         # plan request
         updated_rotations = [
@@ -190,31 +181,20 @@ class PlanRequest(models.Model):
                      department=request.requested_department.get_department(),
                      specialty=request.specialty)
             
-            for request in self.rotation_requests.all()
+            for request in self.rotation_requests.filter(delete=False)
         ]
 
-        # The updated rotations should remove older rotations that share the same months, so exclude those
-        # Beware that the internship plan should exist in one of 2 states:
-        # 1- Either it's empty (a new plan)
-        # 2- Or it's full (12 months)
-        # To avoid throwing a DoesNotExist error, this statement should only be called with a full plan.
-        excluded_pks = [
-            self.internship.rotations.get(month=rotation.month).pk for rotation in updated_rotations
-        ] if self.internship.rotations.exists() else []
-
-        # FIXME: If the request contains a rotation request that changes a rotation to a new month
-        # (e.g. internship freeze):
-        # 1- The previous statement will throw a DoesNotExist error when it reaches that new month
-        # 2- How will this updated be handled? (There's no "old" month to override.)
+        # Exclude the rotations that have been requested to be deleted
+        excluded_months = self.rotation_requests.filter(delete=True).values_list("month", flat=True)
 
         # To make the final list of the updated rotations, add the existing unaffected rotations to the
         # list of new ones
-        updated_rotations.extend(self.internship.rotations.exclude(id__in=excluded_pks))
+        updated_rotations.extend(self.internship.rotations.exclude(month__in=excluded_months))
 
         # Make a copy of the internship object
-        predicted = self.internship
+        predicted = copy(self.internship)
         predicted.pk = None
-        predicted.intern = None
+        # predicted.intern = None
 
         # We need to tweak some internal Django attributes to allow us to relate the updated rotations
         # to the predicted internship object without having to save them in the database
@@ -229,43 +209,42 @@ class PlanRequest(models.Model):
     def clean(self):
         """
         Checks 3 conditions:
-        1- The plan request contains at least 1 rotation request, and at most 12.
+        1- The plan request contains at least 1 rotation request.
         2- The plan request alters the internship plan in a way that keeps it at exactly 12 rotations.
         3- The plan request alters the internship plan in a way that achieves the minimum number of months for
          each required specialty.
         """
-        # TODO: Test with a "clean" object + each of the conditions violated
         # This checks for condition 1
         if not self.rotation_requests.exists():
             raise ValidationError("The plan request should contain at least 1 rotation request.")
 
         # This checks for conditions 2 & 3
         predicted_plan = self.get_predicted_plan()
-        predicted_plan.full_clean()
+        predicted_plan.clean()
 
     def check_closure(self):
         """
         Returns whether the current plan request has been closed or not.
         """
-        # TODO:
-        # 1- Test with closed plan request
-        # 2- Test with ("partially") open plan request (some requests responded to, some not)
-        # 3- Test with ("fully") open plan request (no responses at all)
         if self.rotation_requests.filter(response__isnull=True).exists():
             return False
         else:
             self.is_closed = True
-            self.closure_datetime = timezone.now()  # FIXME: This date should = date of the last closed rotation request
+
+            # Set the closure time to the datetime of the last response
+            self.closure_datetime = \
+                self.rotation_requests.latest("response__response_datetime").response.response_datetime
             return True
 
     def submit(self):
         """
         Submit the plan request for review.
         """
-        # TODO:
-        # 1- Test with unsubmitted plan request
-        # 2- Test with already submitted plan request
         if not self.is_submitted:
+
+            # Make sure the plan request is valid before submission
+            self.full_clean()
+
             self.is_submitted = True
             self.submission_datetime = timezone.now()
 
@@ -291,29 +270,56 @@ class RequestedDepartment(models.Model):
     department_extension = models.CharField(max_length=16)
 
     def clean(self):
-        # TODO
-        pass
+        """
+        Check that *either* of the department field or the department_* details
+        fields are filled, but not both or none; and that `is_in_database` flag
+        is correctly assigned.
+        """
+        department_field_filled = self.department is not None
+        department_details_filled = all([
+            self.department_hospital is not None,
+            self.department_name != "",
+            self.department_specialty is not None,
+            self.department_contact_name != "",
+            self.department_email != "",
+            self.department_phone != "",
+            self.department_extension != "",
+        ])
+
+        if department_field_filled and department_details_filled:
+            raise ValidationError("Either an existing department should be chosen, "
+                                  "or the details of a new department be filled; but not both.")
+
+        elif not department_field_filled and not department_details_filled:
+            raise ValidationError("Either an existing department should be chosen, "
+                                  "or the details of a new department be filled.")
+
+        elif department_field_filled and not self.is_in_database:
+            raise ValidationError("`is_in_database` flag should be True if an existing department is chosen.")
+
+        elif department_details_filled and self.is_in_database:
+            raise ValidationError("`is_in_database` flag should be False if "
+                                  "the details of a new department are filled in.")
 
     def link_to_existing_department(self, department):
         """
         Clears all the department_* details fields and links to an existing department through
          the `department` field.
         """
-        # TODO:
-        # 1- Test with a database department
-        # 2- Test with a department object that doesn't exist in the database
         if department in Department.objects.all():
-            self.__dict__.update({
-                "department": department,
-                "is_in_database": True,
-                "department_hospital": None,
-                "department_name": "",
-                "department_specialty": None,
-                "department_contact_name": "",
-                "department_email": "",
-                "department_phone": "",
-                "department_extension": "",
-            })
+
+            self.department = department
+            self.is_in_database = True
+
+            # Empty the department_* details fields
+            self.department_hospital = None
+            self.department_name = ""
+            self.department_specialty = None
+            self.department_contact_name = ""
+            self.department_email = ""
+            self.department_phone = ""
+            self.department_extension = ""
+
             self.save()
         else:
             raise ObjectDoesNotExist("This department doesn't exist in the database.")
@@ -323,9 +329,6 @@ class RequestedDepartment(models.Model):
         Create a new department based on the data in this request, then link the request to that
         department and clear the department_* details fields.
         """
-        # TODO:
-        # 1- Test with a department that doesn't exist in the db
-        # 2- Test with one that does
         if self.department in Department.objects.all():
             raise Exception("Department already exists in database!")  # FIXME: A more accurate exception class?
 
@@ -367,22 +370,85 @@ class RotationRequest(models.Model):
     month = MonthField()
     specialty = models.ForeignKey(Specialty, related_name="rotation_requests")  # TODO: Is this field really necessary?
     requested_department = models.OneToOneField(RequestedDepartment)
+    delete = models.BooleanField(default=False)  # Flag to determine if this is a "delete" request
+    # FIXME: Maybe department & specialty should be optional with delete=True
+    # FIXME: The name `delete` conflicts with the api function `delete()`
+
+    PENDING_STATUS = "P"
+    FORWARDED_STATUS = "F"
+    REVIEWED_STATUS = "R"
 
     def get_status(self):
-        # TODO
-        pass
+        """
+        The status of a rotation request is one of 3:
+        (1) Pending: if the request hasn't received a repsonse
+        (2) Forwarded: if the request has been forwarded but hasn't received a response yet
+        (3) Reviewed: if either the request or the request forward has received a response
+        """
+        # Set the three booleans `has_response`, `has_forward`, and `forward_has_response`
+        # to reflect the status of the request
+        try:
+            self.response
+            has_response = True
+        except ObjectDoesNotExist:
+            has_response = False
 
-    def get_details(self):
-        # TODO
-        pass
+        try:
+            self.forward
+            has_forward = True
 
-    def respond(self, is_approved):
-        # TODO
-        pass
+            try:
+                self.forward.response
+                forward_has_response = True
+            except ObjectDoesNotExist:
+                forward_has_response = False
 
-    def forward(self):
-        # TODO
-        pass
+        except ObjectDoesNotExist:
+            has_forward = False
+
+        # Return the appropriate status based on the presence/absence of the response,
+        # forward, and forward response
+        if not has_response and not has_forward:
+            return self.PENDING_STATUS
+
+        elif has_forward and not forward_has_response:
+            return self.FORWARDED_STATUS
+
+        elif has_response or \
+            (has_forward and forward_has_response):
+            return self.REVIEWED_STATUS
+
+    def respond(self, is_approved, comments=""):
+        """
+        Respond to the rotation request; raise an error if it's already responded to.
+        """
+        try:
+            self.response
+        except ObjectDoesNotExist:
+            RotationRequestResponse.objects.create(
+                rotation_request=self,
+                is_approved=is_approved,
+                comments=comments,
+            )
+
+            # TODO: Notify
+        else:
+            raise Exception("This rotation request has already been responded to.")
+
+    def forward_request(self):
+        """
+        Forward the rotation request; raise an error if it's already forwarded.
+        """
+        try:
+            self.forward
+        except ObjectDoesNotExist:
+            RotationRequestForward.objects.create(
+                rotation_request=self,
+            )
+
+            # TODO: Notify
+        else:
+            raise Exception("This rotation request has already been forwarded.")
 
     def __unicode__(self):
         return "Request for %s rotation at %s (%s)" % (self.specialty.name,
@@ -404,9 +470,21 @@ class RotationRequestForward(models.Model):
     rotation_request = models.OneToOneField(RotationRequest, related_name="forward")
     forward_datetime = models.DateTimeField(auto_now_add=True)
 
-    def respond(self, is_approved):
-        # TODO
-        pass
+    def respond(self, is_approved, response_memo, respondent_name, comments=""):
+        try:
+            self.response
+        except ObjectDoesNotExist:
+            RotationRequestForwardResponse.objects.create(
+                forward=self,
+                is_approved=is_approved,
+                response_memo=response_memo,
+                comments=comments,
+                respondent_name=respondent_name,
+            )
+
+            # TODO: Notify
+        else:
+            raise Exception("This rotation request has already been responded to.")
 
     def __unicode__(self):
         return "Forward of request #%d" % self.rotation_request.id
