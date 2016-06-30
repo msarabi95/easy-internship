@@ -8,9 +8,12 @@ from django.db import models
 class Profile(models.Model):
     user = models.OneToOneField(User, related_name="profile")
 
+    STAFF = "staff"
+    INTERN = "intern"
+
     ROLE_CHOICES = (
-        ("staff", "Staff member"),
-        ("intern", "Intern"),
+        (STAFF, "Staff member"),
+        (INTERN, "Intern"),
     )
 
     role = models.CharField(max_length=8, choices=ROLE_CHOICES)
