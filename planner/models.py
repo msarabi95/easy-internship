@@ -125,14 +125,80 @@ class Internship(models.Model):
     intern = models.OneToOneField(Intern)
     start_month = MonthField()
 
+    def get_internship_info(self):
+        """
+        Return a dictionary containing information about the internship and current
+        plan request, if any.
+        """
+        return {
+            "currentPlanRequest": True if self.plan_requests.current() else False,
+            "currentPlanRequestSubmitted": self.plan_requests.current().is_submitted if self.plan_requests.current() else None,
+        }
+
+    def get_internship_months(self):
+        """
+        Returns a list containing 15 month items starting with the internships' `start_month`.
+        Each month item is a dictionary of the format:
+        {
+            "month": `Month` object,
+            "rotations": a list of all `Rotation` objects associated with this month,
+            "requests": a list of all `RotationRequest` objects associated with this month,
+        }
+        """
+        months = []
+        for add in range(15):
+            month = self.start_month + add
+            current_rotation = self.rotations.current(month)
+            rotation_history = self.rotations.history(month)
+
+            current_rotation_dict = {
+                "id": current_rotation.id,
+                "label": current_rotation.department.__unicode__(),
+            } if current_rotation else None
+
+            rotation_history_dict = [{
+                "id": rotation.id,
+                "label": rotation.department.__unicode__(),
+            } for rotation in rotation_history]
+
+            if self.plan_requests.current():
+                current_request = self.plan_requests.current().rotation_requests.filter(month=month).first()
+                request_history = RotationRequest.objects.filter(plan_request__internship=self, month=month) \
+                    .exclude(plan_request=self.plan_requests.current())
+
+                current_request_dict = {
+                    "id": current_request.id,
+                    "label": current_request.__unicode__(),
+                }
+
+                request_history_dict = [{
+                    "id": request.id,
+                    "label": request.__unicode__(),
+                } for request in request_history]
+
+            else:
+                current_request_dict = None
+                request_history_dict = []
+
+            months.append({
+                "monthLabel": month.first_day().strftime("%B %Y"),
+                "month": int(month),
+                "currentRotation": current_rotation_dict,
+                "rotationHistory": rotation_history_dict,
+                "currentRequest": current_request_dict,
+                "requestHistory": request_history_dict,
+            })
+        return months
+
     def clean(self):
         """
         Checks 2 conditions:
         1- The internship plan consists of exactly 12 rotations.
         2- The internship plan achieves the minimum number of months for each required specialty.
         """
+        # FIXME: Doesn't work with admin, because it checks data that's stored in the database; i.e. a ModelForm
+        # can never evaluate! (e.g. the admin site)
         errors = []
-
         if self.rotations.count() != 12:
             errors.append(ValidationError("The internship plan should contain exactly 12 months."))
 
@@ -150,14 +216,49 @@ class Internship(models.Model):
             raise ValidationError(errors)
 
 
+class RotationManager(models.Manager):
+    def current(self, month):
+        try:
+            return self.filter(month=month).latest("pk")  # TODO: Should be sorted by a new `addition_datetime` field
+        except ObjectDoesNotExist:
+            return None
+
+    def history(self, month):
+        if self.current(month):
+            return self.filter(month=month).exclude(id=self.current(month).id)
+        else:
+            return self.none()
+
+
 class Rotation(models.Model):
     internship = models.ForeignKey(Internship, related_name="rotations")
     month = MonthField()
     specialty = models.ForeignKey(Specialty, related_name="rotations")
     department = models.ForeignKey(Department, related_name="rotations")
 
+    objects = RotationManager()
+
     def __unicode__(self):
         return "%s rotation in %s (%s)" % (self.specialty, self.department, self.month)
+
+
+class PlanRequestManager(models.Manager):
+    def current(self):
+        if self.open().exists():
+            return self.get(is_closed=False)
+            # This can tolerate only one open plan request, whether submitted or not
+            # and will throw an error if multiple open requests exist
+        else:
+            return None
+
+    def unsubmitted(self):
+        return self.filter(is_submitted=False)
+
+    def open(self):
+        return self.filter(is_closed=False)
+
+    def closed(self):
+        return self.filter(is_submitted=True, is_closed=True)
 
 
 class PlanRequest(models.Model):
@@ -167,6 +268,8 @@ class PlanRequest(models.Model):
     submission_datetime = models.DateTimeField(blank=True, null=True)
     is_closed = models.BooleanField(default=False)
     closure_datetime = models.DateTimeField(blank=True, null=True)
+
+    objects = PlanRequestManager()
 
     def get_predicted_plan(self):
         """
