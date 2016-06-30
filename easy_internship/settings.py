@@ -38,12 +38,14 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'sitetree',
+    'djng',
     'main.apps.MainConfig',
     'planner.apps.PlannerConfig',
     'accounts.apps.AccountsConfig',
 )
 
 MIDDLEWARE_CLASSES = (
+    'djng.middleware.AngularUrlMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
