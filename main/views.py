@@ -1,6 +1,7 @@
 from django.core.urlresolvers import reverse
-from django.http.response import HttpResponseRedirect
+from django.http.response import HttpResponseRedirect, Http404
 from django.shortcuts import render
+from django.template.exceptions import TemplateDoesNotExist
 
 
 def index(request):
@@ -16,7 +17,10 @@ def load_partial(request, template_name):
     """
     Renders and returns the specified template. Raises 404 if the template is not found.
     """
-    return render(request, "partials/test-partial.html")
+    try:
+        return render(request, template_name)
+    except TemplateDoesNotExist:
+        raise Http404
 
 
 def redirect_to_index(request, url):

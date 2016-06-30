@@ -1,0 +1,65 @@
+{% verbatim %}
+<section class="content-header">
+  <h1>
+    <!--<i class="fa fa-calendar"></i> -->Internship Planner
+  </h1>
+  <br>
+
+  <div class="box box-solid">
+    <div class="box-body">
+
+          Choose your desired general specialty for each of the months below.
+          You have to fill 12 months.
+
+    </div>
+  </div>
+
+</section>
+
+<section class="content">
+  
+<div style="margin-right: -110px; margin-left: -110px;"><!-- FIXME: Mobile compatiblity -->
+
+      <!-- Check out: -->
+      <!-- http://stackoverflow.com/a/25838091 -->
+      <div class="row" ng-repeat="month in months track by $index" ng-if="$index % 5 == 0">
+
+        <div class="col-md-2" ng-class="{'col-md-offset-1': $index % 5 == 0}" ng-repeat="i in [$index, $index + 1, $index + 2, $index + 3, $index + 4]">
+          <div class="box box-widget widget-user">
+              <!-- Add the bg color to the header using any of the bg-* classes -->
+              <div class="widget-user-header" ng-class="{'bg-gray': !hasRotationOrRequest(i), 'bg-aqua-active': hasRotationOrRequest(i)}">
+                <h3 class="widget-user-username">{{ months[i].monthLabel }}</h3>
+                <h5 class="widget-user-desc">
+                  <span ng-if="hasRotationOrRequest(i)">{{ months[i].currentRotation.label }}</span>
+                  <span ng-if="!hasRotationOrRequest(i)">No rotation chosen.</span>
+                </h5>
+              </div>
+
+              <div class="box-footer no-padding" ng-if="!planIsSubmitted">
+                <ul class="nav nav-stacked">
+                  <li>
+
+                      <a href="" ng-if="hasRotationOrRequest(i)" ng-click="showModal(i)">Edit rotation</a>
+
+                      <a href="" ng-if="!hasRotationOrRequest(i)" ng-click="modify(i)">
+                          Choose a rotation
+                      </a>
+
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+      </div>
+  </div>
+
+<div class="row">
+  <table id="plan-table" class="table" style="border: none!important;">
+    <tbody>
+
+    </tbody>
+  </table>
+</div>
+
+</section>
+{% endverbatim %}

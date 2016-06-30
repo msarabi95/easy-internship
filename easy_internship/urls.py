@@ -17,8 +17,9 @@ from django.conf.urls import include, url
 from django.contrib import admin
 
 urlpatterns = [
+    url(r'^planner/', include("planner.urls", namespace="planner")),
+    url(r'^partials/(?P<template_name>.*\.html)$', "main.views.load_partial", name="load_partial"),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^$', "main.views.index", name="index"),
-    url(r'^partials/(?P<template_name>.*\.html)$', "main.views.load_partial", name="load_partial"),
     url(r'^(?P<url>.*)', "main.views.redirect_to_index", name="redirect_to_index")
 ]
