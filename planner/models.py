@@ -153,7 +153,8 @@ class Internship(models.Model):
 
             current_rotation_dict = {
                 "id": current_rotation.id,
-                "label": current_rotation.department.__unicode__(),
+                "label": current_rotation.department.__unicode__(),  # FIXME: change to department name
+                "hospital": current_rotation.department.hospital.name,
             } if current_rotation else None
 
             rotation_history_dict = [{
@@ -168,7 +169,9 @@ class Internship(models.Model):
 
                 current_request_dict = {
                     "id": current_request.id,
-                    "label": current_request.__unicode__(),
+                    "label": current_request.__unicode__(),  # FIXME: change to department name
+                    "hospital": current_request.requested_department.get_department().hospital.name,
+                    "delete": current_request.delete,
                 } if current_request else None
 
                 request_history_dict = [{

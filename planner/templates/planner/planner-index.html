@@ -25,41 +25,44 @@
       <div class="row" ng-repeat="month in months track by $index" ng-if="$index % 5 == 0">
 
         <div class="col-md-2" ng-class="{'col-md-offset-1': $index % 5 == 0}" ng-repeat="i in [$index, $index + 1, $index + 2, $index + 3, $index + 4]">
-          <div class="box box-widget widget-user">
-              <!-- Add the bg color to the header using any of the bg-* classes -->
-              <div class="widget-user-header" ng-class="{'bg-gray': !hasRotationOrRequest(i), 'bg-aqua-active': hasRotationOrRequest(i)}">
-                <h3 class="widget-user-username">{{ months[i].monthLabel }}</h3>
-                <h5 class="widget-user-desc">
-                  <span ng-if="hasRotationOrRequest(i)">{{ months[i].currentRotation.label }}</span>
-                  <span ng-if="!hasRotationOrRequest(i)">No rotation chosen.</span>
-                </h5>
+
+          <div class="box direct-chat direct-chat-primary internship-month"
+               ng-class="{'box-default': rotationViewUnoccupied(i) || rotationViewReqUnoccupied(i), 'box-primary': rotationViewOccupied(i) || rotationViewReqOccupied(i), 'box-warning': requestViewReqUnoccupied(i) || requestViewUpdateReqOccupied(i), 'box-danger': requestViewCancelReqOccupied(i)}">
+            <div class="box-header with-border">
+              <h3 class="box-title">{{ months[i].monthLabel }}</h3>
+              <div class="box-tools pull-right">
+
               </div>
+            </div><!-- /.box-header -->
+            <div class="box-body">
+                <div class="col-xs-12" ng-if="rotationView(i)">
+                  <h4 ng-if="!hasRotation(i)"><b>No current rotation.</b></h4>
 
-              <div class="box-footer no-padding" ng-if="!planIsSubmitted">
-                <ul class="nav nav-stacked">
-                  <li>
+                  <h5 ng-if="hasRotation(i)">{{ months[i].currentRotation.hospital }}</h5>
+                  <h4 ng-if="hasRotation(i)"><b>{{ months[i].currentRotation.label }}</b></h4>
+                </div>
 
-                      <a href="" ng-if="hasRotationOrRequest(i)" ng-click="showModal(i)">Edit rotation</a>
+                <div class="col-xs-12" ng-if="requestView(i)">
+                  <h5 ng-if="!requestViewCancelReqOccupied(i)">{{ months[i].currentRequest.hospital }}</h5>
+                  <h4 ng-if="!requestViewCancelReqOccupied(i)"><b>{{ months[i].currentRequest.label }}</b></h4>
 
-                      <a href="" ng-if="!hasRotationOrRequest(i)" ng-click="modify(i)">
-                          Choose a rotation
-                      </a>
+                  <h4 ng-if="requestViewCancelReqOccupied(i)"><b>You have requested cancellation of this rotation.</b></h4>
+                </div>
+            </div><!-- /.box-body -->
+            <div class="box-footer">
+                <button type="button" class="btn btn-block btn-flat"
+                        ng-class="{'btn-default': rotationViewUnoccupied(i) || rotationViewReqUnoccupied(i), 'btn-primary': rotationViewOccupied(i) || rotationViewReqOccupied(i), 'btn-warning': requestViewReqUnoccupied(i) || requestViewUpdateReqOccupied(i), 'btn-danger': requestViewCancelReqOccupied(i)}">More Info</button>
+                <a ng-if="hasRequest(i)" ng-click="toggleShowRequest(i)" href="">
+                  <span ng-if="rotationView(i)" class="badge bg-yellow" style="width:100%; margin-top: 10px;">Show Requested</span>
+                  <span ng-if="requestView(i) && months[i].currentRotation != null" class="badge bg-blue" style="width:100%; margin-top: 10px;">Show Current</span>
+                  <span ng-if="requestView(i) && months[i].currentRotation == null" class="badge bg-gray" style="width:100%; margin-top: 10px;">Show Current</span>
+                </a>
+            </div><!-- /.box-footer-->
+          </div><!--/.direct-chat -->
 
-                  </li>
-                </ul>
-              </div>
-            </div>
+
           </div>
       </div>
   </div>
-
-<div class="row">
-  <table id="plan-table" class="table" style="border: none!important;">
-    <tbody>
-
-    </tbody>
-  </table>
-</div>
-
 </section>
 {% endverbatim %}
