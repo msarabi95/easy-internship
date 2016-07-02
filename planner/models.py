@@ -169,7 +169,7 @@ class Internship(models.Model):
                 current_request_dict = {
                     "id": current_request.id,
                     "label": current_request.__unicode__(),
-                }
+                } if current_request else None
 
                 request_history_dict = [{
                     "id": request.id,
