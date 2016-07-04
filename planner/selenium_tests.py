@@ -1,12 +1,14 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+from django.utils import timezone
 from month import Month
 from planner.test_factories import UserFactory, ProfileFactory, InternFactory, InternshipFactory, RotationFactory, \
-    RotationRequestFactory
+    RotationRequestFactory, RotationRequestResponseFactory
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.wait import WebDriverWait
 
 
 class SeleniumTestCase(StaticLiveServerTestCase):
@@ -14,6 +16,15 @@ class SeleniumTestCase(StaticLiveServerTestCase):
     def setUpClass(cls):
         super(SeleniumTestCase, cls).setUpClass()
         cls.browser = webdriver.Firefox()
+
+    @classmethod
+    def tearDownClass(cls):
+        # logs = cls.browser.get_log("browser")
+        # for entry in logs:
+        #     print entry['timestamp'], entry['level'], entry['message']
+
+        # cls.browser.quit()
+        super(SeleniumTestCase, cls).tearDownClass()
 
     def setUp(self):
         self.internship1 = InternshipFactory()
@@ -26,23 +37,38 @@ class SeleniumTestCase(StaticLiveServerTestCase):
         self.user1.save()
 
         # Prepare 5 states
+
+        # Note: To make data consistent, a rotation request and approval response is created for each
+        #       rotation; and these are grouped in an "old" submitted plan request.
+
         # (1) Unoccupied month
         #     <-- Nothing. Will use 2016, 8 as testing month. -->
 
         # (2) Occupied month
+        self.rr2 = RotationRequestFactory(plan_request__internship=self.internship1, month=Month(2016, 9))
+        self.rrr2 = RotationRequestResponseFactory(rotation_request=self.rr2, is_approved=True)
         self.r2 = RotationFactory(internship=self.internship1, month=Month(2016, 9))
+
+        self.old_pr = self.rr2.plan_request
+        self.old_pr.is_submitted = True
+        self.old_pr.submission_datetime = timezone.now()
+        self.old_pr.save()
 
         # (3) Requested Unoccupied month
         self.rr3 = RotationRequestFactory(plan_request__internship=self.internship1, month=Month(2016, 11))
         self.pr = self.rr3.plan_request
 
         # (4.a) Requested Occupied month (update request)
+        self.rr4a = RotationRequestFactory(plan_request=self.old_pr, month=Month(2016, 12))
+        self.rrr4a = RotationRequestResponseFactory(rotation_request=self.rr4a, is_approved=True)
         self.r4a = RotationFactory(internship=self.internship1, month=Month(2016, 12))
-        self.rr4a = RotationRequestFactory(plan_request=self.pr, month=Month(2016, 12))
+        self.rr4a_new = RotationRequestFactory(plan_request=self.pr, month=Month(2016, 12))
 
         # (4.b) Requested Occupied month (cancellation request)
+        self.rr4b = RotationRequestFactory(plan_request=self.old_pr, month=Month(2017, 2))
+        self.rrr4b = RotationRequestResponseFactory(rotation_request=self.rr4b, is_approved=True)
         self.r4b = RotationFactory(internship=self.internship1, month=Month(2017, 2))
-        self.rr4b = RotationRequestFactory(plan_request=self.pr, month=Month(2017, 2), delete=True)
+        self.rr4b_new = RotationRequestFactory(plan_request=self.pr, month=Month(2017, 2), delete=True)
 
         # Login test user
 
@@ -61,11 +87,6 @@ class SeleniumTestCase(StaticLiveServerTestCase):
         self.browser.implicitly_wait(0.5)
 
         self.months = self.browser.find_elements_by_css_selector(".internship-month")
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.browser.quit()
-        super(SeleniumTestCase, cls).tearDownClass()
 
     def assertElementPresent(self, value, by=None, container=None):
         if container is None:
@@ -150,8 +171,8 @@ class SeleniumTestCase(StaticLiveServerTestCase):
         req_btn.click()
         self.assertIn("box-warning", month4a.get_attribute("class"))
         self.assertIn("btn-warning", month4a.find_element_by_tag_name("button").get_attribute("class"))
-        self.assertIn(self.rr4a.requested_department.get_department().hospital.name, month4a.text)
-        self.assertIn(self.rr4a.requested_department.get_department().name, month4a.text)
+        self.assertIn(self.rr4a_new.requested_department.get_department().hospital.name, month4a.text)
+        self.assertIn(self.rr4a_new.requested_department.get_department().name, month4a.text)
 
         self.assertElementPresent("a", container=month4a)
         current_btn = month4a.find_element_by_css_selector("a")
@@ -278,11 +299,11 @@ class SeleniumTestCase(StaticLiveServerTestCase):
         self.assertElementPresent(".timeline", container=tab_content)
         timeline = tab_content.find_element_by_css_selector(".timeline")
 
-        self.assertEqual(len(timeline.find_elements_by_css_selector("li")), 1)
+        self.assertEqual(len(timeline.find_elements_by_css_selector("li")), 2)
 
         history_entry1 = timeline.find_elements_by_css_selector("li")[0]
-        self.assertIn(self.r2.department.name, history_entry1.text)  # FIXME: should be based on a RotationRequest
-        self.assertElementPresent(".fa .fa-check .bg-green", container=history_entry1)
+        self.assertIn(self.rr2.requested_department.get_department().name, history_entry1.text)
+        self.assertElementPresent(".fa.fa-check.bg-green", container=history_entry1)
 
         # TODO: Assert presence of request and review date tooltips + request date
 
@@ -309,32 +330,32 @@ class SeleniumTestCase(StaticLiveServerTestCase):
         tab_content = modal.find_element_by_css_selector(".tab-content")
 
         self.assertIn(self.rr3.specialty.name, tab_content.text)
-        self.assertIn(self.rr3.department.hospital.name, tab_content.text)
-        self.assertIn(self.rr3.department.name, tab_content.text)
-        # self.assertIn(self.rr3.plan_request.submission_datetime.strftime("%d %B %Y"), tab_content.text)
-        # FIXME: Testing datetime should only be done on a submitted plan request! (Otherwise no date will be there.)
+        self.assertIn(self.rr3.requested_department.get_department().hospital.name, tab_content.text)
+        self.assertIn(self.rr3.requested_department.get_department().name, tab_content.text)
+        self.assertIn("Not submitted", tab_content.text)  # Submission date
 
         if self.rr3.specialty.is_subspecialty():
             self.assertIn(self.rr3.specialty.get_general_specialty().name, tab_content.text)
-            self.assertIn(self.rr3.department.parent_department.name, tab_content.text)
+            self.assertIn(self.rr3.requested_department.get_department().parent_department.name, tab_content.text)
 
         # TODO: Test clicking "Update Request" button. It should show request edit form.
 
         request_history_tab = modal.find_element_by_css_selector("[index=\"'request-history'\"]")
         request_history_tab.click()
 
-        self.assertElementPresent(".timeline", container=tab_content)
-        timeline = tab_content.find_element_by_css_selector(".timeline")
+        # self.assertElementPresent(".timeline", container=tab_content)
+        # timeline = tab_content.find_element_by_css_selector(".timeline")
+        #
+        # self.assertEqual(len(timeline.find_elements_by_css_selector("li")), 2)
+        #
+        # history_entry1 = timeline.find_elements_by_css_selector("li")[0]
+        # self.assertIn(self.rr3.requested_department.get_department().name, history_entry1.text)
+        # self.assertElementPresent(".fa.fa-clock-o.bg-yellow", container=history_entry1)
+        #
+        # self.assertElementPresent("[title='Pending']", container=history_entry1)
+        # self.assertElementPresent("[title='Requested: %s']" % "Not submitted", container=history_entry1)
 
-        self.assertEqual(len(timeline.find_elements_by_css_selector("li")), 1)
-
-        history_entry1 = timeline.find_elements_by_css_selector("li")[0]
-        self.assertIn(self.rr3.requested_department.get_department().name, history_entry1.text)
-        self.assertElementPresent(".fa .fa-clock-o .bg-yellow", container=history_entry1)
-
-        self.assertElementPresent("[title='Pending']", container=history_entry1)
-        self.assertElementPresent("[title='Requested %s']" % self.rr3.plan_request.submission_datetime \
-                                  .strftime("%d %B %Y"), container=history_entry1)
+        self.assertIn("No request history for this month.", tab_content.text)
 
         modal.find_element_by_css_selector("[data-dismiss='modal']").click()
 
@@ -372,15 +393,14 @@ class SeleniumTestCase(StaticLiveServerTestCase):
         rotation_request_tab = modal.find_element_by_css_selector("[index=\"'rotation-request'\"]")
         rotation_request_tab.click()
 
-        self.assertIn(self.rr4a.specialty.name, tab_content.text)
-        self.assertIn(self.rr4a.department.hospital.name, tab_content.text)
-        self.assertIn(self.rr4a.department.name, tab_content.text)
-        # self.assertIn(self.rr4a.plan_request.submission_datetime.strftime("%d %B %Y"), tab_content.text)
-        # FIXME: Testing datetime should only be done on a submitted plan request! (Otherwise no date will be there.)
+        self.assertIn(self.rr4a_new.specialty.name, tab_content.text)
+        self.assertIn(self.rr4a_new.requested_department.get_department().hospital.name, tab_content.text)
+        self.assertIn(self.rr4a_new.requested_department.get_department().name, tab_content.text)
+        self.assertIn("Not submitted", tab_content.text)
 
-        if self.rr4a.specialty.is_subspecialty():
-            self.assertIn(self.rr4a.specialty.get_general_specialty().name, tab_content.text)
-            self.assertIn(self.rr4a.department.parent_department.name, tab_content.text)
+        if self.rr4a_new.specialty.is_subspecialty():
+            self.assertIn(self.rr4a_new.specialty.get_general_specialty().name, tab_content.text)
+            self.assertIn(self.rr4a_new.requested_department.get_department().parent_department.name, tab_content.text)
 
         # TODO: Test clicking "Update Request" button. It should show request edit form.
         # self.assertElementPresent("form", container=tab_content)
@@ -393,15 +413,15 @@ class SeleniumTestCase(StaticLiveServerTestCase):
 
         self.assertEqual(len(timeline.find_elements_by_css_selector("li")), 2)
 
-        history_entry1 = timeline.find_elements_by_css_selector("li")[0]
-        self.assertIn(self.rr4a.requested_department.get_department().name, history_entry1.text)
-        self.assertElementPresent(".fa .fa-clock-o .bg-yellow", container=history_entry1)
+        # history_entry1 = timeline.find_elements_by_css_selector("li")[0]
+        # self.assertIn(self.rr4a_new.requested_department.get_department().name, history_entry1.text)
+        # self.assertElementPresent(".fa.fa-clock-o.bg-yellow", container=history_entry1)
 
         # TODO: Assert presence of request and review date tooltips + request date
 
-        history_entry2 = timeline.find_elements_by_css_selector("li")[1]
-        self.assertIn(self.r4a.department.name, history_entry2.text)
-        self.assertElementPresent(".fa .fa-check .bg-green", container=history_entry2)
+        history_entry1 = timeline.find_elements_by_css_selector("li")[0]
+        self.assertIn(self.rr4a.requested_department.get_department().name, history_entry1.text)
+        self.assertElementPresent(".fa.fa-check.bg-green", container=history_entry1)
 
         # TODO: Assert presence of request and review date tooltips + request date
 
@@ -442,8 +462,7 @@ class SeleniumTestCase(StaticLiveServerTestCase):
         rotation_request_tab.click()
 
         self.assertIn("You have requested cancellation of this rotation.", tab_content.text)
-        # self.assertIn(self.rr4b.plan_request.submission_datetime.strftime("%d %B %Y"), tab_content.text)
-        # FIXME: Testing datetime should only be done on a submitted plan request! (Otherwise no date will be there.)
+        self.assertIn("Not submitted", tab_content.text)
 
         # TODO: Test clicking "Update Request" button. It should show request edit form.
         # self.assertElementPresent("form", container=tab_content)
@@ -456,15 +475,15 @@ class SeleniumTestCase(StaticLiveServerTestCase):
 
         self.assertEqual(len(timeline.find_elements_by_css_selector("li")), 2)
 
-        history_entry1 = timeline.find_elements_by_css_selector("li")[0]
-        self.assertIn("Cancel Rotation", history_entry1.text)
-        self.assertElementPresent(".fa .fa-clock-o .bg-yellow", container=history_entry1)
+        # history_entry1 = timeline.find_elements_by_css_selector("li")[0]
+        # self.assertIn("Cancel Rotation", history_entry1.text)
+        # self.assertElementPresent(".fa.fa-clock-o.bg-yellow", container=history_entry1)
 
         # TODO: Assert presence of request and review date tooltips + request date
 
-        history_entry2 = timeline.find_elements_by_css_selector("li")[1]
-        self.assertIn(self.r4b.department.name, history_entry2.text)
-        self.assertElementPresent(".fa .fa-check .bg-green", container=history_entry2)
+        history_entry1 = timeline.find_elements_by_css_selector("li")[0]
+        self.assertIn(self.rr4b.requested_department.get_department().name, history_entry1.text)
+        self.assertElementPresent(".fa.fa-check.bg-green", container=history_entry1)
 
         # TODO: Assert presence of request and review date tooltips + request date
 

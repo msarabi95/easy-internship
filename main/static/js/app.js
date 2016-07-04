@@ -3,6 +3,13 @@
  */
 var app = angular.module("easyInternship", ["djng.urls", "djng.rmi", "ngRoute", "ui.bootstrap"]);
 
+const MonthStatus = {
+    UNOCCUPIED: "Unoccupied",
+    OCCUPIED: "Occupied",
+    REQUESTED_UNOCCUPIED: "RequestedUnoccupied",
+    REQUESTED_OCCUPIED: "RequestedOccupied"
+};
+
 app.config(["$httpProvider", "$routeProvider", "djangoRMIProvider",
     function ($httpProvider, $routeProvider, djangoRMIProvider) {
 
@@ -31,7 +38,6 @@ app.config(["$httpProvider", "$routeProvider", "djangoRMIProvider",
 app.controller("MyCtrl", ["$scope", "djangoUrl", "djangoRMI", "$uibModal", function ($scope, djangoUrl, djangoRMI, $uibModal) {
     djangoRMI.planner.planner_api.get_internship_info()
         .success(function (data) {
-            console.log(data);
             $scope.internshipInfo = data;
         })
         .error(function (message) {
@@ -49,11 +55,6 @@ app.controller("MyCtrl", ["$scope", "djangoUrl", "djangoRMI", "$uibModal", funct
         });
 
     // TODO: Document following methods
-    $scope.hasRotationOrRequest = function (monthIndex) {
-        var month = $scope.months[monthIndex];
-        return !!(month.currentRotation != null || month.currentRequest != null);
-    };
-
     $scope.hasRotation = function (monthIndex) {
         var month = $scope.months[monthIndex];
         return (month.currentRotation != null);
@@ -64,38 +65,69 @@ app.controller("MyCtrl", ["$scope", "djangoUrl", "djangoRMI", "$uibModal", funct
         return (month.currentRequest != null);
     };
 
-    $scope.rotationViewUnoccupied = function (monthIndex) {
-        var month = $scope.months[monthIndex];
+    // Month status checkers
+
+    $scope.isUnoccupied = function (monthIndex) {
         return (!$scope.hasRotation(monthIndex) && !$scope.hasRequest(monthIndex));
     };
 
-    $scope.rotationViewOccupied = function (monthIndex) {
+    $scope.isOccupied = function (monthIndex) {
         return ($scope.hasRotation(monthIndex) && !$scope.hasRequest(monthIndex));
+    };
+
+    $scope.isRequestedUnoccupied = function (monthIndex) {
+        return (!$scope.hasRotation(monthIndex) && $scope.hasRequest(monthIndex));
+    };
+
+    $scope.isRequestedOccupied = function (monthIndex) {
+        return ($scope.hasRotation(monthIndex) && $scope.hasRequest(monthIndex));
+    };
+
+    function getMonthStatus(monthIndex) {
+        if ($scope.isUnoccupied(monthIndex)) {
+            return MonthStatus.UNOCCUPIED;
+        } else if ($scope.isOccupied(monthIndex)) {
+            return MonthStatus.OCCUPIED;
+        } else if ($scope.isRequestedUnoccupied(monthIndex)) {
+            return MonthStatus.REQUESTED_UNOCCUPIED;
+        } else if ($scope.isRequestedOccupied(monthIndex)) {
+            return MonthStatus.REQUESTED_OCCUPIED;
+        }
+    }
+
+    // View type checkers
+
+    $scope.rotationViewUnoccupied = function (monthIndex) {
+        return $scope.isUnoccupied(monthIndex);
+    };
+
+    $scope.rotationViewOccupied = function (monthIndex) {
+        return $scope.isOccupied(monthIndex);
     };
 
     $scope.rotationViewReqUnoccupied = function (monthIndex) {
         var month = $scope.months[monthIndex];
-        return (!$scope.hasRotation(monthIndex) && $scope.hasRequest(monthIndex) && month.showRequest != true);
+        return ($scope.isRequestedUnoccupied(monthIndex) && month.showRequest != true);
     };
 
     $scope.requestViewReqUnoccupied = function (monthIndex) {
         var month = $scope.months[monthIndex];
-        return (!$scope.hasRotation(monthIndex) && $scope.hasRequest(monthIndex) && month.showRequest == true);
+        return ($scope.isRequestedUnoccupied(monthIndex) && month.showRequest == true);
     };
 
     $scope.rotationViewReqOccupied= function (monthIndex) {
         var month = $scope.months[monthIndex];
-        return ($scope.hasRotation(monthIndex) && $scope.hasRequest(monthIndex) && month.showRequest != true);
+        return ($scope.isRequestedOccupied(monthIndex) && month.showRequest != true);
     };
 
     $scope.requestViewUpdateReqOccupied = function (monthIndex) {
         var month = $scope.months[monthIndex];
-        return ($scope.hasRotation(monthIndex) && $scope.hasRequest(monthIndex) && month.showRequest == true && month.currentRequest.delete != true);
+        return ($scope.isRequestedOccupied(monthIndex) && month.showRequest == true && month.currentRequest.delete != true);
     };
 
     $scope.requestViewCancelReqOccupied = function (monthIndex) {
         var month = $scope.months[monthIndex];
-        return ($scope.hasRotation(monthIndex) && $scope.hasRequest(monthIndex) && month.showRequest == true && month.currentRequest.delete == true);
+        return ($scope.isRequestedOccupied(monthIndex) && month.showRequest == true && month.currentRequest.delete == true);
     };
 
     $scope.rotationView = function (monthIndex) {
@@ -116,9 +148,17 @@ app.controller("MyCtrl", ["$scope", "djangoUrl", "djangoRMI", "$uibModal", funct
     };
 
     $scope.showModal = function (monthIndex) {
+        var modalTemplates = {};
+        modalTemplates[MonthStatus.UNOCCUPIED] = "partials/planner/modal-unoccupied.html";
+        modalTemplates[MonthStatus.OCCUPIED] = "partials/planner/modal-occupied.html";
+        modalTemplates[MonthStatus.REQUESTED_UNOCCUPIED] = "partials/planner/modal-requested-unoccupied.html";
+        modalTemplates[MonthStatus.REQUESTED_OCCUPIED] = "partials/planner/modal-requested-occupied.html";
+
+        var template = modalTemplates[getMonthStatus(monthIndex)];
+
         var modalInstance = $uibModal.open({
             animation: true,
-            templateUrl: 'partials/planner/modal.html',
+            templateUrl: template,
             controller: 'ModalInstanceCtrl',
             resolve: {
                 'month': $scope.months[monthIndex]

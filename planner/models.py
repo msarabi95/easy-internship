@@ -153,8 +153,19 @@ class Internship(models.Model):
 
             current_rotation_dict = {
                 "id": current_rotation.id,
-                "label": current_rotation.department.__unicode__(),  # FIXME: change to department name
+                "specialty": current_rotation.specialty.get_general_specialty().name,
+                "subSpecialty": current_rotation.specialty.name if current_rotation.specialty.is_subspecialty() else "-",
+                "department": current_rotation.department.parent_department.name
+                            if current_rotation.department.parent_department
+                            else current_rotation.department.name,
+                "section": current_rotation.department.name if current_rotation.department.parent_department else "-",
                 "hospital": current_rotation.department.hospital.name,
+                "submitDate": RotationRequest.objects.filter(month=current_rotation.month,
+                                                             response__is_approved=True).last()
+                                                            .plan_request.submission_datetime.strftime("%-d %B %Y"),
+                "reviewDate": RotationRequest.objects.filter(month=current_rotation.month,
+                                                             response__is_approved=True).last()
+                                                            .response.response_datetime.strftime("%-d %B %Y"),
             } if current_rotation else None
 
             rotation_history_dict = [{
@@ -162,21 +173,42 @@ class Internship(models.Model):
                 "label": rotation.department.__unicode__(),
             } for rotation in rotation_history]
 
-            if self.plan_requests.current():
-                current_request = self.plan_requests.current().rotation_requests.filter(month=month).first()
+            if self.plan_requests.current():  # FIXME: reconsider?
+                current_request = self.plan_requests.current().rotation_requests.filter(month=month, response__isnull=True).first()
                 request_history = RotationRequest.objects.filter(plan_request__internship=self, month=month) \
-                    .exclude(plan_request=self.plan_requests.current())
+                    .exclude(plan_request=self.plan_requests.current(), response__isnull=True)
 
                 current_request_dict = {
                     "id": current_request.id,
-                    "label": current_request.__unicode__(),  # FIXME: change to department name
-                    "hospital": current_request.requested_department.get_department().hospital.name,
                     "delete": current_request.delete,
+                    "specialty": current_request.specialty.get_general_specialty().name,
+                    "subSpecialty": current_request.specialty.name if current_request.specialty.is_subspecialty() else "-",
+                    "department": current_request.requested_department.get_department().parent_department.name
+                                if current_request.requested_department.get_department().parent_department
+                                else current_request.requested_department.get_department().name,
+                    "section": current_request.requested_department.get_department().parent_department.name
+                                if current_request.requested_department.get_department().parent_department
+                                else "-",
+                    "hospital": current_request.requested_department.get_department().hospital.name,
+                    "date": current_request.plan_request.submission_datetime.strftime("%-d %B %Y")
+                                if current_request.plan_request.is_submitted else "Not submitted",
+
+
                 } if current_request else None
 
                 request_history_dict = [{
                     "id": request.id,
-                    "label": request.__unicode__(),
+                    "delete": request.delete,
+                    "department": request.requested_department.get_department().__unicode__(),
+                    "shortDate": request.plan_request.submission_datetime.strftime("%-d %B")
+                                if request.plan_request.is_submitted else "Not submitted",
+                    "fullDate": request.plan_request.submission_datetime.strftime("%-d %B %Y")
+                                if request.plan_request.is_submitted else "Not submitted",
+                    "reviewed": request.get_status() == RotationRequest.REVIEWED_STATUS,
+                    "approved": request.response.is_approved
+                                if request.get_status() == RotationRequest.REVIEWED_STATUS else False,
+                    "reviewDate": request.response.response_datetime.strftime("%-d %B %Y")
+                                if request.get_status() == RotationRequest.REVIEWED_STATUS else "Pending",
                 } for request in request_history]
 
             else:
@@ -248,9 +280,7 @@ class Rotation(models.Model):
 class PlanRequestManager(models.Manager):
     def current(self):
         if self.open().exists():
-            return self.get(is_closed=False)
-            # This can tolerate only one open plan request, whether submitted or not
-            # and will throw an error if multiple open requests exist
+            return self.filter(is_submitted=False).last()
         else:
             return None
 
@@ -286,7 +316,7 @@ class PlanRequest(models.Model):
                      month=request.month,
                      department=request.requested_department.get_department(),
                      specialty=request.specialty)
-            
+
             for request in self.rotation_requests.filter(delete=False)
         ]
 
@@ -311,7 +341,7 @@ class PlanRequest(models.Model):
         predicted._prefetched_objects_cache = {'rotations': qs}
 
         return predicted
-        
+
     def clean(self):
         """
         Checks 3 conditions:

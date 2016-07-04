@@ -39,18 +39,18 @@
                   <h4 ng-if="!hasRotation(i)"><b>No current rotation.</b></h4>
 
                   <h5 ng-if="hasRotation(i)">{{ months[i].currentRotation.hospital }}</h5>
-                  <h4 ng-if="hasRotation(i)"><b>{{ months[i].currentRotation.label }}</b></h4>
+                  <h4 ng-if="hasRotation(i)"><b>{{ months[i].currentRotation.department }}</b></h4>
                 </div>
 
                 <div class="col-xs-12" ng-if="requestView(i)">
                   <h5 ng-if="!requestViewCancelReqOccupied(i)">{{ months[i].currentRequest.hospital }}</h5>
-                  <h4 ng-if="!requestViewCancelReqOccupied(i)"><b>{{ months[i].currentRequest.label }}</b></h4>
+                  <h4 ng-if="!requestViewCancelReqOccupied(i)"><b>{{ months[i].currentRequest.department }}</b></h4>
 
                   <h4 ng-if="requestViewCancelReqOccupied(i)"><b>You have requested cancellation of this rotation.</b></h4>
                 </div>
             </div><!-- /.box-body -->
             <div class="box-footer">
-                <button type="button" class="btn btn-block btn-flat"
+                <button type="button" class="btn btn-block btn-flat" ng-click="showModal(i)"
                         ng-class="{'btn-default': rotationViewUnoccupied(i) || rotationViewReqUnoccupied(i), 'btn-primary': rotationViewOccupied(i) || rotationViewReqOccupied(i), 'btn-warning': requestViewReqUnoccupied(i) || requestViewUpdateReqOccupied(i), 'btn-danger': requestViewCancelReqOccupied(i)}">More Info</button>
                 <a ng-if="hasRequest(i)" ng-click="toggleShowRequest(i)" href="">
                   <span ng-if="rotationView(i)" class="badge bg-yellow" style="width:100%; margin-top: 10px;">Show Requested</span>

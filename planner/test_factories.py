@@ -3,7 +3,7 @@ from accounts.models import Profile, Intern
 from django.contrib.auth.models import User
 from month import Month
 from planner.models import Rotation, Internship, Hospital, Department, Specialty, PlanRequest, RotationRequest, \
-    RequestedDepartment
+    RequestedDepartment, RotationRequestResponse, RotationRequestForward, RotationRequestForwardResponse
 
 
 class InternFactory(factory.django.DjangoModelFactory):
@@ -125,6 +125,33 @@ class RotationRequestFactory(factory.django.DjangoModelFactory):
     requested_department = factory.SubFactory("planner.test_factories.RequestedDepartmentFactory",
                                               rotation_request=None)
     specialty = factory.LazyAttribute(lambda obj: obj.requested_department.get_department().specialty)
+
+
+class RotationRequestResponseFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = RotationRequestResponse
+
+    rotation_request = factory.SubFactory("planner.test_factories.RotationRequestFactory")
+    is_approved = True
+    comments = ""
+
+
+class RotationRequestForwardFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = RotationRequestForward
+
+    rotation_request = factory.SubFactory("planner.test_factories.RotationRequestFactory")
+
+
+class RotationRequestForwardResponseFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = RotationRequestForwardResponse
+
+    forward = factory.SubFactory("planner.test_factories.RotationRequestForwardFactory")
+    is_approved = True
+    response_memo = ""
+    comments = ""
+    respondent_name = factory.Faker("name")
 
 
 class RequestedDepartmentFactory(factory.django.DjangoModelFactory):
