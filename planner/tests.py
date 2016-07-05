@@ -10,6 +10,9 @@ from month import Month
 from planner.models import Specialty, Department, Hospital, SeatAvailability, Internship, Rotation, PlanRequest, \
     RotationRequest, RequestedDepartment, RotationRequestResponse, RotationRequestForward, \
     RotationRequestForwardResponse
+from planner.test_factories import InternshipFactory, HospitalFactory, DepartmentFactory, SpecialtyFactory, \
+    RotationRequestFactory
+from planner.views import PlannerAPI
 
 
 class UnifiedSetUpMixin(object):
@@ -671,3 +674,100 @@ class RotationRequestForwardTests(UnifiedSetUpMixin, TestCase):
 
         # An error should be raised if responding is attempted for a forward that's already been responded to
         self.assertRaises(Exception, self.forward1.respond, True)
+
+
+class PlannerAPITests(TestCase):
+    def setUp(self):
+        DepartmentFactory()  # Create a department, a hospital, and a specialty
+        self.internship = InternshipFactory()
+        self.api = PlannerAPI()
+
+        class MockRequest:
+            def __init__(self, user=None):
+                self.user = user
+
+        self.api.request = MockRequest(user=self.internship.intern.profile.user)
+
+    def test_create_request(self):
+        month = int(Month(2016, 9))
+        request_data = {
+            'specialtyID': 1,
+            'requested_department': {
+                'departmentID': 1,
+                'department_hospitalID': None,
+                'department_name': "",
+                'department_specialtyID': None,
+                'department_contact_name': "",
+                'department_email': "",
+                'department_phone': "",
+                'department_extension': "",
+            },
+            'delete': False,
+        }
+
+        self.api.create_request(month, request_data)
+
+        self.assertTrue(self.internship.plan_requests.exists())
+        self.assertTrue(self.internship.plan_requests.last().rotation_requests.filter(month=Month.from_int(month)).exists())
+
+        month2 = int(Month(2016, 10))
+        request_data2 = {
+            'specialtyID': 1,
+            'requested_department': {
+                'departmentID': None,
+                'department_hospitalID': 1,
+                'department_name': "Department of Whatever",
+                'department_specialtyID': 1,
+                'department_contact_name': "Whoever",
+                'department_email': "dept@example.com",
+                'department_phone': "123",
+                'department_extension': "123",
+            },
+            'delete': False,
+        }
+
+        self.api.create_request(month2, request_data2)
+
+        self.assertEqual(self.internship.plan_requests.count(), 1)
+        self.assertTrue(self.internship.plan_requests.last().rotation_requests.filter(
+            month=Month.from_int(month2)
+        ).exists())
+
+        rr = self.internship.plan_requests.last().rotation_requests.get(month=Month.from_int(month2))
+        self.assertEqual(rr.requested_department.get_department().name, "Department of Whatever")
+
+    def test_update_request(self):
+        raw_month = Month(2016, 11)
+        month = int(raw_month)
+        self.rr = RotationRequestFactory(plan_request__internship=self.internship, month=raw_month)
+
+        request_data = {
+            'specialtyID': 1,
+            'requested_department': {
+                'departmentID': 1,
+                'department_hospitalID': None,
+                'department_name': "",
+                'department_specialtyID': None,
+                'department_contact_name': "",
+                'department_email': "",
+                'department_phone': "",
+                'department_extension': "",
+            },
+            'delete': True,
+        }
+
+        self.api.update_request(month, request_data)
+
+        self.rr.refresh_from_db()
+        self.assertTrue(self.rr.delete)
+
+    def test_delete_request(self):
+        raw_month = Month(2016, 12)
+        month = int(raw_month)
+        self.rr = RotationRequestFactory(plan_request__internship=self.internship, month=raw_month)
+
+        self.assertIn(self.rr, RotationRequest.objects.all())
+
+        self.api.delete_request(month)
+
+        self.assertNotIn(self.rr, RotationRequest.objects.all())

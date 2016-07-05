@@ -23,7 +23,7 @@ class SeleniumTestCase(StaticLiveServerTestCase):
         # for entry in logs:
         #     print entry['timestamp'], entry['level'], entry['message']
 
-        # cls.browser.quit()
+        cls.browser.quit()
         super(SeleniumTestCase, cls).tearDownClass()
 
     def setUp(self):
