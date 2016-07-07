@@ -29,10 +29,18 @@
 
 <div class="row"><!-- TODO: Test for the presence of these buttons -->
     <div class="col-md-9" style="padding-right: 3px;">
-        <button class="btn btn-block btn-flat btn-warning">Update Request</button>
+        <button class="btn btn-block btn-flat" ng-class="{'btn-warning': !showUpdateForm, 'btn-default': showUpdateForm}" ng-click="toggleUpdateForm()">
+          <span ng-if="!showUpdateForm">Update Request</span>
+          <span ng-if="showUpdateForm">Back</span>
+        </button>
     </div>
     <div class="col-md-3" style="padding-left: 3px;">
-        <button class="btn btn-block btn-flat btn-danger">Cancel Request</button>
+        <button class="btn btn-block btn-flat btn-danger" ng-if="!showDeleteConfirm" ng-click="toggleDeleteConfirm()">Cancel Request</button>
+        <button class="btn btn-block btn-flat btn-warning" ng-if="showDeleteConfirm" ng-click="deleteRequest()">Confirm</button>
     </div>
+</div>
+<div ng-if="showUpdateForm">
+  <br>
+  <ng-include src="'partials/planner/modal-parts/new-rotation-request.html'"></ng-include>
 </div>
 {% endverbatim %}

@@ -48,21 +48,36 @@ class PlannerAPI(JSONResponseMixin, View):
         return hospitals
 
     @allow_remote_invocation
-    def create_request(self, month, request_data):
+    def get_specialties_list(self):
+        return [{
+            "id": specialty.id,
+            "name": specialty.name,
+        } for specialty in Specialty.objects.all()]
+
+    @allow_remote_invocation
+    def create_request(self, request_data):
         """
         NOTE: This method assumes that no intern will submit more than one plan request at a time.
         """
+        print request_data
         # FIXME: Creating multiple requests for the same month should be prevented (at db level)
         # Get or create a plan request
         internship = self.request.user.profile.intern.internship
         plan_request = internship.plan_requests.unsubmitted().last() or internship.plan_requests.create()
 
-        _dept_data = request_data['requested_department']
+        month = request_data.pop("month")
 
-        if _dept_data['departmentID'] is not None:
+        try:
+            _dept_data = request_data['requested_department']
+        except KeyError:
+            # The following assumes that the current month has a rotation (and only one rotation)
+            current_dept = internship.rotations.filter(month=Month.from_int(month)).last().department
+            request_data['departmentID'] = current_dept.id
+
+        if int(request_data['departmentID']) != -1:
             requested_dept_data = {
                 'is_in_database': True,
-                'department': Department.objects.get(pk=_dept_data['departmentID'])
+                'department': Department.objects.get(pk=request_data['departmentID'])
             }
         else:
             requested_dept_data = {
@@ -79,7 +94,9 @@ class PlannerAPI(JSONResponseMixin, View):
 
         plan_request.rotation_requests.create(
             month=Month.from_int(month),
-            specialty=Specialty.objects.get(pk=request_data['specialtyID']),
+            specialty=requested_dept_data['department'].specialty
+                        if 'department' in requested_dept_data
+                        else requested_dept_data['department_specialty'],
             requested_department=RequestedDepartment.objects.create(**requested_dept_data),
             delete=request_data['delete'],
         )
@@ -87,23 +104,34 @@ class PlannerAPI(JSONResponseMixin, View):
         return True
 
     @allow_remote_invocation
-    def update_request(self, month, request_data):
+    def update_request(self, request_data):
         """
         NOTE: This method assumes that no intern will submit more than one plan request at a time.
         """
+        print request_data
         # Get last plan request
         internship = self.request.user.profile.intern.internship
         plan_request = internship.plan_requests.unsubmitted().last()
 
+        month = request_data.pop("month")
         rotation_request = plan_request.rotation_requests.get(month=Month.from_int(month))
 
-        _dept_data = request_data['requested_department']
+        print rotation_request.requested_department.get_department()
 
-        if _dept_data['departmentID'] is not None:
+        try:
+            _dept_data = request_data['requested_department']
+        except KeyError:
+            # The following assumes that the current month has a rotation (and only one rotation)
+            current_dept = internship.rotations.filter(month=Month.from_int(month)).last().department
+            request_data['departmentID'] = current_dept.id
+
+        if int(request_data['departmentID']) != -1:
             requested_dept_data = {
                 'is_in_database': True,
-                'department': Department.objects.get(pk=_dept_data['departmentID'])
+                'department': Department.objects.get(pk=request_data['departmentID'])
             }
+
+            print requested_dept_data['department']
         else:
             requested_dept_data = {
                 'is_in_database': False,
@@ -117,23 +145,33 @@ class PlannerAPI(JSONResponseMixin, View):
             del requested_dept_data['department_hospitalID']
             del requested_dept_data['department_specialtyID']
 
-        rotation_request.specialty = Specialty.objects.get(pk=request_data['specialtyID'])
+        rotation_request.specialty = requested_dept_data['department'].specialty\
+                                     if 'department' in requested_dept_data\
+                                     else requested_dept_data['department_specialty']
         rotation_request.delete = request_data['delete']
         rotation_request.save()
 
-        rotation_request.requested_department.__dict__.update(**requested_dept_data)
-        rotation_request.requested_department.save()
+        requested_dept = rotation_request.requested_department
+        for (attr, value) in requested_dept_data.items():
+            setattr(requested_dept, attr, value)
+        requested_dept.save()
+
+        print requested_dept.get_department()
+
+        print rotation_request.requested_department.get_department()
 
         return True
 
     @allow_remote_invocation
-    def delete_request(self, month):
+    def delete_request(self, request_data):
         """
         NOTE: This method assumes that no intern will submit more than one plan request at a time.
         """
         # Get last plan request
         internship = self.request.user.profile.intern.internship
         plan_request = internship.plan_requests.unsubmitted().last()
+
+        month = request_data.pop("month")
 
         # rotation_request = plan_request.rotation_requests.get(month=month)
         # rotation_request.delete()

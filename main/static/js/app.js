@@ -45,14 +45,29 @@ app.controller("MyCtrl", ["$scope", "djangoUrl", "djangoRMI", "$uibModal", funct
             console.log(message);
         });
 
-    djangoRMI.planner.planner_api.get_possible_months()
-        .success(function (data) {
-            $scope.months = data;
-        })
-        .error(function (message) {
-            // TODO: show an error notification
-            console.log(message);
-        });
+    function loadMonths() {
+        djangoRMI.planner.planner_api.get_possible_months()
+            .success(function (data) {
+                if ($scope.months != undefined) {
+
+                    // Preserve the value of the show request flag
+                    for (var i = 0; i < data.length; i++) {
+                        data[i].showRequest = $scope.months[i].showRequest;
+
+                        $scope.months[i] = data[i];
+                    }
+
+                } else {
+                    $scope.months = data;
+                }
+            })
+            .error(function (message) {
+                // TODO: show an error notification
+                console.log(message);
+            });
+    }
+
+    loadMonths();
 
     // TODO: Document following methods
     $scope.hasRotation = function (monthIndex) {
@@ -166,7 +181,51 @@ app.controller("MyCtrl", ["$scope", "djangoUrl", "djangoRMI", "$uibModal", funct
         });
 
         modalInstance.result.then(function (result) {
-            console.log(result);
+            
+            var jobType = result.jobType;
+            var requestData = result.requestData || {};
+            
+            requestData.month = $scope.months[monthIndex].month;
+
+            console.log(requestData);
+
+            requestData.delete = requestData.delete === 'true';
+
+            console.log(requestData);
+
+            if (jobType == "create") {
+                //requestData.delete = false;  // FIXME
+
+                djangoRMI.planner.planner_api.create_request(requestData)
+                    .success(function (response) {
+                        console.log("SUCCESS!");
+                        loadMonths();
+                    })
+                    .error(function (message) {
+                        console.log(message);
+                    });
+            } else if (jobType == "update") {
+                //requestData.delete = false;  // FIXME
+
+                djangoRMI.planner.planner_api.update_request(requestData)
+                    .success(function (response) {
+                        console.log("SUCCESS!");
+                        loadMonths();
+                    })
+                    .error(function (message) {
+                        console.log(message);
+                    });
+
+            } else if (jobType == "delete") {
+                djangoRMI.planner.planner_api.delete_request(requestData)
+                    .success(function (response) {
+                        console.log("SUCCESS!");
+                        loadMonths();
+                    })
+                    .error(function (message) {
+                        console.log(message);
+                    });
+            }
         }, function () {
             // Well, nothing should be done here...
         });
@@ -186,13 +245,53 @@ app.controller("ModalInstanceCtrl", ["$scope", "djangoRMI", "$uibModalInstance",
 
         });
 
+    djangoRMI.planner.planner_api.get_specialties_list()
+        .success(function (data) {
+            $scope.specialties = data;
+        }).error(function (message) {
+            console.log(message);
+        });
+
     $scope.month = month;
 
+    $scope.chosen = {};
+    $scope.showDeleteConfirm = false;
+
+    $scope.toggleDeleteConfirm = function () {
+        $scope.showDeleteConfirm = !$scope.showDeleteConfirm;
+    };
+
+    $scope.showUpdateForm = false;
+    $scope.toggleUpdateForm = function () {
+        $scope.showUpdateForm = !$scope.showUpdateForm;
+    };
+
     $scope.ok = function () {
-        $uibModalInstance.close("Hooray!");
+        var jobType;
+        if ($scope.showUpdateForm) {
+            jobType = "update";
+        } else {
+            jobType = "create";
+        }
+        var data = {
+            jobType: jobType,
+            requestData: $scope.chosen
+        };
+        $uibModalInstance.close(data);
+    };
+    
+    $scope.deleteRequest = function () {
+        var data = {
+            jobType: "delete"
+        };
+        $uibModalInstance.close(data);
     };
 
     $scope.cancel = function () {
         $uibModalInstance.dismiss('cancel');
+    };
+
+    $scope.dismissDeletePopover = function () {
+        $scope.popoverIsOpen = false;
     }
 }]);
