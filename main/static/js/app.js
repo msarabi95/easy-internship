@@ -36,16 +36,16 @@ app.config(["$httpProvider", "$routeProvider", "djangoRMIProvider",
 }]);
 
 app.controller("MyCtrl", ["$scope", "djangoUrl", "djangoRMI", "$uibModal", function ($scope, djangoUrl, djangoRMI, $uibModal) {
-    djangoRMI.planner.planner_api.get_internship_info()
-        .success(function (data) {
-            $scope.internshipInfo = data;
-        })
-        .error(function (message) {
-            // TODO: show an error notification
-            console.log(message);
-        });
-
     function loadMonths() {
+        djangoRMI.planner.planner_api.get_internship_info()
+            .success(function (data) {
+                $scope.internshipInfo = data;
+            })
+            .error(function (message) {
+                // TODO: show an error notification
+                console.log(message);
+            });
+
         djangoRMI.planner.planner_api.get_possible_months()
             .success(function (data) {
                 if ($scope.months != undefined) {
@@ -68,6 +68,19 @@ app.controller("MyCtrl", ["$scope", "djangoUrl", "djangoRMI", "$uibModal", funct
     }
 
     loadMonths();
+
+    function getMessages() {
+        djangoRMI.planner.planner_api.get_messages()
+            .success(function (data) {
+                console.log(data);
+                $scope.messages = data;
+            })
+            .error(function (message) {
+                console.log(message);
+            });
+    }
+
+    getMessages();
 
     // TODO: Document following methods
     $scope.hasRotation = function (monthIndex) {
@@ -176,7 +189,8 @@ app.controller("MyCtrl", ["$scope", "djangoUrl", "djangoRMI", "$uibModal", funct
             templateUrl: template,
             controller: 'ModalInstanceCtrl',
             resolve: {
-                'month': $scope.months[monthIndex]
+                'month': $scope.months[monthIndex],
+                'submitted': $scope.internshipInfo.currentPlanRequestSubmitted
             }
         });
 
@@ -231,9 +245,22 @@ app.controller("MyCtrl", ["$scope", "djangoUrl", "djangoRMI", "$uibModal", funct
         });
     };
 
+    $scope.submit = function () {
+        djangoRMI.planner.planner_api.submit_plan_request()
+            .success(function (data) {
+                console.log("SUBMITTED? MAYBE.");
+                getMessages();
+                loadMonths();
+            })
+            .error(function (message) {
+                console.log(message);
+            });
+        getMessages();
+    };
+
 }]);
 
-app.controller("ModalInstanceCtrl", ["$scope", "djangoRMI", "$uibModalInstance", "month", function ($scope, djangoRMI, $uibModalInstance, month) {
+app.controller("ModalInstanceCtrl", ["$scope", "djangoRMI", "$uibModalInstance", "month", "submitted", function ($scope, djangoRMI, $uibModalInstance, month, submitted) {
     djangoRMI.planner.planner_api.get_hospitals_list()
         .success(function (data) {
             console.log(data);
@@ -253,6 +280,7 @@ app.controller("ModalInstanceCtrl", ["$scope", "djangoRMI", "$uibModalInstance",
         });
 
     $scope.month = month;
+    $scope.submitted = submitted;
 
     $scope.chosen = {};
     $scope.showDeleteConfirm = false;

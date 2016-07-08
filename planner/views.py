@@ -1,3 +1,5 @@
+from django.contrib import messages
+from django.core.exceptions import ValidationError, PermissionDenied
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
@@ -16,6 +18,16 @@ class PlannerAPI(JSONResponseMixin, View):
     def post(self, request, *args, **kwargs):
         self.request = request
         return super(PlannerAPI, self).post(request, *args, **kwargs)
+
+    @allow_remote_invocation
+    def get_messages(self):
+        return [{
+            'message': message.message,
+            'level': message.level,
+            'tags': message.tags,
+            'extra_tags': message.extra_tags,
+            'level_tag': message.level_tag,
+        } for message in messages.get_messages(self.request)]
 
     @allow_remote_invocation
     def get_internship_info(self):
@@ -63,7 +75,10 @@ class PlannerAPI(JSONResponseMixin, View):
         # FIXME: Creating multiple requests for the same month should be prevented (at db level)
         # Get or create a plan request
         internship = self.request.user.profile.intern.internship
-        plan_request = internship.plan_requests.unsubmitted().last() or internship.plan_requests.create()
+        plan_request = internship.plan_requests.current() or internship.plan_requests.create()
+
+        if plan_request.is_submitted:
+            raise PermissionDenied
 
         month = request_data.pop("month")
 
@@ -111,7 +126,10 @@ class PlannerAPI(JSONResponseMixin, View):
         print request_data
         # Get last plan request
         internship = self.request.user.profile.intern.internship
-        plan_request = internship.plan_requests.unsubmitted().last()
+        plan_request = internship.plan_requests.current()
+
+        if plan_request.is_submitted:
+            raise PermissionDenied
 
         month = request_data.pop("month")
         rotation_request = plan_request.rotation_requests.get(month=Month.from_int(month))
@@ -169,7 +187,10 @@ class PlannerAPI(JSONResponseMixin, View):
         """
         # Get last plan request
         internship = self.request.user.profile.intern.internship
-        plan_request = internship.plan_requests.unsubmitted().last()
+        plan_request = internship.plan_requests.current()
+
+        if plan_request.is_submitted:
+            raise PermissionDenied
 
         month = request_data.pop("month")
 
@@ -178,6 +199,24 @@ class PlannerAPI(JSONResponseMixin, View):
         # FIXME: The following is a workaround to the fact that `delete` field conflicts with the API method `delete()`
 
         plan_request.rotation_requests.filter(month=Month.from_int(month)).delete()
+
+        return True
+
+    @allow_remote_invocation
+    def submit_plan_request(self):
+        # Get last plan request
+        internship = self.request.user.profile.intern.internship
+        plan_request = internship.plan_requests.current()
+
+        try:
+            plan_request.submit()
+            messages.success(self.request, "Your plan request has been successfully submitted.")
+        except (ValidationError, Exception) as e:
+            if isinstance(e, ValidationError):
+                for error in e.messages:
+                    messages.error(self.request, error)
+            else:
+                messages.error(self.request, str(e))
 
         return True
 

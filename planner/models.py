@@ -47,6 +47,9 @@ class Specialty(models.Model):
     def __unicode__(self):
         return self.name
 
+    class Meta:
+        verbose_name_plural = "Specialties"
+
 
 """
 
@@ -133,6 +136,8 @@ class Internship(models.Model):
         return {
             "currentPlanRequest": True if self.plan_requests.current() else False,
             "currentPlanRequestSubmitted": self.plan_requests.current().is_submitted if self.plan_requests.current() else None,
+            "currentPlanRequestSubmitDateTime": self.plan_requests.current().submission_datetime.strftime("%-d %B %Y")
+                                            if self.plan_requests.current() else None,
         }
 
     def get_internship_months(self):
@@ -280,7 +285,7 @@ class Rotation(models.Model):
 class PlanRequestManager(models.Manager):
     def current(self):
         if self.open().exists():
-            return self.filter(is_submitted=False).last()
+            return self.open().last()
         else:
             return None
 
@@ -383,6 +388,8 @@ class PlanRequest(models.Model):
 
             self.is_submitted = True
             self.submission_datetime = timezone.now()
+
+            self.save()
 
             # TODO: send notification?
         else:

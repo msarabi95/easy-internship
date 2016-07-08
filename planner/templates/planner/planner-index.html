@@ -5,15 +5,32 @@
   </h1>
   <br>
 
-  <div class="box box-solid">
-    <div class="box-body">
-
-          Choose your desired general specialty for each of the months below.
-          You have to fill 12 months.
-
-    </div>
+  <div ng-repeat="message in messages" class="callout callout-{{ message.tags }}">
+    <!-- <h4>I am a danger callout!</h4> -->
+    <p>{{ message.message }}</p>
   </div>
 
+
+  <div class="row">
+    <div class="col-md-10">
+      <div class="box box-solid">
+        <div class="box-body" ng-if="!internshipInfo.currentPlanRequestSubmitted">
+
+              Choose your desired general specialty for each of the months below.
+              You have to fill 12 months.
+
+        </div>
+        <div class="box-body" ng-if="internshipInfo.currentPlanRequestSubmitted">
+
+              Your last plan request was submitted on <b><i>{{ internshipInfo.currentPlanRequestSubmitDateTime }}</i></b>.
+
+        </div>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <button style="height: 39px;" class="btn btn-success btn-block pull-right" ng-disabled="internshipInfo.currentPlanRequestSubmitted" ng-class="{'disabled': internshipInfo.currentPlanRequestSubmitted }" ng-click="submit()">Submit</button>
+    </div>
+  </div>
 </section>
 
 <section class="content">
