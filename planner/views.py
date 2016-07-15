@@ -250,5 +250,5 @@ class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
     def forward(self, request):
         pk = request.data.get("id")
         rr = RotationRequest.objects.get(pk=pk)
-        rr.forward()
+        rr.forward_request()
         return Response({"status": RotationRequest.FORWARDED_STATUS})

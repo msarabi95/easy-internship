@@ -2,13 +2,8 @@
 <!-- Content Header (Page header) -->
 <section class="content-header">
   <h1>
-    Mailbox
-    <small>13 new messages</small>
+    Internship Planner
   </h1>
-  <ol class="breadcrumb">
-    <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
-    <li class="active">Mailbox</li>
-  </ol>
 </section>
 
 <!-- Main content -->
@@ -79,7 +74,7 @@
       </div>
       <div class="box box-primary" ng-if="!!selectedPlanRequest">
         <div class="box-header with-border">
-          <h3 class="box-title">Plan Request #{{ selectedPlanRequest.id }} ({{ selectedPlanRequest.intern }})</h3>
+          <h3 class="box-title">Plan Request #{{ selectedPlanRequest.id }} ({{ selectedPlanRequest.intern }}) - Pending Rotation Requests</h3>
           <div class="box-tools pull-right">
           </div><!-- /.box-tools -->
         </div><!-- /.box-header -->
@@ -97,7 +92,7 @@
 
                   <td class="mailbox-date">
                     <button class="btn btn-sm btn-success" data-toggle="tooltip" title="Approve" ng-click="approve(request)"><i class="fa fa-check"></i></button>
-                    <button class="btn btn-sm btn-warning" data-toggle="tooltip" title="Forward"><i class="fa fa-share"></i></button>
+                    <button class="btn btn-sm btn-warning" data-toggle="tooltip" title="Forward" ng-click="forward(request)"><i class="fa fa-share"></i></button>
                     <button class="btn btn-sm btn-danger" data-toggle="tooltip" title="Decline" ng-click="decline(request)"><i class="fa fa-close"></i></button>
                   </td>
                 </tr>
@@ -117,6 +112,63 @@
           </div>
         </div>
       </div><!-- /. box -->
+
+      <div class="box box-success" ng-if="!!selectedPlanRequest">
+        <div class="box-header with-border">
+          <h3 class="box-title">Reviewed Rotation Requests</h3>
+          <div class="box-tools pull-right">
+          </div><!-- /.box-tools -->
+        </div><!-- /.box-header -->
+        <div class="box-body no-padding">
+
+          <div class="table-responsive mailbox-messages">
+            <table class="table table-hover table-striped">
+              <tbody>
+                <tr ng-repeat="request in selectedPlanRequest.rotation_requests | filter: {status: 'R'}">
+                  <td><input type="checkbox"></td>
+
+                  <td class="mailbox-name">{{ request.month }}</td>
+                  <td class="mailbox-subject" ng-if="!request.delete">Update to <b>{{ request.requested_department.name }}</b></td>
+                  <td class="mailbox-subject" ng-if="request.delete">Cancel Rotation</td>
+
+                  <td class="mailbox-date">
+
+                  </td>
+                </tr>
+              </tbody>
+            </table><!-- /.table -->
+          </div><!-- /.mail-box-messages -->
+        </div><!-- /.box-body -->
+      </div><!-- /. box -->
+
+      <div class="box box-warning" ng-if="!!selectedPlanRequest">
+        <div class="box-header with-border">
+          <h3 class="box-title">Forwarded Rotation Requests</h3>
+          <div class="box-tools pull-right">
+          </div><!-- /.box-tools -->
+        </div><!-- /.box-header -->
+        <div class="box-body no-padding">
+
+          <div class="table-responsive mailbox-messages">
+            <table class="table table-hover table-striped">
+              <tbody>
+                <tr ng-repeat="request in selectedPlanRequest.rotation_requests | filter: {status: 'F'}">
+                  <td><input type="checkbox"></td>
+
+                  <td class="mailbox-name">{{ request.month }}</td>
+                  <td class="mailbox-subject" ng-if="!request.delete">Update to <b>{{ request.requested_department.name }}</b></td>
+                  <td class="mailbox-subject" ng-if="request.delete">Cancel Rotation</td>
+
+                  <td class="mailbox-date">
+
+                  </td>
+                </tr>
+              </tbody>
+            </table><!-- /.table -->
+          </div><!-- /.mail-box-messages -->
+        </div><!-- /.box-body -->
+      </div><!-- /. box -->
+
     </div><!-- /.col -->
   </div><!-- /.row -->
 </section><!-- /.content -->

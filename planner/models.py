@@ -6,6 +6,7 @@ from accounts.models import Intern
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.utils import timezone
+from django.utils.crypto import get_random_string
 from month.models import MonthField
 
 
@@ -179,7 +180,9 @@ class Internship(models.Model):
             } for rotation in rotation_history]
 
             if self.plan_requests.current():  # FIXME: reconsider?
-                current_request = self.plan_requests.current().rotation_requests.filter(month=month, response__isnull=True).first()
+                current_request = self.plan_requests.current().rotation_requests.filter(month=month,
+                                                                                        response__isnull=True,
+                                                                                        forward__response__isnull=True).first()
 
                 current_request_dict = {
                     "id": current_request.id,
@@ -203,7 +206,7 @@ class Internship(models.Model):
                 current_request_dict = None
 
             request_history = RotationRequest.objects.filter(plan_request__internship=self, month=month) \
-                .exclude(plan_request=self.plan_requests.current(), response__isnull=True)
+                .exclude(plan_request=self.plan_requests.current(), response__isnull=True, forward__response__isnull=True)
 
             request_history_dict = [{
                 "id": request.id,
@@ -214,9 +217,9 @@ class Internship(models.Model):
                 "fullDate": request.plan_request.submission_datetime.strftime("%-d %B %Y")
                             if request.plan_request.is_submitted else "Not submitted",
                 "reviewed": request.get_status() == RotationRequest.REVIEWED_STATUS,
-                "approved": request.response.is_approved
+                "approved": request.get_response().is_approved
                             if request.get_status() == RotationRequest.REVIEWED_STATUS else False,
-                "reviewDate": request.response.response_datetime.strftime("%-d %B %Y")
+                "reviewDate": request.get_response().response_datetime.strftime("%-d %B %Y")
                             if request.get_status() == RotationRequest.REVIEWED_STATUS else "Pending",
             } for request in request_history]
 
@@ -367,7 +370,7 @@ class PlanRequest(models.Model):
         """
         Returns whether the current plan request has been closed or not.
         """
-        if self.rotation_requests.filter(response__isnull=True).exists():
+        if self.rotation_requests.filter(response__isnull=True, forward__response__isnull=True).exists():
             return False
         else:
             self.is_closed = True
@@ -608,6 +611,8 @@ class RotationRequest(models.Model):
         try:
             self.forward
         except ObjectDoesNotExist:
+            # TODO: Add department to database if it's not there already
+
             RotationRequestForward.objects.create(
                 rotation_request=self,
             )
@@ -615,6 +620,19 @@ class RotationRequest(models.Model):
             # TODO: Notify
         else:
             raise Exception("This rotation request has already been forwarded.")
+
+    def get_response(self):
+        """
+        Return the request response if it exists, or the forward's response if it exists;
+        otherwise raise a RelatedObjectDoesNotExist error.
+        """
+        try:
+            return self.response
+        except ObjectDoesNotExist:
+            try:
+                return self.forward.response
+            except ObjectDoesNotExist:
+                raise ObjectDoesNotExist("RotationRequest has no response or forward response.")
 
     def __unicode__(self):
         return "Request for %s rotation at %s (%s)" % (self.specialty.name,
@@ -636,6 +654,7 @@ class RotationRequestResponse(models.Model):
 
 
 class RotationRequestForward(models.Model):
+    key = models.CharField(max_length=20, unique=True)
     rotation_request = models.OneToOneField(RotationRequest, related_name="forward")
     forward_datetime = models.DateTimeField(auto_now_add=True)
 
@@ -651,9 +670,38 @@ class RotationRequestForward(models.Model):
                 respondent_name=respondent_name,
             )
 
+            # TODO: Test
+            if is_approved:
+                # Remove any previous rotation in the current month
+                self.rotation_request.plan_request.internship.rotations.filter(month=self.rotation_request.month).delete()
+
+                # Unless this is a delete request, add a new rotation object for the current month
+                if not self.rotation_request.delete:
+                    self.rotation_request.plan_request.internship.rotations.create(
+                        month=self.rotation_request.month,
+                        specialty=self.rotation_request.specialty,
+                        department=self.rotation_request.requested_department.get_department(),
+                    )
+
+            # Close the plan request if this is the last rotation request within it
+            self.rotation_request.plan_request.check_closure()
+
             # TODO: Notify
         else:
             raise Exception("This rotation request has already been responded to.")
+
+    def save(self, *args, **kwargs):
+
+        # TODO: Test
+        # Generate a random string to represent
+        if self.key is None or self.key == "":
+            # Choose a unique key for the rotation request forward
+            self.key = get_random_string(length=20)
+
+            while self.__class__.objects.filter(key=self.key).exists():
+                self.key = get_random_string(length=20)
+
+        super(RotationRequestForward, self).save(*args, **kwargs)
 
     def __unicode__(self):
         return "Forward of request #%d" % self.rotation_request.id

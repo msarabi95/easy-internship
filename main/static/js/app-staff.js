@@ -38,7 +38,8 @@ app.factory("PlanRequest", ["$resource", function($resource) {
 app.factory("RotationRequest", ["$resource", function($resource) {
     // Refer to: https://www.sitepoint.com/creating-crud-app-minutes-angulars-resource/
     return $resource('/api/rotation_requests/:id/', {id: '@id'}, {
-      respond: {method:'POST', url: '/api/rotation_requests/respond/'}
+      respond: {method:'POST', url: '/api/rotation_requests/respond/'},
+      forward: {method:'POST', url: '/api/rotation_requests/forward/'}
     });
 }]);
 
@@ -77,6 +78,13 @@ function ($scope, PlanRequest, RotationRequest, $resource) {
 
     $scope.decline = function (rotationRequest) {
         var response = RotationRequest.respond({id: rotationRequest.id, is_approved: false, comments: ""}, function () {
+            rotationRequest.status = response.status;
+            getPlanRequests(); // FIXME: There should be a better way than this
+        });
+    };
+
+    $scope.forward = function (rotationRequest) {
+        var response = RotationRequest.forward({id: rotationRequest.id}, function () {
             rotationRequest.status = response.status;
             getPlanRequests(); // FIXME: There should be a better way than this
         });
