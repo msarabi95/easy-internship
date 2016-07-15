@@ -574,6 +574,7 @@ class RotationRequest(models.Model):
                 comments=comments,
             )
 
+            # TODO: Create rotation object if approved
             # TODO: Notify
         else:
             raise Exception("This rotation request has already been responded to.")

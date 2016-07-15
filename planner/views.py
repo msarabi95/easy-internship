@@ -4,9 +4,14 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.views.generic.base import View
+from planner.serializers import PlanRequestSerializer, RotationRequestSerializer
+from rest_framework import viewsets, permissions
 from djng.views.mixins import allow_remote_invocation, JSONResponseMixin
 from month import Month
-from planner.models import Hospital, RequestedDepartment, Department, Specialty
+from planner.models import Hospital, RequestedDepartment, Department, Specialty, PlanRequest, Internship, \
+    RotationRequest
+from rest_framework.decorators import detail_route, list_route
+from rest_framework.response import Response
 
 
 class PlannerAPI(JSONResponseMixin, View):
@@ -222,3 +227,28 @@ class PlannerAPI(JSONResponseMixin, View):
 
     # def _dispatch_super(self, request, *args, **kwargs):
     #     return HttpResponseRedirect(reverse("redirect_to_index", args=("planner/", )))  # FIXME: harcoded url
+
+
+class PlanRequestViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = PlanRequestSerializer
+    queryset = PlanRequest.objects.all()
+    # permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+
+class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = RotationRequestSerializer
+    queryset = RotationRequest.objects.all()
+
+    @list_route(methods=["post"])
+    def respond(self, request):
+        pk = request.data.get("id")
+        rr = RotationRequest.objects.get(pk=pk)
+        rr.respond(request.data.get("is_approved"), request.data.get("comments", ""))
+        return Response({"status": RotationRequest.REVIEWED_STATUS, "is_approved": request.data.get("is_approved")})
+
+    @list_route(methods=["post"])
+    def forward(self, request):
+        pk = request.data.get("id")
+        rr = RotationRequest.objects.get(pk=pk)
+        rr.forward()
+        return Response({"status": RotationRequest.FORWARDED_STATUS})

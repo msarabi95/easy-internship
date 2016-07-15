@@ -15,11 +15,18 @@ Including another URLconf
 """
 from django.conf.urls import include, url
 from django.contrib import admin
+from planner import views
+from rest_framework import routers
+
+router = routers.DefaultRouter()
+router.register(r'plan_requests', views.PlanRequestViewSet)
+router.register(r'rotation_requests', views.RotationRequestViewSet)
 
 urlpatterns = [
+    url(r'^api/', include(router.urls)),
     url(r'^planner/', include("planner.urls", namespace="planner")),
     url(r'^partials/(?P<template_name>.*\.html)$', "main.views.load_partial", name="load_partial"),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^$', "main.views.index", name="index"),
-    url(r'^(?P<url>.*)', "main.views.redirect_to_index", name="redirect_to_index")
+    # url(r'^(?P<url>.*)', "main.views.redirect_to_index", name="redirect_to_index")
 ]
