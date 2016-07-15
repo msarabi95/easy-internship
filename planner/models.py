@@ -137,7 +137,7 @@ class Internship(models.Model):
             "currentPlanRequest": True if self.plan_requests.current() else False,
             "currentPlanRequestSubmitted": self.plan_requests.current().is_submitted if self.plan_requests.current() else None,
             "currentPlanRequestSubmitDateTime": self.plan_requests.current().submission_datetime.strftime("%-d %B %Y")
-                                            if self.plan_requests.current() else None,
+                                            if self.plan_requests.current() and self.plan_requests.current().is_submitted else None,
         }
 
     def get_internship_months(self):
@@ -375,6 +375,8 @@ class PlanRequest(models.Model):
             # Set the closure time to the datetime of the last response
             self.closure_datetime = \
                 self.rotation_requests.latest("response__response_datetime").response.response_datetime
+
+            self.save()
             return True
 
     def submit(self):
@@ -574,7 +576,27 @@ class RotationRequest(models.Model):
                 comments=comments,
             )
 
-            # TODO: Create rotation object if approved
+            # TODO: Test
+            if is_approved:
+                # Remove any previous rotation in the current month
+                self.plan_request.internship.rotations.filter(month=self.month).delete()
+
+                # Unless this is a delete, request, add a new rotation object for the current month
+                if not self.delete:
+                    # If the requested department is not in the database, add it.
+                    # FIXME: This shouldn't be default behavior
+                    if not self.requested_department.is_in_database:
+                        self.requested_department.add_to_database()
+
+                    self.plan_request.internship.rotations.create(
+                        month=self.month,
+                        specialty=self.specialty,
+                        department=self.requested_department.get_department(),
+                    )
+
+            # Close the plan request if this is the last rotation request within it
+            self.plan_request.check_closure()
+
             # TODO: Notify
         else:
             raise Exception("This rotation request has already been responded to.")
@@ -598,6 +620,9 @@ class RotationRequest(models.Model):
         return "Request for %s rotation at %s (%s)" % (self.specialty.name,
                                                        self.requested_department.get_department().name,
                                                        self.month)
+
+    class Meta:
+        ordering = ('plan_request', 'month', )
 
 
 class RotationRequestResponse(models.Model):

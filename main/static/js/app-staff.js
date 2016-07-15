@@ -32,7 +32,7 @@ app.config(["$httpProvider", "$routeProvider", "djangoRMIProvider", "$resourcePr
 
 app.factory("PlanRequest", ["$resource", function($resource) {
     // Refer to: https://www.sitepoint.com/creating-crud-app-minutes-angulars-resource/
-    return $resource('/api/plan_requests/:id');
+    return $resource('/api/plan_requests/:id', {id: '@id'});
 }]);
 
 app.factory("RotationRequest", ["$resource", function($resource) {
@@ -43,10 +43,21 @@ app.factory("RotationRequest", ["$resource", function($resource) {
 }]);
 
 app.controller("MyCtrl", ["$scope", "PlanRequest", "RotationRequest", "$resource",
-                            function ($scope, PlanRequest, RotationRequest, $resource) {
-    $scope.planRequests = PlanRequest.query(function () {
-        console.log($scope.planRequests);
-    });
+function ($scope, PlanRequest, RotationRequest, $resource) {
+    function getPlanRequests() {
+        $scope.planRequests = PlanRequest.query();
+
+        if (!!$scope.selectedPlanRequest) {
+            var currentPR = PlanRequest.get({id: $scope.selectedPlanRequest.id}, function () {
+                if (currentPR.is_closed) {
+                    $scope.selectedPlanRequest = null;
+                }
+            });
+
+        }
+    }
+
+    getPlanRequests();
 
     $scope.selectPlanRequest = function (requestId) {
         $scope.selectedPlanRequest = PlanRequest.get({id: requestId}, function () {
@@ -60,12 +71,14 @@ app.controller("MyCtrl", ["$scope", "PlanRequest", "RotationRequest", "$resource
     $scope.approve = function (rotationRequest) {
         var response = RotationRequest.respond({id: rotationRequest.id, is_approved: true, comments: ""}, function () {
             rotationRequest.status = response.status;
+            getPlanRequests(); // FIXME: There should be a better way than this
         });
     };
 
     $scope.decline = function (rotationRequest) {
         var response = RotationRequest.respond({id: rotationRequest.id, is_approved: false, comments: ""}, function () {
             rotationRequest.status = response.status;
+            getPlanRequests(); // FIXME: There should be a better way than this
         });
     };
 }]);

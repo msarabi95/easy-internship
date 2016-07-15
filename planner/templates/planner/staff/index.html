@@ -24,7 +24,7 @@
               <div class="table-responsive mailbox-messages">
                 <table class="table table-hover table-striped">
                   <tbody>
-                    <tr ng-repeat="request in planRequests">
+                    <tr ng-repeat="request in planRequests | filter: {is_closed: false}">
                       <td class="col-md-2"><a href="" ng-click="selectPlanRequest(request.id)">#{{ request.id }}</a></td>
                       <td class="col-md-6"><b><a href="" ng-click="selectPlanRequest(request.id)">{{ request.intern }}</a></b></td>
                       <td class="col-md-4"><span data-toggle="tooltip" title="5 July 2016 10:06 a.m.">{{ request.submission_datetime }}</span></td>
@@ -57,11 +57,11 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td class="col-md-1">#131</td>
-                      <td class="col-md-5"><b>Saeed Arabi</b></td>
-                      <td class="col-md-3"><span data-toggle="tooltip" title="3 July 2016 10:06 a.m.">2 days ago</span></td>
-                      <td class="col-md-3"><span data-toggle="tooltip" title="3 July 2016 10:30 a.m.">2 days ago</span></td>
+                    <tr ng-repeat="request in planRequests | filter: {is_closed: true}">
+                      <td class="col-md-1">#{{ request.id }}</td>
+                      <td class="col-md-5"><b>{{ request.intern }}</b></td>
+                      <td class="col-md-3"><span data-toggle="tooltip" title="3 July 2016 10:06 a.m.">{{ request.submission_datetime }}</span></td>
+                      <td class="col-md-3"><span data-toggle="tooltip" title="3 July 2016 10:30 a.m.">{{ request.closure_datetime }}</span></td>
                     </tr>
                   </tbody>
                 </table><!-- /.table -->
@@ -70,7 +70,14 @@
         </div><!-- /.box -->
     </div><!-- /.col -->
     <div class="col-md-8">
-      <div class="box box-primary">
+      <div class="box box-primary" ng-if="!selectedPlanRequest">
+        <div class="box-body with-border">
+          <br>
+          <p style="text-align: center;">Select a plan request from the menu to the left.</p>
+          <br>
+        </div>
+      </div>
+      <div class="box box-primary" ng-if="!!selectedPlanRequest">
         <div class="box-header with-border">
           <h3 class="box-title">Plan Request #{{ selectedPlanRequest.id }} ({{ selectedPlanRequest.intern }})</h3>
           <div class="box-tools pull-right">

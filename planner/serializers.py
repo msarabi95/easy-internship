@@ -5,6 +5,7 @@ from rest_framework import serializers
 class PlanRequestSerializer(serializers.ModelSerializer):
     intern = serializers.CharField(source='internship.intern.profile.user.username')
     submission_datetime = serializers.DateTimeField(format="%-d %B %Y")
+    closure_datetime = serializers.DateTimeField(format="%-d %B %Y")
 
     class Meta:
         model = PlanRequest

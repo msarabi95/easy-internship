@@ -231,7 +231,7 @@ class PlannerAPI(JSONResponseMixin, View):
 
 class PlanRequestViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = PlanRequestSerializer
-    queryset = PlanRequest.objects.all()
+    queryset = PlanRequest.objects.filter(is_submitted=True)
     # permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
 
