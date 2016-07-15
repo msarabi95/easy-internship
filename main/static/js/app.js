@@ -72,7 +72,6 @@ app.controller("MyCtrl", ["$scope", "djangoUrl", "djangoRMI", "$uibModal", funct
     function getMessages() {
         djangoRMI.planner.planner_api.get_messages()
             .success(function (data) {
-                console.log(data);
                 $scope.messages = data;
             })
             .error(function (message) {
@@ -263,7 +262,6 @@ app.controller("MyCtrl", ["$scope", "djangoUrl", "djangoRMI", "$uibModal", funct
 app.controller("ModalInstanceCtrl", ["$scope", "djangoRMI", "$uibModalInstance", "month", "submitted", function ($scope, djangoRMI, $uibModalInstance, month, submitted) {
     djangoRMI.planner.planner_api.get_hospitals_list()
         .success(function (data) {
-            console.log(data);
             $scope.hospitals = data;
         })
         .error(function (message) {
@@ -281,6 +279,7 @@ app.controller("ModalInstanceCtrl", ["$scope", "djangoRMI", "$uibModalInstance",
 
     $scope.month = month;
     $scope.submitted = submitted;
+    $scope.unoccupiedDefaultTab = submitted ? 'request-history':'rotation-request';
 
     $scope.chosen = {};
     $scope.showDeleteConfirm = false;

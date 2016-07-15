@@ -5,7 +5,7 @@
 </div>
 <div class="modal-body">
 
-  <uib-tabset active="submitted ? 'request-history' : 'rotation-request'" justified="true">
+  <uib-tabset active="unoccupiedDefaultTab" justified="true">
     <uib-tab index="'rotation-request'" disable="submitted" heading="Request a Rotation">
 
       <ng-include src="'partials/planner/modal-parts/new-rotation-request.html'"></ng-include>

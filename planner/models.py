@@ -135,7 +135,7 @@ class Internship(models.Model):
         """
         return {
             "currentPlanRequest": True if self.plan_requests.current() else False,
-            "currentPlanRequestSubmitted": self.plan_requests.current().is_submitted if self.plan_requests.current() else None,
+            "currentPlanRequestSubmitted": self.plan_requests.current().is_submitted if self.plan_requests.current() else False,
             "currentPlanRequestSubmitDateTime": self.plan_requests.current().submission_datetime.strftime("%-d %B %Y")
                                             if self.plan_requests.current() and self.plan_requests.current().is_submitted else None,
         }
@@ -180,8 +180,6 @@ class Internship(models.Model):
 
             if self.plan_requests.current():  # FIXME: reconsider?
                 current_request = self.plan_requests.current().rotation_requests.filter(month=month, response__isnull=True).first()
-                request_history = RotationRequest.objects.filter(plan_request__internship=self, month=month) \
-                    .exclude(plan_request=self.plan_requests.current(), response__isnull=True)
 
                 current_request_dict = {
                     "id": current_request.id,
@@ -201,24 +199,26 @@ class Internship(models.Model):
 
                 } if current_request else None
 
-                request_history_dict = [{
-                    "id": request.id,
-                    "delete": request.delete,
-                    "department": request.requested_department.get_department().__unicode__(),
-                    "shortDate": request.plan_request.submission_datetime.strftime("%-d %B")
-                                if request.plan_request.is_submitted else "Not submitted",
-                    "fullDate": request.plan_request.submission_datetime.strftime("%-d %B %Y")
-                                if request.plan_request.is_submitted else "Not submitted",
-                    "reviewed": request.get_status() == RotationRequest.REVIEWED_STATUS,
-                    "approved": request.response.is_approved
-                                if request.get_status() == RotationRequest.REVIEWED_STATUS else False,
-                    "reviewDate": request.response.response_datetime.strftime("%-d %B %Y")
-                                if request.get_status() == RotationRequest.REVIEWED_STATUS else "Pending",
-                } for request in request_history]
-
             else:
                 current_request_dict = None
-                request_history_dict = []
+
+            request_history = RotationRequest.objects.filter(plan_request__internship=self, month=month) \
+                .exclude(plan_request=self.plan_requests.current(), response__isnull=True)
+
+            request_history_dict = [{
+                "id": request.id,
+                "delete": request.delete,
+                "department": request.requested_department.get_department().__unicode__(),
+                "shortDate": request.plan_request.submission_datetime.strftime("%-d %B")
+                            if request.plan_request.is_submitted else "Not submitted",
+                "fullDate": request.plan_request.submission_datetime.strftime("%-d %B %Y")
+                            if request.plan_request.is_submitted else "Not submitted",
+                "reviewed": request.get_status() == RotationRequest.REVIEWED_STATUS,
+                "approved": request.response.is_approved
+                            if request.get_status() == RotationRequest.REVIEWED_STATUS else False,
+                "reviewDate": request.response.response_datetime.strftime("%-d %B %Y")
+                            if request.get_status() == RotationRequest.REVIEWED_STATUS else "Pending",
+            } for request in request_history]
 
             months.append({
                 "monthLabel": month.first_day().strftime("%B %Y"),
