@@ -167,10 +167,10 @@ class Internship(models.Model):
                 "section": current_rotation.department.name if current_rotation.department.parent_department else "-",
                 "hospital": current_rotation.department.hospital.name,
                 "submitDate": RotationRequest.objects.filter(month=current_rotation.month,
-                                                             response__is_approved=True).last()
+                                                             response__is_approved=True, forward__response__is_approved=True).last()
                                                             .plan_request.submission_datetime.strftime("%-d %B %Y"),
                 "reviewDate": RotationRequest.objects.filter(month=current_rotation.month,
-                                                             response__is_approved=True).last()
+                                                             response__is_approved=True, forward__response__is_approved=True).last()
                                                             .response.response_datetime.strftime("%-d %B %Y"),
             } if current_rotation else None
 
