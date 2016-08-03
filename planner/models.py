@@ -5,6 +5,7 @@ from copy import copy
 from accounts.models import Intern
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
+from django.db.models.query_utils import Q
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from month.models import MonthField
@@ -166,11 +167,11 @@ class Internship(models.Model):
                             else current_rotation.department.name,
                 "section": current_rotation.department.name if current_rotation.department.parent_department else "-",
                 "hospital": current_rotation.department.hospital.name,
-                "submitDate": RotationRequest.objects.filter(month=current_rotation.month,
-                                                             response__is_approved=True, forward__response__is_approved=True).last()
+                "submitDate": RotationRequest.objects.filter(month=current_rotation.month)
+                                .filter(Q(response__is_approved=True) | Q(forward__response__is_approved=True)).last()
                                                             .plan_request.submission_datetime.strftime("%-d %B %Y"),
-                "reviewDate": RotationRequest.objects.filter(month=current_rotation.month,
-                                                             response__is_approved=True, forward__response__is_approved=True).last()
+                "reviewDate": RotationRequest.objects.filter(month=current_rotation.month)
+                                .filter(Q(response__is_approved=True) | Q(forward__response__is_approved=True)).last()
                                                             .response.response_datetime.strftime("%-d %B %Y"),
             } if current_rotation else None
 
