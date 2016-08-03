@@ -328,8 +328,8 @@ class PlanRequest(models.Model):
             for request in self.rotation_requests.filter(delete=False)
         ]
 
-        # Exclude the rotations that have been requested to be deleted
-        excluded_months = self.rotation_requests.filter(delete=True).values_list("month", flat=True)
+        # Exclude overlapping months
+        excluded_months = self.rotation_requests.values_list("month", flat=True)
 
         # To make the final list of the updated rotations, add the existing unaffected rotations to the
         # list of new ones
@@ -375,9 +375,8 @@ class PlanRequest(models.Model):
         else:
             self.is_closed = True
 
-            # Set the closure time to the datetime of the last response
-            self.closure_datetime = \
-                self.rotation_requests.latest("response__response_datetime").response.response_datetime
+            # Set the closure time to now
+            self.closure_datetime = timezone.now()
 
             self.save()
             return True
@@ -669,9 +668,6 @@ class RotationRequestForward(models.Model):
                 comments=comments,
                 respondent_name=respondent_name,
             )
-
-            print is_approved
-            print bool(is_approved)
 
             # TODO: Test
             if is_approved:
