@@ -4,12 +4,12 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.views.generic.base import View
-from planner.serializers import PlanRequestSerializer, RotationRequestSerializer
+from planner.serializers import PlanRequestSerializer, RotationRequestSerializer, RotationRequestForwardSerializer
 from rest_framework import viewsets, permissions
 from djng.views.mixins import allow_remote_invocation, JSONResponseMixin
 from month import Month
 from planner.models import Hospital, RequestedDepartment, Department, Specialty, PlanRequest, Internship, \
-    RotationRequest
+    RotationRequest, RotationRequestForward
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.response import Response
 
@@ -252,3 +252,30 @@ class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
         rr = RotationRequest.objects.get(pk=pk)
         rr.forward_request()
         return Response({"status": RotationRequest.FORWARDED_STATUS})
+
+
+class RotationRequestForwardViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = RotationRequestForwardSerializer
+    queryset = RotationRequestForward.objects.all()
+    lookup_field = 'key'
+
+    @list_route(methods=["post"])
+    def respond(self, request):
+        key = request.data.get("key")
+        f = RotationRequestForward.objects.get(key=key)
+        f.respond(
+            is_approved=bool(int(request.data.get("is_approved"))),
+            response_memo=request.data.get("response_memo"),
+            respondent_name=request.data.get("respondent_name"),
+            comments=request.data.get("comments", ""),
+        )
+        print request.POST
+        print request.FILES
+        print request.data
+        return Response({"status": RotationRequest.REVIEWED_STATUS, "is_approved": request.data.get("is_approved")})
+
+
+# For testing purposes only
+def list_forwards(request):
+    context = {"forwards": RotationRequestForward.objects.all()}
+    return render(request, "planner/list_forwards.html", context)

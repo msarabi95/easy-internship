@@ -26,7 +26,7 @@ There are 5 differences in the HTML code between the templates:
 
 {% if role == "staff" %}
   {% include "components/header.html" %}
-{% else %}
+{% elif role == "intern" %}
   {% include "components/header-topnav.html" %}
 {% endif %}
 

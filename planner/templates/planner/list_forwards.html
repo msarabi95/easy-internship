@@ -1,0 +1,27 @@
+<html>
+<head>
+  <title>List of Forwards</title>
+</head>
+<body>
+  <h1>List of Forwards</h1>
+  <ul>
+  {% for forward in forwards %}
+    <li>
+      {% if forward.response %}
+        <strong>[Has Response]</strong>
+      {% endif %}
+      <a href="/?role=outsider#/forward/{{ forward.key }}">
+        Forward {{ forward.key }}
+      </a>
+    </li>
+  {% endfor %}
+  </ul>
+  <hr>
+  <h4>Return to:</h4>
+  <p>
+    <a href="/?role=intern">Intern Site</a>
+     *
+    <a href="/?role=staff">Staff Site</a>
+  </p>
+</body>
+</html>

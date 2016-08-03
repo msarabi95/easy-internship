@@ -670,6 +670,9 @@ class RotationRequestForward(models.Model):
                 respondent_name=respondent_name,
             )
 
+            print is_approved
+            print bool(is_approved)
+
             # TODO: Test
             if is_approved:
                 # Remove any previous rotation in the current month

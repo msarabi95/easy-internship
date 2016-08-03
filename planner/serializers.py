@@ -1,4 +1,5 @@
-from planner.models import PlanRequest, Internship, RotationRequest
+from django.core.exceptions import ObjectDoesNotExist
+from planner.models import PlanRequest, Internship, RotationRequest, RotationRequestForward
 from rest_framework import serializers
 
 
@@ -40,3 +41,19 @@ class RotationRequestSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = RotationRequest
         fields = ('url', 'id', 'plan_request', 'month', 'requested_department', 'delete', 'status',)
+
+
+class RotationRequestForwardSerializer(serializers.ModelSerializer):
+    intern = serializers.CharField(source="rotation_request.plan_request.internship.intern.profile.get_en_full_name")
+    rotation_request = RotationRequestSerializer()
+
+    def has_response(self, instance):
+        try:
+            instance.response
+            return True
+        except ObjectDoesNotExist:
+            return False
+
+    class Meta:
+        model = RotationRequestForward
+        fields = ('intern', 'key', 'rotation_request', 'forward_datetime', 'response')

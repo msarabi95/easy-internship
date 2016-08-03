@@ -21,8 +21,10 @@ from rest_framework import routers
 router = routers.DefaultRouter()
 router.register(r'plan_requests', views.PlanRequestViewSet)
 router.register(r'rotation_requests', views.RotationRequestViewSet)
+router.register(r'rotation_request_forwards', views.RotationRequestForwardViewSet)
 
 urlpatterns = [
+    url(r'forwards/$', views.list_forwards, name="list_forwards"),  # Temporary, for testing only!
     url(r'^api/', include(router.urls)),
     url(r'^planner/', include("planner.urls", namespace="planner")),
     url(r'^partials/(?P<template_name>.*\.html)$', "main.views.load_partial", name="load_partial"),
