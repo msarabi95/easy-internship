@@ -172,7 +172,7 @@ class Internship(models.Model):
                                                             .plan_request.submission_datetime.strftime("%-d %B %Y"),
                 "reviewDate": RotationRequest.objects.filter(month=current_rotation.month)
                                 .filter(Q(response__is_approved=True) | Q(forward__response__is_approved=True)).last()
-                                                            .response.response_datetime.strftime("%-d %B %Y"),
+                                                            .get_response().response_datetime.strftime("%-d %B %Y"),
             } if current_rotation else None
 
             rotation_history_dict = [{
