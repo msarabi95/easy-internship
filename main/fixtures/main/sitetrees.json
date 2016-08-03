@@ -1,0 +1,234 @@
+[
+{
+    "model": "sitetree.tree",
+    "pk": 1,
+    "fields": {
+        "title": "Intern Site",
+        "alias": "interntree"
+    }
+},
+{
+    "model": "sitetree.tree",
+    "pk": 2,
+    "fields": {
+        "title": "Staff Site",
+        "alias": "stafftree"
+    }
+},
+{
+    "model": "sitetree.treeitem",
+    "pk": 1,
+    "fields": {
+        "title": "Home",
+        "hint": "",
+        "url": "#/",
+        "urlaspattern": false,
+        "tree": 1,
+        "hidden": false,
+        "alias": null,
+        "description": "",
+        "inmenu": true,
+        "inbreadcrumbs": true,
+        "insitetree": true,
+        "access_loggedin": false,
+        "access_guest": false,
+        "access_restricted": false,
+        "access_perm_type": 1,
+        "parent": null,
+        "sort_order": 1,
+        "access_permissions": []
+    }
+},
+{
+    "model": "sitetree.treeitem",
+    "pk": 2,
+    "fields": {
+        "title": "Planner",
+        "hint": "",
+        "url": "#/planner/",
+        "urlaspattern": false,
+        "tree": 1,
+        "hidden": false,
+        "alias": null,
+        "description": "",
+        "inmenu": true,
+        "inbreadcrumbs": true,
+        "insitetree": true,
+        "access_loggedin": false,
+        "access_guest": false,
+        "access_restricted": false,
+        "access_perm_type": 1,
+        "parent": null,
+        "sort_order": 2,
+        "access_permissions": []
+    }
+},
+{
+    "model": "sitetree.treeitem",
+    "pk": 3,
+    "fields": {
+        "title": "Staff Site",
+        "hint": "",
+        "url": "?role=staff",
+        "urlaspattern": false,
+        "tree": 1,
+        "hidden": false,
+        "alias": null,
+        "description": "",
+        "inmenu": true,
+        "inbreadcrumbs": true,
+        "insitetree": true,
+        "access_loggedin": false,
+        "access_guest": false,
+        "access_restricted": false,
+        "access_perm_type": 1,
+        "parent": null,
+        "sort_order": 3,
+        "access_permissions": []
+    }
+},
+{
+    "model": "sitetree.treeitem",
+    "pk": 4,
+    "fields": {
+        "title": "Admin",
+        "hint": "",
+        "url": "admin/",
+        "urlaspattern": false,
+        "tree": 1,
+        "hidden": false,
+        "alias": null,
+        "description": "",
+        "inmenu": true,
+        "inbreadcrumbs": true,
+        "insitetree": true,
+        "access_loggedin": false,
+        "access_guest": false,
+        "access_restricted": false,
+        "access_perm_type": 1,
+        "parent": null,
+        "sort_order": 4,
+        "access_permissions": []
+    }
+},
+{
+    "model": "sitetree.treeitem",
+    "pk": 5,
+    "fields": {
+        "title": "{{ '<i class=\"fa fa-home\"></i> <span>Dashboard</span>' }}",
+        "hint": "",
+        "url": "#/",
+        "urlaspattern": false,
+        "tree": 2,
+        "hidden": false,
+        "alias": null,
+        "description": "",
+        "inmenu": true,
+        "inbreadcrumbs": true,
+        "insitetree": true,
+        "access_loggedin": false,
+        "access_guest": false,
+        "access_restricted": false,
+        "access_perm_type": 1,
+        "parent": null,
+        "sort_order": 5,
+        "access_permissions": []
+    }
+},
+{
+    "model": "sitetree.treeitem",
+    "pk": 6,
+    "fields": {
+        "title": "{{ '<i class=\"fa fa-calendar\"></i> <span>Planner</span>' }}",
+        "hint": "",
+        "url": "#/planner/",
+        "urlaspattern": false,
+        "tree": 2,
+        "hidden": false,
+        "alias": null,
+        "description": "",
+        "inmenu": true,
+        "inbreadcrumbs": true,
+        "insitetree": true,
+        "access_loggedin": false,
+        "access_guest": false,
+        "access_restricted": false,
+        "access_perm_type": 1,
+        "parent": null,
+        "sort_order": 6,
+        "access_permissions": []
+    }
+},
+{
+    "model": "sitetree.treeitem",
+    "pk": 7,
+    "fields": {
+        "title": "{{ '<i class=\"fa fa-user\"></i> <span>Intern Site</span>' }}",
+        "hint": "",
+        "url": "?role=intern",
+        "urlaspattern": false,
+        "tree": 2,
+        "hidden": false,
+        "alias": null,
+        "description": "",
+        "inmenu": true,
+        "inbreadcrumbs": true,
+        "insitetree": true,
+        "access_loggedin": false,
+        "access_guest": false,
+        "access_restricted": false,
+        "access_perm_type": 1,
+        "parent": null,
+        "sort_order": 7,
+        "access_permissions": []
+    }
+},
+{
+    "model": "sitetree.treeitem",
+    "pk": 8,
+    "fields": {
+        "title": "{{ '<i class=\"fa fa-link\"></i> <span>Admin</span>' }}",
+        "hint": "",
+        "url": "admin/",
+        "urlaspattern": false,
+        "tree": 2,
+        "hidden": false,
+        "alias": null,
+        "description": "",
+        "inmenu": true,
+        "inbreadcrumbs": true,
+        "insitetree": true,
+        "access_loggedin": false,
+        "access_guest": false,
+        "access_restricted": false,
+        "access_perm_type": 1,
+        "parent": null,
+        "sort_order": 8,
+        "access_permissions": []
+    }
+},
+{
+    "model": "sitetree.treeitem",
+    "pk": 9,
+    "fields": {
+        "title": "Forwards List (temp.)",
+        "hint": "",
+        "url": "list_forwards",
+        "urlaspattern": true,
+        "tree": 2,
+        "hidden": false,
+        "alias": null,
+        "description": "",
+        "inmenu": true,
+        "inbreadcrumbs": true,
+        "insitetree": true,
+        "access_loggedin": false,
+        "access_guest": false,
+        "access_restricted": false,
+        "access_perm_type": 1,
+        "parent": null,
+        "sort_order": 9,
+        "access_permissions": []
+    }
+}
+]
