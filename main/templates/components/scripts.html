@@ -20,7 +20,7 @@
 <script src="{% static 'js/app.js' %}"></script>
 {% elif role == 'staff' %}
 <script src="{% static 'js/app-staff.js' %}"></script>
-{% else %}
+{% elif role == 'outsider' %}
 <script src="{% static 'js/app-outsider.js' %}"></script>
 {% endif %}
 <!-- jQuery 2.2.0 -->

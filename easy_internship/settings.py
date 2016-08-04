@@ -38,12 +38,17 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     'rest_framework',
     'sitetree',
     'djng',
+    'rules.apps.AutodiscoverRulesConfig',
     'main.apps.MainConfig',
     'planner.apps.PlannerConfig',
     'accounts.apps.AccountsConfig',
+    'userena',  # Userena should be kept at the end in order to overwrite the 'base.html' template it has
+    'guardian',
+    'easy_thumbnails',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -90,6 +95,15 @@ DATABASES = {
 }
 
 
+# Authentication
+
+AUTHENTICATION_BACKENDS = (
+    'rules.permissions.ObjectPermissionBackend',
+    'userena.backends.UserenaAuthenticationBackend',
+    'guardian.backends.ObjectPermissionBackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
+
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 
@@ -114,3 +128,29 @@ STATIC_ROOT = secrets.STATIC_ROOT
 
 from django.contrib.messages import constants as message_constants
 MESSAGE_TAGS = {message_constants.ERROR: 'danger'}
+
+# Email
+
+EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
+
+# Sites
+
+SITE_ID = secrets.SITE_ID
+
+# Userena & Guardian
+
+ANONYMOUS_USER_ID = -1
+AUTH_PROFILE_MODULE = "accounts.Profile"
+
+LOGIN_URL = '/accounts/signin/'
+LOGOUT_URL = '/accounts/signout/'
+
+USERENA_SIGNIN_REDIRECT_URL = '/'
+USERENA_REDIRECT_ON_SIGNOUT = '/'
+
+USERENA_ACTIVATION_REQUIRED = False
+USERENA_DEFAULT_PRIVACY = "closed"
+USERENA_DISABLE_PROFILE_LIST = True
+USERENA_HTML_EMAIL = True
+USERENA_REGISTER_PROFILE = False
+USERENA_REGISTER_USER = False

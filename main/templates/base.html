@@ -1,0 +1,52 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>{% block title %}Easy Internship{% endblock %}</title>
+  {% include "components/styles.html" %}
+</head>
+
+{% comment %}
+MIU staff and intern pages are styled differently.
+MIU staff get an admin-style page with a sidebar. Interns get a top navigation style page.
+
+There are 5 differences in the HTML code between the templates:
+1- The style attribute on the body tag.
+2- The use of a different header for each of them.
+3- The inclusion of the sidebar for MIU users.
+4- The addition of a .container div inside .content-wrapper and .main-footer tags for intern users.
+5- ng-view is placed on .content-wrapper for MIU users, while it's placed on .container for interns.
+{% endcomment %}
+
+{% block body %}
+  {# Warning! Overwriting this block will remove the ng-view directive, disabling Angular routing #}
+  <body class="hold-transition skin-blue {% if role == "staff" %}sidebar-mini{% else %}layout-top-nav{% endif %}"
+        ng-app="easyInternship">
+  <div class="wrapper">
+
+  {% if role == "staff" %}
+    {% include "components/header.html" %}
+  {% elif role == "intern" %}
+    {% include "components/header-topnav.html" %}
+  {% endif %}
+
+  {% if role == "staff" %}
+    {% include "components/sidebar.html" %}
+  {% endif %}
+
+    {% include "components/content.html" %}
+
+    {% include "components/footer.html" %}
+
+  {% if False %}
+    {% include "components/control-sidebar.html" %}
+  {% endif %}
+  </div>
+  <!-- ./wrapper -->
+
+  {% include "components/scripts.html" %}
+  </body>
+{% endblock %}
+</html>

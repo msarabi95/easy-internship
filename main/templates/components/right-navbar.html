@@ -31,19 +31,20 @@
       <!-- Menu Toggle Button -->
       <a href="" class="dropdown-toggle" data-toggle="dropdown">
         <!-- The user image in the navbar-->
-        <img src="{% static 'admin-lte/img/user2-160x160.jpg' %}" class="user-image" alt="User Image">
+        <img src="{{ user.profile.get_mugshot_url }}" class="user-image" alt="User Image">
         <!-- hidden-xs hides the username on small devices so only the image appears. -->
-        <span class="hidden-xs">Alexander Pierce</span>
+        <span class="hidden-xs">{{ user.profile.get_en_full_name }}</span>
       </a>
       <ul class="dropdown-menu">
         <!-- The user image in the menu -->
         <li class="user-header">
-          <img src="{% static 'admin-lte/img/user2-160x160.jpg' %}" class="img-circle" alt="User Image">
+          <img src="{{ user.profile.get_mugshot_url }}" class="img-circle" alt="User Image">
           <p>
-            Alexander Pierce - Web Developer
-            <small>Member since Nov. 2012</small>
+            {{ user.profile.get_en_full_name }} - {{ user.profile.get_role_display }}
+            <small>Member since {{ user.date_joined|date }}</small>
           </p>
         </li>
+        {% if False %}
         <!-- Menu Body -->
         <li class="user-body">
           <div class="col-xs-4 text-center">
@@ -56,13 +57,14 @@
             <a href="#">Friends</a>
           </div>
         </li>
+        {% endif %}
         <!-- Menu Footer-->
         <li class="user-footer">
           <div class="pull-left">
-            <a href="#" class="btn btn-default btn-flat">Profile</a>
+            <a href="{% url 'userena_profile_detail' user.username %}" class="btn btn-default btn-flat">Profile</a>
           </div>
           <div class="pull-right">
-            <a href="#" class="btn btn-default btn-flat">Sign out</a>
+            <a href="{% url 'userena_signout' %}" class="btn btn-default btn-flat">Sign out</a>
           </div>
         </li>
       </ul>

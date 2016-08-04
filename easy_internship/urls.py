@@ -13,6 +13,7 @@ Including another URLconf
     1. Add an import:  from blog import urls as blog_urls
     2. Add a URL to urlpatterns:  url(r'^blog/', include(blog_urls))
 """
+from accounts.forms import InternSignupForm, EditInternProfileForm
 from django.conf.urls import include, url
 from django.contrib import admin
 from planner import views
@@ -28,6 +29,11 @@ urlpatterns = [
     url(r'^api/', include(router.urls)),
     url(r'^planner/', include("planner.urls", namespace="planner")),
     url(r'^partials/(?P<template_name>.*\.html)$', "main.views.load_partial", name="load_partial"),
+
+    url(r'^accounts/(?P<username>[\@\.\w-]+)/edit/$', 'userena.views.profile_edit', {'edit_profile_form': EditInternProfileForm}),
+    url(r'^accounts/signup/$', 'userena.views.signup', {'signup_form': InternSignupForm}),
+    url(r'^accounts/', include('userena.urls')),
+
     url(r'^admin/', include(admin.site.urls)),
     url(r'^$', "main.views.index", name="index"),
     # url(r'^(?P<url>.*)', "main.views.redirect_to_index", name="redirect_to_index")

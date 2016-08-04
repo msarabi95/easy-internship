@@ -18,8 +18,7 @@ app.config(["$httpProvider", "$routeProvider", "djangoRMIProvider", "$resourcePr
 
     $routeProvider
         .when("/", {
-            // This redirects users from / to /#/
-            redirectTo: "/"
+            templateUrl: "partials/main/outsider-index.html"
         })
         .when("/forward/:key/", {
             templateUrl: "partials/planner/outsider/forward-details.html",
