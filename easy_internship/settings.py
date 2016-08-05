@@ -42,6 +42,7 @@ INSTALLED_APPS = (
     'rest_framework',
     'sitetree',
     'djng',
+    'bootstrap3',
     'rules.apps.AutodiscoverRulesConfig',
     'main.apps.MainConfig',
     'planner.apps.PlannerConfig',
@@ -124,6 +125,11 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = secrets.STATIC_ROOT
 
+# Media files (user-uploaded files)
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 # Messages
 
 from django.contrib.messages import constants as message_constants
@@ -148,9 +154,11 @@ LOGOUT_URL = '/accounts/signout/'
 USERENA_SIGNIN_REDIRECT_URL = '/'
 USERENA_REDIRECT_ON_SIGNOUT = '/'
 
+USERENA_WITHOUT_USERNAMES = True
 USERENA_ACTIVATION_REQUIRED = False
 USERENA_DEFAULT_PRIVACY = "closed"
 USERENA_DISABLE_PROFILE_LIST = True
 USERENA_HTML_EMAIL = True
 USERENA_REGISTER_PROFILE = False
 USERENA_REGISTER_USER = False
+USERENA_PROFILE_DETAIL_TEMPLATE = "userena/profile_detail_custom.html"

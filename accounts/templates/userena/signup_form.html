@@ -1,0 +1,28 @@
+{% extends 'userena/base_userena.html' %}
+{% load i18n %}{% load bootstrap3 %}
+
+{% block title %}{% trans "Signup" %}{% endblock %}
+
+{% block content_title %}
+  <p class="login-box-msg">
+    Fill the details below to create your account
+  </p>
+{% endblock %}
+
+{% block content %}
+
+<form action="" method="post">
+  {% csrf_token %}
+
+  {% bootstrap_form form show_label=False %}
+
+  <div class="row">
+    <div class="col-xs-4 col-xs-offset-8">
+      <button type="submit" class="btn btn-primary btn-block btn-flat">Sign Up</button>
+    </div><!-- /.col -->
+  </div>
+</form>
+
+<a href="{% url 'userena_signin' %}" class="text-center">Already registered? Sign in</a>
+
+{% endblock %}

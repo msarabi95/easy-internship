@@ -1,0 +1,36 @@
+{% extends 'userena/base_userena.html' %}
+{% load i18n %}{% load bootstrap3 %}
+
+{% block title %}{% trans "Signin" %}{% endblock %}
+
+{% block content_title %}
+  <p class="login-box-msg">
+    Sign in to Easy Internship
+  </p>
+{% endblock %}
+
+{% block content %}
+
+  <form action="" method="post">
+    {% csrf_token %}
+
+    {% bootstrap_form form show_label=False exclude="remember_me" %}
+
+    <div class="row">
+      <div class="col-xs-8">
+        <div class="checkbox icheck">
+          <label for="id_{{ form.remember_me.name }}">
+            {{ form.remember_me }} {{ form.remember_me.label }}
+          </label>
+        </div>
+      </div><!-- /.col -->
+      <div class="col-xs-4">
+        <button type="submit" class="btn btn-primary btn-block btn-flat">Sign In</button>
+      </div><!-- /.col -->
+    </div>
+  </form>
+
+  <a href="{% url 'userena_password_reset' %}" title="{% trans 'Forgot your password?' %}">{% trans "Forgot your password?" %}</a><br>
+  <a href="{% url 'userena_signup' %}" class="text-center">Not registered? Sign up</a>
+
+{% endblock %}

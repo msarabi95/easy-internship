@@ -1,0 +1,65 @@
+{% extends "userena/profile_detail.html" %}
+
+{% block profile_details %}
+  <div class="box box-widget widget-user-2">
+    <div class="widget-user-header bg-light-blue-gradient">
+      <div class="widget-user-image">
+        <img class="img-circle" src="{{ profile.get_mugshot_url }}" alt="User Avatar">
+      </div><!-- /.widget-user-image -->
+      <h3 class="widget-user-username">{{ profile.get_en_full_name }}</h3>
+      <h5 class="widget-user-desc">{{ profile.role|capfirst }}</h5>
+    </div>
+    <div class="box-footer no-padding">
+
+    </div>
+
+  </div>
+  <dl>
+    <dt>Name (Arabic)</dt>
+    <dd>{{ profile.get_ar_full_name }}</dd>
+
+    <dt>Name (English)</dt>
+    <dd>{{ profile.get_en_full_name }}</dd>
+
+    {% if not hide_email %}
+      <dt>Email</dt>
+      <dd>{{ profile.user.email }}</dd>
+    {% endif %}
+
+    <dt>Student Number}</dt>
+    <dd>{{ profile.intern.student_number}}</dd>
+
+    <dt>Badge Number</dt>
+    <dd>{{ profile.intern.badge_number }}</dd>
+
+    <dt>Phone Number</dt>
+    <dd>{{ profile.intern.phone_number }}</dd>
+
+    <dt>Mobile Number</dt>
+    <dd>{{ profile.intern.mobile_number }}</dd>
+
+    <dt>Address</dt>
+    <dd>{{ profile.intern.address|linebreaksbr }}</dd>
+
+    <dt>Saudi ID Number</dt>
+    <dd>{{ profile.intern.saudi_id_number }}</dd>
+
+    <dt>Passport Number</dt>
+    <dd>{{ profile.intern.passport_number }}</dd>
+
+    <dt>Medical Record Number</dt>
+    <dd>{{ profile.intern.medical_record_number }}</dd>
+
+    <dt>Contact Person Name</dt>
+    <dd>{{ profile.intern.contact_person_name }}</dd>
+
+    <dt>Contact Person Relation</dt>
+    <dd>{{ profile.intern.contact_person_relation }}</dd>
+
+    <dt>Contact Person Mobile</dt>
+    <dd>{{ profile.intern.contact_person_mobile }}</dd>
+
+    <dt>Contact Person Email</dt>
+    <dd>{{ profile.intern.contact_person_email }}</dd>
+  </dl>
+{% endblock %}

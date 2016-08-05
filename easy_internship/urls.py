@@ -14,6 +14,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include(blog_urls))
 """
 from accounts.forms import InternSignupForm, EditInternProfileForm
+from django.conf import settings
 from django.conf.urls import include, url
 from django.contrib import admin
 from planner import views
@@ -38,3 +39,10 @@ urlpatterns = [
     url(r'^$', "main.views.index", name="index"),
     # url(r'^(?P<url>.*)', "main.views.redirect_to_index", name="redirect_to_index")
 ]
+
+if settings.DEBUG:
+    # media files (user-uploaded files)
+    urlpatterns += [
+        url(r'^media/(?P<path>.*)$', 'django.views.static.serve', {
+        'document_root': settings.MEDIA_ROOT})
+    ]

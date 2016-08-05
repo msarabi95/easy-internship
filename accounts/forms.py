@@ -3,11 +3,11 @@ from django import forms
 from django.core.validators import MaxValueValidator, MinValueValidator
 from month import Month
 from planner.models import Internship
-from userena.forms import SignupForm
+from userena.forms import SignupFormOnlyEmail
 from userena.utils import get_profile_model
 
 
-class InternSignupForm(SignupForm):
+class InternSignupForm(SignupFormOnlyEmail):
     """
     A form to demonstrate how to add extra fields to the signup form, in this
     case adding the first and last name.
@@ -27,7 +27,7 @@ class InternSignupForm(SignupForm):
     mobile_number = forms.CharField(max_length=16)
     address = forms.CharField(max_length=128, widget=forms.Textarea)
 
-    saudi_id_number = forms.CharField(max_length=10)
+    saudi_id_number = forms.CharField(label="Saudi ID number", max_length=10)
     passport_number = forms.CharField(max_length=32)
     medical_record_number = forms.CharField(max_length=10)
 
@@ -36,7 +36,7 @@ class InternSignupForm(SignupForm):
     contact_person_mobile = forms.CharField(max_length=16)
     contact_person_email = forms.EmailField(max_length=64)
 
-    gpa = forms.FloatField(validators=[MaxValueValidator(5.0), MinValueValidator(0.0)])
+    gpa = forms.FloatField(label="GPA", validators=[MaxValueValidator(5.0), MinValueValidator(0.0)])
 
     def __init__(self, *args, **kw):
         """
@@ -58,8 +58,13 @@ class InternSignupForm(SignupForm):
         field.
 
         """
-        # First save the parent form and get the user.
-        new_user = super(InternSignupForm, self).save()
+        # Use the first part of the user's email as a username
+        self.cleaned_data['username'] = self.cleaned_data['email'].split("@")[0].lower()
+
+        # Save the parent form and get the user.
+        # Notice we're calling the super of `SignupFormOnlyEmail` (not InternSignupForm), essentially
+        # ignoring the save() implementation in `SignupFormOnlyEmail`
+        new_user = super(SignupFormOnlyEmail, self).save()
 
         # Get the profile, the `save` method above creates a profile for each
         # user because it calls the manager method `create_user`.
@@ -124,7 +129,7 @@ class EditInternProfileForm(forms.ModelForm):
     mobile_number = forms.CharField(max_length=16)
     address = forms.CharField(max_length=128, widget=forms.Textarea)
 
-    saudi_id_number = forms.CharField(max_length=10)
+    saudi_id_number = forms.CharField(label="Saudi ID number", max_length=10)
     passport_number = forms.CharField(max_length=32)
     medical_record_number = forms.CharField(max_length=10)
 
@@ -133,11 +138,11 @@ class EditInternProfileForm(forms.ModelForm):
     contact_person_mobile = forms.CharField(max_length=16)
     contact_person_email = forms.EmailField(max_length=64)
 
-    gpa = forms.FloatField(validators=[MaxValueValidator(5.0), MinValueValidator(0.0)])
+    gpa = forms.FloatField(label="GPA", validators=[MaxValueValidator(5.0), MinValueValidator(0.0)])
 
     class Meta:
         model = get_profile_model()
-        exclude = ["user", "role"]
+        exclude = ["user", "role", "privacy"]
 
     def __init__(self, *args, **kwargs):
         super(EditInternProfileForm, self).__init__(*args, **kwargs)
