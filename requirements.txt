@@ -1,11 +1,17 @@
 coverage==4.1
 Django==1.9.7
 django-angular==0.8.2
+django-bootstrap3==7.0.1
+django-guardian==1.4.1
 django-sitetree==1.5.1
+django-userena==2.0.1
 djangorestframework==3.4.0
+easy-thumbnails==2.3
 factory-boy==2.7.0
 fake-factory==0.5.8
+html2text==2014.12.29
 ipaddress==1.0.16
+Pillow==3.3.0
 python-dateutil==2.5.3
 rules==1.1.1
 selenium==2.53.6
