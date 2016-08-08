@@ -19,7 +19,6 @@ def index(request):
             role = "outsider"
     # role = request.GET.get("role") or "intern"
     context = {"role": role}
-    print role
     return render(request, "index.html", context)
 
 
