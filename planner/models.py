@@ -8,6 +8,7 @@ from django.db import models
 from django.db.models.query_utils import Q
 from django.utils import timezone
 from django.utils.crypto import get_random_string
+from django_nyt.utils import notify
 from month.models import MonthField
 
 
@@ -396,7 +397,13 @@ class PlanRequest(models.Model):
 
             self.save()
 
-            # TODO: send notification?
+            # Notify the medical internship unit
+            notify(
+                "%s has submitted a new plan request." % self.internship.intern.profile.get_en_full_name(),
+                "plan_request_submitted",
+                target_object=self.internship,
+                url="/#/planner/",
+            )
         else:
             raise Exception("This plan request has already been submitted.")  # FIXME: more appropriate exception?
 
@@ -600,7 +607,24 @@ class RotationRequest(models.Model):
             # Close the plan request if this is the last rotation request within it
             self.plan_request.check_closure()
 
-            # TODO: Notify
+            # Notify intern
+            if is_approved:
+                notify(
+                    "Rotation request for %s in %s has been approved." % (self.month.first_day().strftime("%B %Y"),
+                                                                          self.requested_department.get_department().name),
+                    "rotation_request_approved",
+                    target_object=self.plan_request.internship,
+                    url="/#/planner",
+                )
+            else:
+                notify(
+                    "Rotation request for %s in %s has been declined." % (self.month.first_day().strftime("%B %Y"),
+                                                                          self.requested_department.get_department().name),
+                    "rotation_request_declined",
+                    target_object=self.plan_request.internship,
+                    url="/#/planner",
+                )
+
         else:
             raise Exception("This rotation request has already been responded to.")
 
@@ -686,7 +710,24 @@ class RotationRequestForward(models.Model):
             # Close the plan request if this is the last rotation request within it
             self.rotation_request.plan_request.check_closure()
 
-            # TODO: Notify
+            # Notify intern
+            if is_approved:
+                notify(
+                    "Rotation request for %s in %s has been approved." % (self.rotation_request.month.first_day().strftime("%B %Y"),
+                                                                          self.rotation_request.requested_department.get_department().name),
+                    "rotation_request_approved",
+                    target_object=self.rotation_request.plan_request.internship,
+                    url="/#/planner",
+                )
+            else:
+                notify(
+                    "Rotation request for %s in %s has been declined." % (self.rotation_request.month.first_day().strftime("%B %Y"),
+                                                                          self.rotation_request.requested_department.get_department().name),
+                    "rotation_request_declined",
+                    target_object=self.rotation_request.plan_request.internship,
+                    url="/#/planner",
+                )
+
         else:
             raise Exception("This rotation request has already been responded to.")
 

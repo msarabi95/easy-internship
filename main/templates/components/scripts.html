@@ -27,6 +27,13 @@
 <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
 <!-- AdminLTE App -->
 <script src="{% static 'admin-lte/js/app.min.js' %}"></script>
+<!-- Django NYT Scripts -->
+<script type="text/javascript">
+  URL_NYT_GET_NEW = "{% url "nyt:json_get" %}";
+  URL_NYT_MARK_READ = "{% url "nyt:json_mark_read_base" %}";
+  URL_NYT_GOTO = "{% url "nyt:goto_base" %}";
+</script>
+<script type="text/javascript" src="{% static 'js/notify.js' %}"></script>
 
 <!-- Optionally, you can add Slimscroll and FastClick plugins.
      Both of these plugins are recommended to enhance the

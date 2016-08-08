@@ -3,26 +3,50 @@
 <div class="navbar-custom-menu">
   <ul class="nav navbar-nav">
 
+{#    <h2>Notifications:</h2>#}
+{#    <ul>#}
+{#      <li class="notification-before-list">Notifications (<span class="badge notification-cnt">0</span>):</li>#}
+{#      <li class="notifications-empty"><a href="#"><em>{% trans "No notifications" %}</em></a></li>#}
+{#    </ul>#}
+{##}
+{#    <a href="#" onclick="nyt_mark_read()">#}
+{#      <i class="icon-check"></i>#}
+{#      {% trans "Clear notifications list" %}#}
+{#    </a>#}
+
     <!-- Notifications Menu -->
     <li class="dropdown notifications-menu">
       <!-- Menu toggle button -->
       <a href="" class="dropdown-toggle" data-toggle="dropdown">
         <i class="fa fa-bell-o"></i>
-        <span class="label label-danger">10</span>
+        <span class="label label-danger notification-cnt">0</span>
       </a>
       <ul class="dropdown-menu">
-        <li class="header">You have 10 notifications</li>
+        <li class="header">Notifications</li>
         <li>
           <!-- Inner Menu: contains the notifications -->
           <ul class="menu">
-            <li><!-- start notification -->
+            <li class="notification-before-list"></li>
+            <li class="notifications-empty">
               <a href="#">
-                <i class="fa fa-users text-aqua"></i> 5 new members joined today
+                <em>No notifications</em>
               </a>
-            </li><!-- end notification -->
+            </li>
+
+{#            <li><!-- start notification -->#}
+{#              <a href="#">#}
+{#                <i class="fa fa-users text-aqua"></i> 5 new members joined today#}
+{#              </a>#}
+{#            </li><!-- end notification -->#}
           </ul>
         </li>
-        <li class="footer"><a href="#">View all</a></li>
+        <li class="footer">
+          <a href="" onclick="nyt_mark_read()">
+            <i class="fa fa-check"></i>
+            Clear notifications list
+          </a>
+{#          <a href="#">View all</a>#}
+        </li>
       </ul>
     </li>
 

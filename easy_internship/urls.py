@@ -13,12 +13,14 @@ Including another URLconf
     1. Add an import:  from blog import urls as blog_urls
     2. Add a URL to urlpatterns:  url(r'^blog/', include(blog_urls))
 """
-from accounts.forms import InternSignupForm, EditInternProfileForm
 from django.conf import settings
 from django.conf.urls import include, url
 from django.contrib import admin
-from planner import views
+from django_nyt.urls import get_pattern as get_nyt_pattern
 from rest_framework import routers
+
+from accounts.forms import InternSignupForm, EditInternProfileForm
+from planner import views
 
 router = routers.DefaultRouter()
 router.register(r'plan_requests', views.PlanRequestViewSet)
@@ -34,6 +36,8 @@ urlpatterns = [
     url(r'^accounts/(?P<username>[\@\.\w-]+)/edit/$', 'userena.views.profile_edit', {'edit_profile_form': EditInternProfileForm}),
     url(r'^accounts/signup/$', 'userena.views.signup', {'signup_form': InternSignupForm}),
     url(r'^accounts/', include('userena.urls')),
+
+    url(r'^notifications/', get_nyt_pattern()),
 
     url(r'^admin/', include(admin.site.urls)),
     url(r'^$', "main.views.index", name="index"),
