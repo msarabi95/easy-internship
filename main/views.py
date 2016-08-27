@@ -1,8 +1,13 @@
 from accounts.models import Profile
+from django.contrib.messages.api import get_messages
 from django.core.urlresolvers import reverse
 from django.http.response import HttpResponseRedirect, Http404
 from django.shortcuts import render
 from django.template.exceptions import TemplateDoesNotExist
+from main.serializers import MessageSerializer
+from rest_framework import views
+from rest_framework.response import Response
+
 
 def index(request):
     """
@@ -39,3 +44,11 @@ def redirect_to_index(request, url):
     """
     if not request.is_ajax():
         return HttpResponseRedirect("%s#/%s" % (reverse("index"), url))
+
+
+class GetMessages(views.APIView):
+    def get(self, request):
+        messages = list(get_messages(request))
+        serialized = MessageSerializer(messages, many=True)
+        return Response(serialized.data)
+

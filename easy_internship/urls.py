@@ -20,6 +20,7 @@ from django_nyt.urls import get_pattern as get_nyt_pattern
 from rest_framework import routers
 
 from accounts.forms import InternSignupForm, EditInternProfileForm
+from main import views as main_views
 from planner import views
 
 router = routers.DefaultRouter()
@@ -37,6 +38,7 @@ urlpatterns = [
     url(r'^accounts/signup/$', 'userena.views.signup', {'signup_form': InternSignupForm}),
     url(r'^accounts/', include('userena.urls')),
 
+    url(r'^messages/$', main_views.GetMessages.as_view()),
     url(r'^notifications/', get_nyt_pattern()),
 
     url(r'^admin/', include(admin.site.urls)),

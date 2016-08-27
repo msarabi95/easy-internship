@@ -16,6 +16,26 @@ app.config(["$httpProvider", "$routeProvider", "djangoRMIProvider", "$resourcePr
 
     djangoRMIProvider.configure(tags);
 
+    // Check for messages with each response
+    $httpProvider.interceptors.push(function ($q, $rootScope) {
+       return {
+           'response': function (response) {
+               if ( $rootScope.fetchingMessages != true ) {
+                   $rootScope.fetchingMessages = true;
+                   $rootScope.$broadcast("fetchMessages");
+               }
+               return response;
+           },
+           'responseError': function (rejection) {
+               if ( $rootScope.fetchingMessages != true ) {
+                   $rootScope.fetchingMessages = true;
+                   $rootScope.$broadcast("fetchMessages");
+               }
+               return $q.reject(rejection);
+           }
+       };
+    });
+
     $routeProvider
         .when("/", {
             templateUrl: "partials/main/outsider-index.html"
@@ -28,6 +48,23 @@ app.config(["$httpProvider", "$routeProvider", "djangoRMIProvider", "$resourcePr
     $resourceProvider.defaults.stripTrailingSlashes = false;
 
 }]);
+
+app.run(function ($rootScope, $resource) {
+    //toastr.options.positionClass = "content-wrapper";
+    $rootScope.$on("fetchMessages", getMessages);
+
+    function getMessages(event, eventData) {
+        var messages = $resource("messages").query(function (messages) {
+            $rootScope.fetchingMessages = false;
+            for (var i = 0; i < messages.length; i++) {
+                toastr[messages[i].level_tag](messages[i].message);
+            }
+        });
+    }
+
+    $rootScope.fetchingMessages = true;
+    getMessages("", {});
+});
 
 app.factory("Forward", ["$resource", function($resource) {
     // Refer to: https://www.sitepoint.com/creating-crud-app-minutes-angulars-resource/

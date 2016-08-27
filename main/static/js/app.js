@@ -1,7 +1,7 @@
 /**
  * Created by MSArabi on 6/16/16.
  */
-var app = angular.module("easyInternship", ["djng.urls", "djng.rmi", "ngRoute", "ui.bootstrap"]);
+var app = angular.module("easyInternship", ["djng.urls", "djng.rmi", "ngResource", "ngRoute", "ui.bootstrap"]);
 
 const MonthStatus = {
     UNOCCUPIED: "Unoccupied",
@@ -21,6 +21,26 @@ app.config(["$httpProvider", "$routeProvider", "djangoRMIProvider",
     $httpProvider.defaults.xsrfCookieName = 'csrftoken';
     $httpProvider.defaults.xsrfHeaderName = 'X-CSRFToken';
 
+    // Check for messages with each response
+    $httpProvider.interceptors.push(function ($q, $rootScope) {
+       return {
+           'response': function (response) {
+               if ( $rootScope.fetchingMessages != true ) {
+                   $rootScope.fetchingMessages = true;
+                   $rootScope.$broadcast("fetchMessages");
+               }
+               return response;
+           },
+           'responseError': function (rejection) {
+               if ( $rootScope.fetchingMessages != true ) {
+                   $rootScope.fetchingMessages = true;
+                   $rootScope.$broadcast("fetchMessages");
+               }
+               return $q.reject(rejection);
+           }
+       };
+    });
+
     djangoRMIProvider.configure(tags);
 
     $routeProvider
@@ -34,6 +54,23 @@ app.config(["$httpProvider", "$routeProvider", "djangoRMIProvider",
         })
 
 }]);
+
+app.run(function ($rootScope, $resource) {
+    toastr.options.positionClass = "toast-top-center";
+    $rootScope.$on("fetchMessages", getMessages);
+
+    function getMessages(event, eventData) {
+        var messages = $resource("messages").query(function (messages) {
+            $rootScope.fetchingMessages = false;
+            for (var i = 0; i < messages.length; i++) {
+                toastr[messages[i].level_tag](messages[i].message);
+            }
+        });
+    }
+
+    $rootScope.fetchingMessages = true;
+    getMessages("", {});
+});
 
 app.controller("MyCtrl", ["$scope", "djangoUrl", "djangoRMI", "$uibModal", function ($scope, djangoUrl, djangoRMI, $uibModal) {
     function loadMonths() {
@@ -69,17 +106,17 @@ app.controller("MyCtrl", ["$scope", "djangoUrl", "djangoRMI", "$uibModal", funct
 
     loadMonths();
 
-    function getMessages() {
-        djangoRMI.planner.planner_api.get_messages()
-            .success(function (data) {
-                $scope.messages = data;
-            })
-            .error(function (message) {
-                console.log(message);
-            });
-    }
-
-    getMessages();
+    //function getMessages() {
+    //    djangoRMI.planner.planner_api.get_messages()
+    //        .success(function (data) {
+    //            $scope.messages = data;
+    //        })
+    //        .error(function (message) {
+    //            console.log(message);
+    //        });
+    //}
+    //
+    //getMessages();
 
     // TODO: Document following methods
     $scope.hasRotation = function (monthIndex) {
@@ -248,13 +285,13 @@ app.controller("MyCtrl", ["$scope", "djangoUrl", "djangoRMI", "$uibModal", funct
         djangoRMI.planner.planner_api.submit_plan_request()
             .success(function (data) {
                 console.log("SUBMITTED? MAYBE.");
-                getMessages();
+                //getMessages();
                 loadMonths();
             })
             .error(function (message) {
                 console.log(message);
             });
-        getMessages();
+        //getMessages();
     };
 
 }]);
