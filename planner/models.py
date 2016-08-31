@@ -127,9 +127,40 @@ class SeatAvailability(models.Model):
     #     unique_together = ("month", "specialty", "department")
 
 
+class InternshipMonth(object):
+    def __init__(self, month, current_rotation, current_request, request_history):
+        self.month = month
+        self.label = month.first_day().strftime("%B %Y")
+        self.current_rotation = current_rotation
+        self.current_request = current_request
+        self.request_history = request_history
+
+
 class Internship(models.Model):
     intern = models.OneToOneField(Intern)
     start_month = MonthField()
+
+    def get_months(self):
+        months = []
+        for add in range(15):
+            month = self.start_month + add
+
+            current_rotation = self.rotations.current(month)
+            current_request = self.plan_requests.current().rotation_requests.filter(month=month,
+                                                                                    response__isnull=True,
+                                                                                    forward__response__isnull=True).first()
+            request_history = RotationRequest.objects.filter(plan_request__internship=self, month=month) \
+                .exclude(plan_request=self.plan_requests.current(), response__isnull=True, forward__response__isnull=True)
+
+            months.append(InternshipMonth(
+                month,
+                current_rotation,
+                current_request,
+                request_history,
+            ))
+        return months
+
+    months = property(get_months)
 
     def get_internship_info(self):
         """

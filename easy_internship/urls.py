@@ -17,19 +17,14 @@ from django.conf import settings
 from django.conf.urls import include, url
 from django.contrib import admin
 from django_nyt.urls import get_pattern as get_nyt_pattern
-from rest_framework import routers
 
 from accounts.forms import InternSignupForm, EditInternProfileForm
 from main import views as main_views
 from planner import views
-
-router = routers.DefaultRouter()
-router.register(r'plan_requests', views.PlanRequestViewSet)
-router.register(r'rotation_requests', views.RotationRequestViewSet)
-router.register(r'rotation_request_forwards', views.RotationRequestForwardViewSet)
+from planner.urls import router
 
 urlpatterns = [
-    url(r'forwards/$', views.list_forwards, name="list_forwards"),  # Temporary, for testing only!
+    url(r'^forwards/$', views.list_forwards, name="list_forwards"),  # Temporary, for testing only!
     url(r'^api/', include(router.urls)),
     url(r'^planner/', include("planner.urls", namespace="planner")),
     url(r'^partials/(?P<template_name>.*\.html)$', "main.views.load_partial", name="load_partial"),

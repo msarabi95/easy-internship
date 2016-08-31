@@ -1,22 +1,44 @@
-from django.core.exceptions import ObjectDoesNotExist
-from planner.models import PlanRequest, Internship, RotationRequest, RotationRequestForward
+from planner.models import PlanRequest, RotationRequest, RotationRequestForward, Rotation, Hospital, Specialty, \
+    Department, Internship, RequestedDepartment, RotationRequestResponse, RotationRequestForwardResponse, \
+    SeatAvailability
 from rest_framework import serializers
 
 
-class PlanRequestSerializer(serializers.ModelSerializer):
-    intern = serializers.CharField(source='internship.intern.profile.user.username')
-    submission_datetime = serializers.DateTimeField(format="%-d %B %Y")
-    closure_datetime = serializers.DateTimeField(format="%-d %B %Y")
+class HospitalSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = PlanRequest
-        fields = ('id', 'intern', 'rotation_requests', 'creation_datetime', 'is_submitted',
-                  'submission_datetime', 'is_closed', 'closure_datetime',)
+        model = Hospital
+        fields = ('id', 'name', 'abbreviation', 'is_kamc')
 
 
-class RequestedDepartmentSerializer(serializers.Serializer):
-    def __init__(self, *args, **kwargs):
-        super(RequestedDepartmentSerializer, self).__init__(*args, **kwargs)
+class SpecialtySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Specialty
+        fields = ('id', 'name', 'abbreviation', 'required_months', 'parent_specialty')
+
+
+class DepartmentSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Department
+        fields = ('id', 'hospital', 'parent_department', 'name', 'specialty', 'contact_name',
+                  'email', 'phone', 'extension')
+
+
+class SeatAvailabilitySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = SeatAvailability
+        fields = ('id', 'month', 'specialty', 'department', 'available_seat_count')
+
+
+class InternshipMonthSerializer(serializers.Serializer):
+    month = serializers.IntegerField()
+    label = serializers.CharField()
+    current_rotation = serializers.PrimaryKeyRelatedField(read_only=True)
+    current_request = serializers.PrimaryKeyRelatedField(read_only=True)
+    request_history = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
 
     def create(self, validated_data):
         pass
@@ -24,36 +46,67 @@ class RequestedDepartmentSerializer(serializers.Serializer):
     def update(self, instance, validated_data):
         pass
 
-    hospital = serializers.CharField(source='get_department.hospital.name')
-    name = serializers.CharField(source='get_department.name')
-    specialty = serializers.CharField(source='get_department.specialty')
-    contact_name = serializers.CharField(source='get_department.contact_name')
-    email = serializers.EmailField(source='get_department.email')
-    phone = serializers.CharField(source='get_department.phone')
-    extension = serializers.CharField(source='get_department.extension')
+
+class InternshipSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Internship
+        fields = ('id', 'intern', 'start_month')
 
 
-class RotationRequestSerializer(serializers.HyperlinkedModelSerializer):
-    requested_department = RequestedDepartmentSerializer()
-    month = serializers.DateTimeField(format="%B %Y", source="month.first_day")
+class RotationSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Rotation
+        fields = ('id', 'internship', 'month', 'specialty', 'department')
+
+
+class PlanRequestSerializer(serializers.ModelSerializer):
+    submission_datetime = serializers.DateTimeField(format="%-d %B %Y")
+    closure_datetime = serializers.DateTimeField(format="%-d %B %Y")
+
+    class Meta:
+        model = PlanRequest
+        fields = ('id', 'internship', 'creation_datetime', 'is_submitted',
+                  'submission_datetime', 'is_closed', 'closure_datetime',
+                  'rotation_requests',)
+
+
+class RequestedDepartmentSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = RequestedDepartment
+        fields = ('id', 'is_in_database', 'department', 'department_hospital',
+                  'department_name', 'department_specialty', 'department_contact_name',
+                  'department_email', 'department_phone', 'department_extension')
+
+
+class RotationRequestSerializer(serializers.ModelSerializer):
     status = serializers.CharField(source='get_status')
 
     class Meta:
         model = RotationRequest
-        fields = ('url', 'id', 'plan_request', 'month', 'requested_department', 'delete', 'status',)
+        fields = ('id', 'plan_request', 'month', 'specialty',
+                  'requested_department', 'delete', 'status')
+
+
+class RotationRequestResponseSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = RotationRequestResponse
+        fields = ('id', 'rotation_request', 'is_approved', 'comments', 'response_datetime')
 
 
 class RotationRequestForwardSerializer(serializers.ModelSerializer):
-    intern = serializers.CharField(source="rotation_request.plan_request.internship.intern.profile.get_en_full_name")
-    rotation_request = RotationRequestSerializer()
-
-    def has_response(self, instance):
-        try:
-            instance.response
-            return True
-        except ObjectDoesNotExist:
-            return False
 
     class Meta:
         model = RotationRequestForward
-        fields = ('intern', 'key', 'rotation_request', 'forward_datetime', 'response')
+        fields = ('id', 'key', 'rotation_request', 'forward_datetime', 'response')
+
+
+class RotationRequestForwardResponseSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = RotationRequestForwardResponse
+        fields = ('id', 'forward', 'is_approved', 'response_memo', 'comments',
+                  'respondent_name', 'response_datetime')

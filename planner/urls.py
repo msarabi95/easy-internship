@@ -1,5 +1,21 @@
 from django.conf.urls import url
 from planner import views
+from rest_framework import routers
+
+router = routers.DefaultRouter()
+router.register(r'hospitals', views.HospitalViewSet)
+router.register(r'specialties', views.SpecialtyViewSet)
+router.register(r'departments', views.DepartmentViewSet)
+router.register(r'seat_availabilities', views.SeatAvailabilityViewSet)
+router.register(r'internship_months', views.InternshipMonthViewSet, base_name='internshipmonth')
+router.register(r'internships', views.InternshipViewSet)
+router.register(r'rotations', views.RotationViewSet)
+router.register(r'plan_requests', views.PlanRequestViewSet)
+router.register(r'requested_departments', views.RequestedDepartmentViewSet)
+router.register(r'rotation_requests', views.RotationRequestViewSet)
+router.register(r'rotation_request_responses', views.RotationRequestResponseViewSet)
+router.register(r'rotation_request_forwards', views.RotationRequestForwardViewSet)
+router.register(r'rotation_request_forward_responses', views.RotationRequestForwardResponseViewSet)
 
 urlpatterns = [
     url(r'^$', views.PlannerAPI.as_view(), name="planner_api"),

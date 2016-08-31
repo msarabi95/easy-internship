@@ -1,16 +1,19 @@
+from accounts.models import Profile
 from django.contrib import messages
 from django.core.exceptions import ValidationError, PermissionDenied
-from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.views.generic.base import View
-from planner.serializers import PlanRequestSerializer, RotationRequestSerializer, RotationRequestForwardSerializer
-from rest_framework import viewsets, permissions
+from planner.serializers import PlanRequestSerializer, RotationRequestSerializer, RotationRequestForwardSerializer, \
+    InternshipMonthSerializer, HospitalSerializer, SpecialtySerializer, DepartmentSerializer, SeatAvailabilitySerializer, \
+    InternshipSerializer, RotationSerializer, RequestedDepartmentSerializer, RotationRequestResponseSerializer, \
+    RotationRequestForwardResponseSerializer
+from rest_framework import viewsets
 from djng.views.mixins import allow_remote_invocation, JSONResponseMixin
 from month import Month
-from planner.models import Hospital, RequestedDepartment, Department, Specialty, PlanRequest, Internship, \
-    RotationRequest, RotationRequestForward
-from rest_framework.decorators import detail_route, list_route
+from planner.models import Hospital, RequestedDepartment, Department, Specialty, PlanRequest, \
+    RotationRequest, RotationRequestForward, SeatAvailability, Internship, Rotation, RotationRequestResponse, \
+    RotationRequestForwardResponse
+from rest_framework.decorators import list_route
 from rest_framework.response import Response
 
 
@@ -229,10 +232,62 @@ class PlannerAPI(JSONResponseMixin, View):
     #     return HttpResponseRedirect(reverse("redirect_to_index", args=("planner/", )))  # FIXME: harcoded url
 
 
+# For testing purposes only
+def list_forwards(request):
+    context = {"forwards": RotationRequestForward.objects.all()}
+    return render(request, "planner/list_forwards.html", context)
+
+
+class HospitalViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = HospitalSerializer
+    queryset = Hospital.objects.all()
+
+
+class SpecialtyViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = SpecialtySerializer
+    queryset = Specialty.objects.all()
+
+
+class DepartmentViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = DepartmentSerializer
+    queryset = Department.objects.all()
+
+
+class SeatAvailabilityViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = SeatAvailabilitySerializer
+    queryset = SeatAvailability.objects.all()
+
+
+class InternshipMonthViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = InternshipMonthSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_authenticated() and user.profile.role == Profile.INTERN:
+            internship = user.profile.intern.internship
+            return internship.months
+        else:
+            return []
+
+
+class InternshipViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = InternshipSerializer
+    queryset = Internship.objects.all()
+
+
+class RotationViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = RotationSerializer
+    queryset = Rotation.objects.all()
+
+
 class PlanRequestViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = PlanRequestSerializer
-    queryset = PlanRequest.objects.filter(is_submitted=True)
-    # permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    queryset = PlanRequest.objects.all()
+
+
+class RequestedDepartmentViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = RequestedDepartmentSerializer
+    queryset = RequestedDepartment.objects.all()
 
 
 class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
@@ -254,6 +309,11 @@ class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
         return Response({"status": RotationRequest.FORWARDED_STATUS})
 
 
+class RotationRequestResponseViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = RotationRequestResponseSerializer
+    queryset = RotationRequestResponse.objects.all()
+
+
 class RotationRequestForwardViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = RotationRequestForwardSerializer
     queryset = RotationRequestForward.objects.all()
@@ -269,13 +329,9 @@ class RotationRequestForwardViewSet(viewsets.ReadOnlyModelViewSet):
             respondent_name=request.data.get("respondent_name"),
             comments=request.data.get("comments", ""),
         )
-        print request.POST
-        print request.FILES
-        print request.data
         return Response({"status": RotationRequest.REVIEWED_STATUS, "is_approved": request.data.get("is_approved")})
 
 
-# For testing purposes only
-def list_forwards(request):
-    context = {"forwards": RotationRequestForward.objects.all()}
-    return render(request, "planner/list_forwards.html", context)
+class RotationRequestForwardResponseViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = RotationRequestForwardResponseSerializer
+    queryset = RotationRequestForwardResponse.objects.all()
