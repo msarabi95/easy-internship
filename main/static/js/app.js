@@ -72,6 +72,14 @@ app.run(function ($rootScope, $resource) {
     getMessages("", {});
 });
 
+app.controller("MenuCtrl", ["$scope", "$route", "$location", function ($scope, $route, $location) {
+    //$scope.currentTab = $route.current.currentTab;
+
+    $scope.isActive = function (viewLocation) {
+        return viewLocation == "#" + $location.path();
+    }
+}]);
+
 app.controller("MyCtrl", ["$scope", "djangoUrl", "djangoRMI", "$uibModal", function ($scope, djangoUrl, djangoRMI, $uibModal) {
     function loadMonths() {
         djangoRMI.planner.planner_api.get_internship_info()

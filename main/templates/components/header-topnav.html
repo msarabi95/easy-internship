@@ -1,5 +1,5 @@
 {% load staticfiles %}{% load sitetree %}
-<header class="main-header">
+<header class="main-header" ng-controller="MenuCtrl">
   <nav class="navbar navbar-static-top">
     <div class="container">
       <div class="navbar-header">
@@ -12,7 +12,7 @@
       <!-- Collect the nav links, forms, and other content for toggling -->
       <div class="collapse navbar-collapse pull-left" id="navbar-collapse">
 
-        {% sitetree_menu from "interntree" include "trunk" template "sitetree/menu_bootstrap3.html" %}
+        {% sitetree_menu from "interntree" include "trunk" template "sitetree/menu_bootstrap3_angular.html" %}
 
       </div><!-- /.navbar-collapse -->
       {% include 'components/right-navbar.html' %}

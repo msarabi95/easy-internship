@@ -67,6 +67,12 @@ app.run(function ($rootScope, $resource) {
     getMessages("", {});
 });
 
+app.controller("MenuCtrl", ["$scope", "$route", "$location", function ($scope, $route, $location) {
+    $scope.isActive = function (viewLocation) {
+        return viewLocation == "#" + $location.path();
+    }
+}]);
+
 app.factory("PlanRequest", ["$resource", function($resource) {
     // Refer to: https://www.sitepoint.com/creating-crud-app-minutes-angulars-resource/
     return $resource('/api/plan_requests/:id', {id: '@id'});

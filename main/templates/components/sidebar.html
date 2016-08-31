@@ -3,7 +3,7 @@
   <aside class="main-sidebar">
 
     <!-- sidebar: style can be found in sidebar.less -->
-    <section class="sidebar">
+    <section class="sidebar" ng-controller="MenuCtrl">
 
       <!-- Sidebar user panel (optional) -->
       <div class="user-panel">
@@ -18,7 +18,7 @@
       </div>
 
       <!-- Sidebar Menu -->
-      {% sitetree_menu from "stafftree" include "trunk" template "sitetree/sidebar_bootstrap3.html" %}
+      {% sitetree_menu from "stafftree" include "trunk" template "sitetree/sidebar_bootstrap3_angular.html" %}
       <!-- /.sidebar-menu -->
 
     </section>
