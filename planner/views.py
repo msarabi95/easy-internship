@@ -3,14 +3,14 @@ from django.contrib import messages
 from django.core.exceptions import ValidationError, PermissionDenied
 from django.shortcuts import render
 from django.views.generic.base import View
-from planner.serializers import PlanRequestSerializer, RotationRequestSerializer, RotationRequestForwardSerializer, \
+from planner.serializers import RotationRequestSerializer, RotationRequestForwardSerializer, \
     InternshipMonthSerializer, HospitalSerializer, SpecialtySerializer, DepartmentSerializer, SeatAvailabilitySerializer, \
     InternshipSerializer, RotationSerializer, RequestedDepartmentSerializer, RotationRequestResponseSerializer, \
     RotationRequestForwardResponseSerializer
 from rest_framework import viewsets
 from djng.views.mixins import allow_remote_invocation, JSONResponseMixin
 from month import Month
-from planner.models import Hospital, RequestedDepartment, Department, Specialty, PlanRequest, \
+from planner.models import Hospital, RequestedDepartment, Department, Specialty, \
     RotationRequest, RotationRequestForward, SeatAvailability, Internship, Rotation, RotationRequestResponse, \
     RotationRequestForwardResponse
 from rest_framework.decorators import list_route
@@ -278,11 +278,6 @@ class InternshipViewSet(viewsets.ReadOnlyModelViewSet):
 class RotationViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = RotationSerializer
     queryset = Rotation.objects.all()
-
-
-class PlanRequestViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = PlanRequestSerializer
-    queryset = PlanRequest.objects.all()
 
 
 class RequestedDepartmentViewSet(viewsets.ReadOnlyModelViewSet):

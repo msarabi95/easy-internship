@@ -219,6 +219,7 @@ class InternshipTests(UnifiedSetUpMixin, TestCase):
             raise AssertionError("Internship.clean() raised a `ValidationError` unexpectedly.")
 
 
+# FIXME: Remove PlanRequest tests
 class PlanRequestTests(UnifiedSetUpMixin, TestCase):
     def setUp(self):
         super(PlanRequestTests, self).setUp()

@@ -1,4 +1,4 @@
-from planner.models import PlanRequest, RotationRequest, RotationRequestForward, Rotation, Hospital, Specialty, \
+from planner.models import RotationRequest, RotationRequestForward, Rotation, Hospital, Specialty, \
     Department, Internship, RequestedDepartment, RotationRequestResponse, RotationRequestForwardResponse, \
     SeatAvailability
 from rest_framework import serializers
@@ -59,17 +59,6 @@ class RotationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rotation
         fields = ('id', 'internship', 'month', 'specialty', 'department')
-
-
-class PlanRequestSerializer(serializers.ModelSerializer):
-    submission_datetime = serializers.DateTimeField(format="%-d %B %Y")
-    closure_datetime = serializers.DateTimeField(format="%-d %B %Y")
-
-    class Meta:
-        model = PlanRequest
-        fields = ('id', 'internship', 'creation_datetime', 'is_submitted',
-                  'submission_datetime', 'is_closed', 'closure_datetime',
-                  'rotation_requests',)
 
 
 class RequestedDepartmentSerializer(serializers.ModelSerializer):

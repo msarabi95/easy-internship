@@ -86,6 +86,7 @@ app.factory("RotationRequest", ["$resource", function($resource) {
     });
 }]);
 
+/* FIXME: Re-write with PlanRequests out of mind */
 app.controller("MyCtrl", ["$scope", "PlanRequest", "RotationRequest", "$resource",
 function ($scope, PlanRequest, RotationRequest, $resource) {
     function getPlanRequests() {

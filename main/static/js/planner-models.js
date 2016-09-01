@@ -31,10 +31,6 @@ plannerModule.factory("Rotation", ["$resource", function($resource) {
     return $resource('/api/rotations/:id', {id: '@id'});
 }]);
 
-plannerModule.factory("PlanRequest", ["$resource", function($resource) {
-    return $resource('/api/plan_requests/:id', {id: '@id'});
-}]);
-
 plannerModule.factory("RequestedDepartment", ["$resource", function($resource) {
     return $resource('/api/requested_departments/:id', {id: '@id'});
 }]);
