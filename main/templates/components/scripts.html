@@ -16,6 +16,7 @@
   var tags = {% djng_all_rmi %};
 </script>
 <!-- Angular App -->
+<script src="{% static 'js/planner-models.js' %}"></script>
 {% if role == 'intern' %}
 <script src="{% static 'js/app.js' %}"></script>
 {% elif role == 'staff' %}

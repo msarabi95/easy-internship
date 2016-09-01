@@ -14,9 +14,12 @@
   <div class="row">
     <div class="col-md-10">
       <div class="box box-solid">
+        <div class="box-header">
+          <h5 class="box-title"><b>Welcome to the Internship Planner!</b></>
+        </div>
         <div class="box-body" ng-if="!internshipInfo.currentPlanRequestSubmitted">
 
-              Choose your desired general specialty for each of the months below.
+              Choose your desired rotation for each of the months below.
               You have to fill 12 months.
 
         </div>
@@ -43,37 +46,48 @@
 
         <div class="col-md-2" ng-class="{'col-md-offset-1': $index % 5 == 0}" ng-repeat="i in [$index, $index + 1, $index + 2, $index + 3, $index + 4]">
 
-          <div class="box direct-chat direct-chat-primary internship-month"
-               ng-class="{'box-default': rotationViewUnoccupied(i) || rotationViewReqUnoccupied(i), 'box-primary': rotationViewOccupied(i) || rotationViewReqOccupied(i), 'box-warning': requestViewReqUnoccupied(i) || requestViewUpdateReqOccupied(i), 'box-danger': requestViewCancelReqOccupied(i)}">
+          <div class="box direct-chat direct-chat-primary internship-month" ng-class="{'box-primary': months[i].current_rotation !== null, 'box-default': months[i].current_rotation == null}">
             <div class="box-header with-border">
-              <h3 class="box-title">{{ months[i].monthLabel }}</h3>
+              <h3 class="box-title">{{ months[i].label }}</h3>
               <div class="box-tools pull-right">
 
               </div>
             </div><!-- /.box-header -->
             <div class="box-body">
-                <div class="col-xs-12" ng-if="rotationView(i)">
-                  <h4 ng-if="!hasRotation(i)"><b>No current rotation.</b></h4>
-
-                  <h5 ng-if="hasRotation(i)">{{ months[i].currentRotation.hospital }}</h5>
-                  <h4 ng-if="hasRotation(i)"><b>{{ months[i].currentRotation.department }}</b></h4>
+                <div class="col-xs-12" ng-if="months[i].current_rotation == null">
+                  <h4><b>No current rotation.</b></h4>
                 </div>
-
-                <div class="col-xs-12" ng-if="requestView(i)">
-                  <h5 ng-if="!requestViewCancelReqOccupied(i)">{{ months[i].currentRequest.hospital }}</h5>
-                  <h4 ng-if="!requestViewCancelReqOccupied(i)"><b>{{ months[i].currentRequest.department }}</b></h4>
-
-                  <h4 ng-if="requestViewCancelReqOccupied(i)"><b>You have requested cancellation of this rotation.</b></h4>
+                <div class="col-xs-12" ng-if="months[i].current_rotation !== null">
+                  <h5>{{ months[i].current_rotation.department.hospital.name }}</h5>
+                  <h4><b>{{ months[i].current_rotation.department.name }}</b></h4>
                 </div>
             </div><!-- /.box-body -->
+
             <div class="box-footer">
-                <button type="button" class="btn btn-block btn-flat" ng-click="showModal(i)"
-                        ng-class="{'btn-default': rotationViewUnoccupied(i) || rotationViewReqUnoccupied(i), 'btn-primary': rotationViewOccupied(i) || rotationViewReqOccupied(i), 'btn-warning': requestViewReqUnoccupied(i) || requestViewUpdateReqOccupied(i), 'btn-danger': requestViewCancelReqOccupied(i)}">More Info</button>
-                <a ng-if="hasRequest(i)" ng-click="toggleShowRequest(i)" href="">
-                  <span ng-if="rotationView(i)" class="badge bg-yellow" style="width:100%; margin-top: 10px;">Show Requested</span>
-                  <span ng-if="requestView(i) && months[i].currentRotation != null" class="badge bg-blue" style="width:100%; margin-top: 10px;">Show Current</span>
-                  <span ng-if="requestView(i) && months[i].currentRotation == null" class="badge bg-gray" style="width:100%; margin-top: 10px;">Show Current</span>
-                </a>
+
+              <div class="btn-group" ng-if="months[i].current_rotation == null">
+                <button type="button" class="btn btn-default btn-flat ">Request a rotation</button>
+                <button type="button" class="btn btn-default btn-flat dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  <span class="caret"></span>
+                  <span class="sr-only">Toggle Dropdown</span>
+                </button>
+                <ul class="dropdown-menu">
+                  <li><a href="#">See previous requests for this month</a></li>
+                </ul>
+              </div>
+
+              <div class="btn-group btn-group-xs" ng-if="months[i].current_rotation !== null">
+                <button type="button" class="btn btn-xs btn-primary btn-flat">Get more info</button>
+                <button type="button" class="btn btn-xs btn-primary btn-flat dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  <span class="caret"></span>
+                  <span class="sr-only">Toggle Dropdown</span>
+                </button>
+                <ul class="dropdown-menu">
+                  <li><a href="#">Request a change</a></li>
+                  <li><a href="#">See previous requests for this month</a></li>
+                </ul>
+              </div>
+
             </div><!-- /.box-footer-->
           </div><!--/.direct-chat -->
 

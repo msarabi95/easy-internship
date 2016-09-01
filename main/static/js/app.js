@@ -1,7 +1,8 @@
 /**
  * Created by MSArabi on 6/16/16.
  */
-var app = angular.module("easyInternship", ["djng.urls", "djng.rmi", "ngResource", "ngRoute", "ui.bootstrap"]);
+var app = angular.module("easyInternship", ["djng.urls", "djng.rmi", "ngResource",
+                                            "ngRoute", "ui.bootstrap", "easy.planner"]);
 
 const MonthStatus = {
     UNOCCUPIED: "Unoccupied",
@@ -50,7 +51,7 @@ app.config(["$httpProvider", "$routeProvider", "djangoRMIProvider",
         })
         .when("/planner/", {
             templateUrl: "partials/planner/planner-index.html",
-            controller: "MyCtrl"
+            controller: "NewCtrl"
         })
 
 }]);
@@ -78,6 +79,47 @@ app.controller("MenuCtrl", ["$scope", "$route", "$location", function ($scope, $
     $scope.isActive = function (viewLocation) {
         return viewLocation == "#" + $location.path();
     }
+}]);
+
+app.controller("NewCtrl", ["$scope", "InternshipMonth", "Rotation", "RotationRequest", "Department", "Hospital",
+    function ($scope, InternshipMonth, Rotation, RotationRequest, Department, Hospital) {
+        $scope.months = InternshipMonth.query();
+
+        $scope.months.$promise.then(function (results) {
+
+            var occupied = [];
+            var requested = [];
+
+            // Save the indices of occupied and requested months in 2 separate arrays
+            angular.forEach(results, function (month, index) {
+                if (month.current_rotation !== null) {
+                    occupied.push(index);
+                }
+                if (month.current_request !== null) {
+                    requested.push(index);
+                }
+            });
+
+            // Load all details of occupied months
+            angular.forEach(occupied, function (monthIndex) {
+                // Load current rotation
+                $scope.months[monthIndex].current_rotation = Rotation.get({id: $scope.months[monthIndex].current_rotation});
+
+                $scope.months[monthIndex].current_rotation.$promise.then(function (rotation) {
+                    // Load current rotation department
+                    $scope.months[monthIndex].current_rotation.department =
+                        Department.get({id: rotation.department});
+
+                    $scope.months[monthIndex].current_rotation.department.$promise.then(function (department) {
+                        // Load current rotation hospital
+                        $scope.months[monthIndex].current_rotation.department.hospital =
+                            Hospital.get({id: department.hospital});
+                    })
+                })
+            });
+
+            console.log($scope.months);
+        });
 }]);
 
 app.controller("MyCtrl", ["$scope", "djangoUrl", "djangoRMI", "$uibModal", function ($scope, djangoUrl, djangoRMI, $uibModal) {
@@ -239,10 +281,10 @@ app.controller("MyCtrl", ["$scope", "djangoUrl", "djangoRMI", "$uibModal", funct
         });
 
         modalInstance.result.then(function (result) {
-            
+
             var jobType = result.jobType;
             var requestData = result.requestData || {};
-            
+
             requestData.month = $scope.months[monthIndex].month;
 
             console.log(requestData);
