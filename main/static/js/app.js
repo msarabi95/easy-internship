@@ -11,8 +11,8 @@ const MonthStatus = {
     REQUESTED_OCCUPIED: "RequestedOccupied"
 };
 
-app.config(["$httpProvider", "$routeProvider", "djangoRMIProvider",
-    function ($httpProvider, $routeProvider, djangoRMIProvider) {
+app.config(["$httpProvider", "$routeProvider", "djangoRMIProvider", "$resourceProvider",
+    function ($httpProvider, $routeProvider, djangoRMIProvider, $resourceProvider) {
 
     // These settings enable Django to receive Angular requests properly.
     // Check:
@@ -42,6 +42,8 @@ app.config(["$httpProvider", "$routeProvider", "djangoRMIProvider",
        };
     });
 
+    $resourceProvider.defaults.stripTrailingSlashes = false;
+
     djangoRMIProvider.configure(tags);
 
     $routeProvider
@@ -52,6 +54,10 @@ app.config(["$httpProvider", "$routeProvider", "djangoRMIProvider",
         .when("/planner/", {
             templateUrl: "partials/planner/planner-index.html",
             controller: "NewCtrl"
+        })
+        .when("/planner/:month_id/new/", {
+            templateUrl: "partials/planner/new-request.html",
+            controller: "NewRequestCtrl"
         })
 
 }]);
@@ -120,6 +126,92 @@ app.controller("NewCtrl", ["$scope", "InternshipMonth", "Rotation", "RotationReq
 
             console.log($scope.months);
         });
+}]);
+
+app.controller("NewRequestCtrl", ["$scope", "$routeParams", "$location", "Specialty", "Hospital", "Department",
+    "RequestedDepartment", "RotationRequest", "InternshipMonth",
+    function ($scope, $routeParams, $location, Specialty, Hospital, Department, RequestedDepartment, RotationRequest, InternshipMonth) {
+        $scope.internshipMonth = InternshipMonth.get({month_id: $routeParams.month_id});
+
+        $scope.specialties = Specialty.query();
+        $scope.hospitals = Hospital.query();
+
+        $scope.requested_department_data = {};
+
+        $scope.getDepartment = function () {
+            // This function is called whenever the hospital or specialty fields are updated
+            if (!!$scope.specialty && !!$scope.hospital) {
+
+                $scope.department = Department.get_by_specialty_and_hospital({
+                    specialty: $scope.specialty,
+                    hospital: $scope.hospital
+                }, function (department) {
+                    $scope.new_department = false;
+                }, function (error) {
+                    if (error.status == 404) {
+                        $scope.new_department = true;
+                    } else {
+                        toastr.error(error.statusText);
+                        console.log(error);
+                    }
+                });
+            }
+        };
+
+        $scope.submit = function () {
+            // This function submits the new rotation request
+
+            $scope.rotationRequestForm.errors = {};
+
+            console.log($scope.rotationRequestForm);
+
+            if ($scope.new_department == true) {
+                $scope.requested_department_data.is_in_database = false;
+                $scope.requested_department_data.department = null;
+
+                $scope.requested_department_data.department_specialty = parseInt($scope.specialty);
+                $scope.requested_department_data.department_hospital = parseInt($scope.hospital);
+
+            } else {
+                $scope.requested_department_data = {
+                    is_in_database: true,
+                    department: $scope.department.id
+                }
+            }
+
+            $scope.requested_department = new RequestedDepartment($scope.requested_department_data);
+
+            $scope.requested_department.$save(function (requested_department) {
+
+                $scope.rotation_request = new RotationRequest({
+                    month: $scope.internshipMonth.month,
+                    specialty: $scope.specialty,
+                    requested_department: requested_department.id
+                });
+                $scope.rotation_request.$submit(function (rotation_request) {
+                    $location.path("/planner");
+                }, function (error) {
+                    if (error.status == 400) {
+
+                        angular.forEach(error.data, function (fieldErrors, key) {
+                            $scope.rotationRequestForm[key].$setValidity("required", false);
+                            $scope.rotationRequestForm.errors[key] = fieldErrors;
+                        });
+
+                        toastr.warning("There are some isssues with your submission. Please resolve them and try submitting again.")
+
+                    } else {
+                        toastr.error(error.statusText);
+                    }
+                    console.log(error);
+                });
+
+            }, function (error) {
+                toastr.error(error.statusText);
+                console.log(error);
+            });
+        }
+
 }]);
 
 app.controller("MyCtrl", ["$scope", "djangoUrl", "djangoRMI", "$uibModal", function ($scope, djangoUrl, djangoRMI, $uibModal) {

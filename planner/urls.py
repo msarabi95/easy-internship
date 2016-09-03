@@ -16,6 +16,9 @@ router.register(r'rotation_request_responses', views.RotationRequestResponseView
 router.register(r'rotation_request_forwards', views.RotationRequestForwardViewSet)
 router.register(r'rotation_request_forward_responses', views.RotationRequestForwardResponseViewSet)
 
+custom_departments_view_url = url(r'^api/departments/(?P<specialty>\d+)/(?P<hospital>\d+)/$',
+                                  views.DepartmentBySpecialtyAndHospital.as_view())
+
 urlpatterns = [
     url(r'^$', views.PlannerAPI.as_view(), name="planner_api"),
 ]

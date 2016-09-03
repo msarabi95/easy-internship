@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from copy import copy
 
 from accounts.models import Intern
+from django.core import validators
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.db.models.query_utils import Q
@@ -161,26 +162,40 @@ class Internship(models.Model):
 
     def clean(self):
         """
-        Checks 2 conditions:
-        1- The internship plan consists of exactly 12 rotations.
-        2- The internship plan achieves the minimum number of months for each required specialty.
+        Checks that:
+        1- The internship plan doesn't exceed 12 months.
+        2- Each specialty doesn't exceed its required months.
+        3- Not more than 2 months are used for electives. (Electives can be any specialty)
         """
         # FIXME: Doesn't work with admin, because it checks data that's stored in the database; i.e. a ModelForm
         # can never evaluate! (e.g. the admin site)
         errors = []
-        if self.rotations.count() != 12:
-            errors.append(ValidationError("The internship plan should contain exactly 12 months."))
+        if self.rotations.count() > 12:
+            errors.append(ValidationError("The internship plan should contain no more than 12 months."))
 
         # Get a list of general specialties
         general_specialties = Specialty.objects.filter(parent_specialty__isnull=True)
 
         # For each general specialty, check that the number of rotations under that specialty is not less
         # the required number of months.
+        extra_months = 0
+        specialties_with_extra = []
+
         for specialty in general_specialties:
-            if len(filter(lambda rotation: rotation.specialty.get_general_specialty() == specialty,
-                          self.rotations.all())) < specialty.required_months:
-                errors.append(ValidationError("The internship plan should contain at least %d month(s) of %s.",
-                                              params=(specialty.required_months, specialty.name)))
+            rotation_count = len(filter(lambda rotation: rotation.specialty.get_general_specialty() == specialty,
+                                        self.rotations.all()))
+
+            if rotation_count > specialty.required_months:
+                extra_months += rotation_count - specialty.required_months
+                specialties_with_extra.append(specialty)
+
+        if extra_months > 2:
+            for specialty in specialties_with_extra:
+                errors.append(ValidationError("The internship plan should contain at most %d month(s) of %s.",
+                                      params=(specialty.required_months, specialty.name)))
+            errors.append(ValidationError("The internship plan should contain at most %d month(s) of %s.",
+                                      params=(2, "electives")))
+
         if errors:
             raise ValidationError(errors)
 
@@ -233,12 +248,32 @@ class RequestedDepartment(models.Model):
     department = models.ForeignKey(Department, related_name="department_requests", null=True, blank=True)
 
     department_hospital = models.ForeignKey(Hospital, null=True, blank=True)
-    department_name = models.CharField(max_length=128)
+    department_name = models.CharField(max_length=128, blank=True)
     department_specialty = models.ForeignKey(Specialty, null=True, blank=True)
-    department_contact_name = models.CharField(max_length=128)
-    department_email = models.EmailField(max_length=128)
-    department_phone = models.CharField(max_length=128)
-    department_extension = models.CharField(max_length=16)
+    department_contact_name = models.CharField(max_length=128, blank=True)
+    department_email = models.EmailField(max_length=128, blank=True)
+    department_phone = models.CharField(
+        max_length=128,
+        blank=True,
+        validators=[
+            validators.RegexValidator(
+                r'^\+\d{12}$',
+                code='invalid_phone_number',
+                message="Phone number should follow the format +966XXXXXXXXX."
+            )
+        ]
+    )
+    department_extension = models.CharField(
+        max_length=16,
+        blank=True,
+        validators=[
+            validators.RegexValidator(
+                r'^\d{3}\d*$',
+                code='invalid_extension',
+                message="Extension should be at least 3 digits long."
+            )
+        ]
+    )
 
     def clean(self):
         """
@@ -336,7 +371,7 @@ class RequestedDepartment(models.Model):
         return self.get_department().name
 
 
-class RotationRequestManager(models.Manager):
+class RotationRequestQuerySet(models.QuerySet):
     def month(self, month):
         """
         Return rotation requests for a particular months.
@@ -361,7 +396,10 @@ class RotationRequestManager(models.Manager):
         (There should only be one open request per month at a time.)
         """
         # This only has meaning when filtering requests for a specific internship
-        return self.month(month).open().latest("submission_datetime")
+        try:
+            return self.month(month).open().latest("submission_datetime")
+        except ObjectDoesNotExist:
+            return None
 
 
 class RotationRequest(models.Model):
@@ -374,11 +412,65 @@ class RotationRequest(models.Model):
     # FIXME: The name `delete` conflicts with the api function `delete()`
     submission_datetime = models.DateTimeField(auto_now_add=True)
 
-    objects = RotationRequestManager()
+    objects = RotationRequestQuerySet().as_manager()
 
     PENDING_STATUS = "P"
     FORWARDED_STATUS = "F"
     REVIEWED_STATUS = "R"
+
+    def save(self, *args, **kwargs):
+        # Make sure the request is valid before saving
+        self.full_clean()
+
+        super(RotationRequest, self).save(*args, **kwargs)
+
+    def clean(self):
+        """
+        Checks that:
+        1- The rotation request alters the internship plan in a way that keeps it at 12 rotations or less.
+        2- The rotation request alters the internship plan in a way that doesn't exceed the maximum number of months
+         for each required specialty.
+        """
+        predicted_plan = self.get_predicted_plan()
+        predicted_plan.clean()
+
+    def get_predicted_plan(self):
+        """
+        Returns an `Internship` object representing what the internship plan will look like
+        if all the rotation requests in this plan request are accepted.
+        """
+        # Make a list of new rotation objects based on the rotation requests attached to the
+        # plan request
+        updated_rotations = [
+            Rotation(internship=self.internship,
+                     month=request.month,
+                     department=request.requested_department.get_department(),
+                     specialty=request.specialty)
+
+            for request in self.internship.rotation_requests.open().filter(delete=False)
+        ]
+
+        # Exclude overlapping months
+        excluded_months = self.internship.rotation_requests.values_list("month", flat=True)
+
+        # To make the final list of the updated rotations, add the existing unaffected rotations to the
+        # list of new ones
+        updated_rotations.extend(self.internship.rotations.exclude(month__in=excluded_months))
+
+        # Make a copy of the internship object
+        predicted = copy(self.internship)
+        predicted.pk = None
+        # predicted.intern = None
+
+        # We need to tweak some internal Django attributes to allow us to relate the updated rotations
+        # to the predicted internship object without having to save them in the database
+        # Check: http://stackoverflow.com/a/16222603
+        qs = predicted.rotations.all()
+        qs._result_cache = updated_rotations
+        qs._prefetch_done = True
+        predicted._prefetched_objects_cache = {'rotations': qs}
+
+        return predicted
 
     def get_status(self):
         """

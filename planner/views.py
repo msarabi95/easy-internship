@@ -1,19 +1,19 @@
 from accounts.models import Profile
 from django.contrib import messages
 from django.core.exceptions import ValidationError, PermissionDenied
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.views.generic.base import View
 from planner.serializers import RotationRequestSerializer, RotationRequestForwardSerializer, \
     InternshipMonthSerializer, HospitalSerializer, SpecialtySerializer, DepartmentSerializer, SeatAvailabilitySerializer, \
     InternshipSerializer, RotationSerializer, RequestedDepartmentSerializer, RotationRequestResponseSerializer, \
     RotationRequestForwardResponseSerializer
-from rest_framework import viewsets
+from rest_framework import viewsets, generics
 from djng.views.mixins import allow_remote_invocation, JSONResponseMixin
 from month import Month
 from planner.models import Hospital, RequestedDepartment, Department, Specialty, \
     RotationRequest, RotationRequestForward, SeatAvailability, Internship, Rotation, RotationRequestResponse, \
     RotationRequestForwardResponse
-from rest_framework.decorators import list_route
+from rest_framework.decorators import list_route, detail_route
 from rest_framework.response import Response
 
 
@@ -253,6 +253,16 @@ class DepartmentViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Department.objects.all()
 
 
+class DepartmentBySpecialtyAndHospital(generics.RetrieveAPIView):
+    serializer_class = DepartmentSerializer
+    queryset = Department.objects.all()
+
+    def get_object(self):
+        specialty = Specialty.objects.get(id=self.kwargs['specialty'])
+        hospital = Hospital.objects.get(id=self.kwargs['hospital'])
+        return get_object_or_404(Department, specialty=specialty, hospital=hospital)
+
+
 class SeatAvailabilityViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = SeatAvailabilitySerializer
     queryset = SeatAvailability.objects.all()
@@ -260,6 +270,7 @@ class SeatAvailabilityViewSet(viewsets.ReadOnlyModelViewSet):
 
 class InternshipMonthViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = InternshipMonthSerializer
+    lookup_field = 'month'
 
     def get_queryset(self):
         user = self.request.user
@@ -268,6 +279,11 @@ class InternshipMonthViewSet(viewsets.ReadOnlyModelViewSet):
             return internship.months
         else:
             return []
+
+    def get_object(self):
+        queryset = self.get_queryset()
+        month = Month.from_int(int(self.kwargs[self.lookup_field]))
+        return filter(lambda m: m.month == month, queryset)[0]
 
 
 class InternshipViewSet(viewsets.ReadOnlyModelViewSet):
@@ -280,14 +296,30 @@ class RotationViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Rotation.objects.all()
 
 
-class RequestedDepartmentViewSet(viewsets.ReadOnlyModelViewSet):
+class RequestedDepartmentViewSet(viewsets.ModelViewSet):
     serializer_class = RequestedDepartmentSerializer
     queryset = RequestedDepartment.objects.all()
 
 
-class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
+class RotationRequestViewSet(viewsets.ModelViewSet):
     serializer_class = RotationRequestSerializer
     queryset = RotationRequest.objects.all()
+
+    @list_route(methods=["post"])
+    def submit(self, request):
+        request.data['month'] = str(Month.from_int(request.data['month']).first_day())
+        request.data['internship'] = request.user.profile.intern.internship.id
+        del request.data['specialty'] # Just for testing
+        serialized = self.serializer_class(data=request.data)
+
+        # TODO: How are the errors handled on the client side?
+        if serialized.is_valid(raise_exception=True):
+            instance = serialized.save()
+            messages.success(request._request, "Your request has been submitted successfully.")
+
+            # TODO: Notify internship unit.
+
+            return Response(serialized.data)
 
     @list_route(methods=["post"])
     def respond(self, request):

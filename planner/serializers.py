@@ -8,7 +8,7 @@ class HospitalSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Hospital
-        fields = ('id', 'name', 'abbreviation', 'is_kamc')
+        fields = ('id', 'name', 'abbreviation', 'is_kamc', 'departments')
 
 
 class SpecialtySerializer(serializers.ModelSerializer):
@@ -71,11 +71,11 @@ class RequestedDepartmentSerializer(serializers.ModelSerializer):
 
 
 class RotationRequestSerializer(serializers.ModelSerializer):
-    status = serializers.CharField(source='get_status')
+    status = serializers.CharField(source='get_status', required=False)
 
     class Meta:
         model = RotationRequest
-        fields = ('id', 'plan_request', 'month', 'specialty',
+        fields = ('id', 'internship', 'month', 'specialty',
                   'requested_department', 'delete', 'status')
 
 

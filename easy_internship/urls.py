@@ -21,11 +21,13 @@ from django_nyt.urls import get_pattern as get_nyt_pattern
 from accounts.forms import InternSignupForm, EditInternProfileForm
 from main import views as main_views
 from planner import views
-from planner.urls import router
+from planner.urls import router, custom_departments_view_url
 
 urlpatterns = [
     url(r'^forwards/$', views.list_forwards, name="list_forwards"),  # Temporary, for testing only!
+    custom_departments_view_url,
     url(r'^api/', include(router.urls)),
+
     url(r'^planner/', include("planner.urls", namespace="planner")),
     url(r'^partials/(?P<template_name>.*\.html)$', "main.views.load_partial", name="load_partial"),
 

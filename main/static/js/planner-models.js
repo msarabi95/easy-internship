@@ -12,7 +12,16 @@ plannerModule.factory("Specialty", ["$resource", function($resource) {
 }]);
 
 plannerModule.factory("Department", ["$resource", function($resource) {
-    return $resource('/api/departments/:id', {id: '@id'});
+    return $resource('/api/departments/:id', {id: '@id'}, {
+        get_by_specialty_and_hospital: {
+            method: 'get',
+            url: '/api/departments/:specialty/:hospital',
+            params: {
+                specialty: '@specialty',
+                hospital: '@hospital'
+            }
+        }
+    });
 }]);
 
 plannerModule.factory("SeatAvailability", ["$resource", function($resource) {
@@ -20,7 +29,7 @@ plannerModule.factory("SeatAvailability", ["$resource", function($resource) {
 }]);
 
 plannerModule.factory("InternshipMonth", ["$resource", function($resource) {
-    return $resource('/api/internship_months/:month', {month: '@month'});
+    return $resource('/api/internship_months/:month_id', {month_id: '@month'});
 }]);
 
 plannerModule.factory("Internship", ["$resource", function($resource) {
@@ -36,7 +45,12 @@ plannerModule.factory("RequestedDepartment", ["$resource", function($resource) {
 }]);
 
 plannerModule.factory("RotationRequest", ["$resource", function($resource) {
-    return $resource('/api/rotation_requests/:id', {id: '@id'});
+    return $resource('/api/rotation_requests/:id', {id: '@id'}, {
+        submit: {
+            method: "post",
+            url: '/api/rotation_requests/submit/'
+        }
+    });
 }]);
 
 plannerModule.factory("RotationRequestResponse", ["$resource", function($resource) {
