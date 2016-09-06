@@ -1,7 +1,7 @@
 /**
  * Created by MSArabi on 6/16/16.
  */
-var app = angular.module("easyInternship", ["ngResource", "ngRoute", "easy.planner"]);
+var app = angular.module("easyInternship", ["djng.forms", "ngResource", "ngRoute", "easy.planner"]);
 
 app.config(["$httpProvider", "$routeProvider", "$resourceProvider",
     function ($httpProvider, $routeProvider, $resourceProvider) {
