@@ -1,5 +1,6 @@
 from django.conf.urls import url
 from planner import views
+from planner.views import RotationRequestFormView
 from rest_framework import routers
 
 router = routers.DefaultRouter()
@@ -18,3 +19,7 @@ router.register(r'rotation_request_forward_responses', views.RotationRequestForw
 
 custom_departments_view_url = url(r'^api/departments/(?P<specialty>\d+)/(?P<hospital>\d+)/$',
                                   views.DepartmentBySpecialtyAndHospital.as_view())
+
+urlpatterns = [
+    url(r'^rotation-request-form/$', RotationRequestFormView.as_view()),
+]

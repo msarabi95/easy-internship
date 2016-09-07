@@ -30,6 +30,8 @@ urlpatterns = [
 
     url(r'^partials/(?P<template_name>.*\.html)$', "main.views.load_partial", name="load_partial"),
 
+    url(r'^planner/', include("planner.urls")),
+
     url(r'^accounts/(?P<username>[\@\.\w-]+)/edit/$', 'userena.views.profile_edit', {'edit_profile_form': EditInternProfileForm}),
     url(r'^accounts/signup/$', 'userena.views.signup', {'signup_form': InternSignupForm}),
     url(r'^accounts/', include('userena.urls')),

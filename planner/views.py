@@ -1,6 +1,12 @@
+import json
+
 from accounts.models import Profile
 from django.contrib import messages
+from django.core.exceptions import PermissionDenied
+from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
+from django.views import generic as django_generics
+from planner.forms import RotationRequestForm
 from planner.serializers import RotationRequestSerializer, RotationRequestForwardSerializer, \
     InternshipMonthSerializer, HospitalSerializer, SpecialtySerializer, DepartmentSerializer, SeatAvailabilitySerializer, \
     InternshipSerializer, RotationSerializer, RequestedDepartmentSerializer, RotationRequestResponseSerializer, \
@@ -36,8 +42,8 @@ class DepartmentViewSet(viewsets.ReadOnlyModelViewSet):
 
 class DepartmentBySpecialtyAndHospital(generics.RetrieveAPIView):
     serializer_class = DepartmentSerializer
-    queryset = Department.objects.all()
 
+    queryset = Department.objects.all()
     def get_object(self):
         specialty = Specialty.objects.get(id=self.kwargs['specialty'])
         hospital = Hospital.objects.get(id=self.kwargs['hospital'])
@@ -51,6 +57,7 @@ class SeatAvailabilityViewSet(viewsets.ReadOnlyModelViewSet):
 
 class InternshipMonthViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = InternshipMonthSerializer
+
     lookup_field = 'month'
 
     def get_queryset(self):
@@ -60,7 +67,6 @@ class InternshipMonthViewSet(viewsets.ReadOnlyModelViewSet):
             return internship.months
         else:
             return []
-
     def get_object(self):
         queryset = self.get_queryset()
         month = Month.from_int(int(self.kwargs[self.lookup_field]))
@@ -87,34 +93,49 @@ class RotationRequestViewSet(viewsets.ModelViewSet):
     queryset = RotationRequest.objects.all()
 
     @list_route(methods=["post"])
-    def submit(self, request):
-        request.data['month'] = str(Month.from_int(request.data['month']).first_day())
-        request.data['internship'] = request.user.profile.intern.internship.id
-        del request.data['specialty'] # Just for testing
-        serialized = self.serializer_class(data=request.data)
-
-        # TODO: How are the errors handled on the client side?
-        if serialized.is_valid(raise_exception=True):
-            instance = serialized.save()
-            messages.success(request._request, "Your request has been submitted successfully.")
-
-            # TODO: Notify internship unit.
-
-            return Response(serialized.data)
-
-    @list_route(methods=["post"])
     def respond(self, request):
         pk = request.data.get("id")
         rr = RotationRequest.objects.get(pk=pk)
         rr.respond(request.data.get("is_approved"), request.data.get("comments", ""))
         return Response({"status": RotationRequest.REVIEWED_STATUS, "is_approved": request.data.get("is_approved")})
-
     @list_route(methods=["post"])
     def forward(self, request):
         pk = request.data.get("id")
         rr = RotationRequest.objects.get(pk=pk)
         rr.forward_request()
         return Response({"status": RotationRequest.FORWARDED_STATUS})
+
+
+class RotationRequestFormView(django_generics.FormView):
+    template_name = "planner/forms/rotation-request.html"
+    form_class = RotationRequestForm
+
+    def post(self, request, *args, **kwargs):
+        if request.is_ajax():
+            return self.ajax(request)
+        raise
+
+    def ajax(self, request):
+        data = json.loads(request.body)
+        month = Month.from_int(int(data['month']))
+        internship = self.request.user.profile.intern.internship
+
+        if internship.rotation_requests.current_for_month(month):
+            raise PermissionDenied("There is a rotation request for this month already.")
+
+        form = self.form_class(data=data)
+        if form.is_valid():
+            requested_department = form.save()
+            internship.rotation_requests.create(
+                month=month,
+                specialty=requested_department.department_specialty,
+                requested_department=requested_department,
+            )
+
+            messages.success(request, "Your request has been submitted successfully.")
+
+        response_data = {'errors': form.errors}
+        return HttpResponse(json.dumps(response_data), content_type="application/json")
 
 
 class RotationRequestResponseViewSet(viewsets.ReadOnlyModelViewSet):

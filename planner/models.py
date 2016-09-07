@@ -4,10 +4,8 @@ from copy import copy
 
 from accounts.models import Intern
 from django.core import validators
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ObjectDoesNotExist, ValidationError, MultipleObjectsReturned
 from django.db import models
-from django.db.models.query_utils import Q
-from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django_nyt.utils import notify
 from month.models import MonthField
@@ -374,7 +372,7 @@ class RequestedDepartment(models.Model):
 class RotationRequestQuerySet(models.QuerySet):
     def month(self, month):
         """
-        Return rotation requests for a particular months.
+        Return rotation requests for a particular month.
         """
         return self.filter(month=month)
 
@@ -396,8 +394,16 @@ class RotationRequestQuerySet(models.QuerySet):
         (There should only be one open request per month at a time.)
         """
         # This only has meaning when filtering requests for a specific internship
+        open_requests = self.month(month).open()
+        if open_requests.count() > 1:
+            raise MultipleObjectsReturned(
+                "Expected at most 1 open rotation request for the month %s, found %d!" % (
+                    month.first_day().strftime("%B %Y"),
+                    open_requests.count()
+                )
+            )
         try:
-            return self.month(month).open().latest("submission_datetime")
+            return open_requests.latest("submission_datetime")
         except ObjectDoesNotExist:
             return None
 

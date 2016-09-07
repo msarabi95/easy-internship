@@ -50,7 +50,7 @@
             <div class="box-header with-border">
               <h3 class="box-title">{{ months[i].label }}</h3>
               <div class="box-tools pull-right">
-
+                <span class="badge bg-yellow" ng-if="months[i].current_request">!</span>
               </div>
             </div><!-- /.box-header -->
             <div class="box-body">
