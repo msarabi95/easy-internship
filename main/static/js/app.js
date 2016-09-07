@@ -42,12 +42,20 @@ app.config(["$httpProvider", "$routeProvider", "$resourceProvider",
             redirectTo: "/"
         })
         .when("/planner/", {
-            templateUrl: "partials/planner/planner-index.html",
-            controller: "NewCtrl"
+            templateUrl: "partials/planner/intern/month-list.html",
+            controller: "MonthListCtrl"
+        })
+        .when("/planner/:month_id/", {
+            templateUrl: "partials/planner/intern/month-detail.html",
+            controller: "MonthDetailCtrl"
         })
         .when("/planner/:month_id/new/", {
             templateUrl: "planner/rotation-request-form/",
-            controller: "NewRequestCtrl"
+            controller: "RotationRequestCreateCtrl"
+        })
+        .when("/planner/:month_id/history/", {
+            templateUrl: "partials/planner/intern/rotation-request-history.html",
+            controller: "RotationRequestHistoryCtrl"
         })
 
 }]);
@@ -77,8 +85,8 @@ app.controller("MenuCtrl", ["$scope", "$route", "$location", function ($scope, $
     }
 }]);
 
-app.controller("NewCtrl", ["$scope", "InternshipMonth", "Rotation", "RotationRequest", "Department", "Hospital",
-    function ($scope, InternshipMonth, Rotation, RotationRequest, Department, Hospital) {
+app.controller("MonthListCtrl", ["$scope", "InternshipMonth", "Rotation", "RotationRequest", "RequestedDepartment", "Department", "Hospital", "Specialty",
+    function ($scope, InternshipMonth, Rotation, RotationRequest, RequestedDepartment, Department, Hospital, Specialty) {
         $scope.months = InternshipMonth.query();
 
         $scope.months.$promise.then(function (results) {
@@ -87,12 +95,20 @@ app.controller("NewCtrl", ["$scope", "InternshipMonth", "Rotation", "RotationReq
             var requested = [];
 
             // Save the indices of occupied and requested months in 2 separate arrays
+            // Also add 2 flags (occupied and requested) with the appropriate boolean values to each month object
             angular.forEach(results, function (month, index) {
                 if (month.current_rotation !== null) {
                     occupied.push(index);
+                    $scope.months[index].occupied = true;
+                } else {
+                    $scope.months[index].occupied = false;
                 }
+
                 if (month.current_request !== null) {
                     requested.push(index);
+                    $scope.months[index].requested = true;
+                } else {
+                    $scope.months[index].requested = false;
                 }
             });
 
@@ -114,11 +130,105 @@ app.controller("NewCtrl", ["$scope", "InternshipMonth", "Rotation", "RotationReq
                 })
             });
 
-            console.log($scope.months);
+            // Load all details of requested months
+            angular.forEach(requested, function (monthIndex) {
+                $scope.months[monthIndex].current_request = RotationRequest.get({id: $scope.months[monthIndex].current_request});
+
+                $scope.months[monthIndex].current_request.$promise.then(function (request) {
+                    // Load current request specialty
+                    $scope.months[monthIndex].current_request.specialty =
+                        Specialty.get({id: request.specialty});
+
+                    // Load current request requested department
+                    $scope.months[monthIndex].current_request.requested_department =
+                        RequestedDepartment.get({id: request.requested_department});
+
+                    $scope.months[monthIndex].current_request.requested_department.$promise.then(function (requested_department) {
+                       // Load department object
+                       $scope.months[monthIndex].current_request.requested_department.department =
+                           Department.get({id: requested_department.department});
+
+                       $scope.months[monthIndex].current_request.requested_department.department.$promise.then(function (department) {
+                           $scope.months[monthIndex].current_request.requested_department.department.hospital =
+                               Hospital.get({id: department.hospital});
+                       })
+                    });
+                })
+            })
+
         });
+
+        $scope.getTileClass = function (month) {
+            if (!month.occupied && !month.requested) {
+                return "default";
+            } else if (!month.occupied && month.requested) {
+                return "warning";
+            } else if (month.occupied && !month.requested) {
+                return "primary";
+            } else {
+                return "primary";
+            }
+        };
 }]);
 
-app.controller("NewRequestCtrl", ["$scope", "$routeParams", "$location", "Specialty", "Hospital", "Department",
+app.controller("MonthDetailCtrl", ["$scope", "$routeParams", "InternshipMonth", "Hospital", "Department", "Specialty", "Rotation", "RotationRequest", "RequestedDepartment",
+    function ($scope, $routeParams, InternshipMonth, Hospital, Department, Specialty, Rotation, RotationRequest, RequestedDepartment) {
+        $scope.month = InternshipMonth.get({month_id: $routeParams.month_id});
+
+        $scope.month.$promise.then(function (month) {
+
+            $scope.month.occupied = (month.current_rotation !== null);
+            $scope.month.requested = (month.current_request !== null);
+
+            if ($scope.month.occupied) {
+                // Load current rotation
+                $scope.month.current_rotation = Rotation.get({id: $scope.month.current_rotation});
+
+                $scope.month.current_rotation.$promise.then(function (rotation) {
+                    // Load current rotation department
+                    $scope.month.current_rotation.department =
+                        Department.get({id: rotation.department});
+
+                    $scope.month.current_rotation.department.$promise.then(function (department) {
+                        // Load current rotation hospital
+                        $scope.month.current_rotation.department.hospital =
+                            Hospital.get({id: department.hospital});
+                    })
+                })
+            }
+
+            if ($scope.month.requested) {
+                $scope.month.current_request = RotationRequest.get({id: $scope.month.current_request});
+
+                $scope.month.current_request.$promise.then(function (request) {
+                    // Load current request specialty
+                    $scope.month.current_request.specialty =
+                        Specialty.get({id: request.specialty});
+
+                    // Load current request requested department
+                    $scope.month.current_request.requested_department =
+                        RequestedDepartment.get({id: request.requested_department});
+
+                    $scope.month.current_request.requested_department.$promise.then(function (requested_department) {
+                       // Load department object
+                       $scope.month.current_request.requested_department.department =
+                           Department.get({id: requested_department.department});
+
+                       $scope.month.current_request.requested_department.department.$promise.then(function (department) {
+                           $scope.month.current_request.requested_department.department.hospital =
+                               Hospital.get({id: department.hospital});
+                       })
+                    });
+                })
+            }
+
+        })
+
+
+
+}]);
+
+app.controller("RotationRequestCreateCtrl", ["$scope", "$routeParams", "$location", "Specialty", "Hospital", "Department",
     "RequestedDepartment", "RotationRequest", "InternshipMonth", "djangoForm", "$http", "$compile",
     function ($scope, $routeParams, $location, Specialty, Hospital, Department, RequestedDepartment, RotationRequest, InternshipMonth, djangoForm, $http, $compile) {
         $scope.internshipMonth = InternshipMonth.get({month_id: $routeParams.month_id});
@@ -175,5 +285,10 @@ app.controller("NewRequestCtrl", ["$scope", "$routeParams", "$location", "Specia
 
             return false;
         }
+
+}]);
+
+app.controller("RotationRequestHistoryCtrl", ["$scope", "$routeParams", "InternshipMonth", function ($scope, $routeParams, InternshipMonth) {
+    $scope.internshipMonth = InternshipMonth.get({month_id: $routeParams.month_id});
 
 }]);

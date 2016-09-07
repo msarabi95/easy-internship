@@ -71,12 +71,13 @@ class RequestedDepartmentSerializer(serializers.ModelSerializer):
 
 
 class RotationRequestSerializer(serializers.ModelSerializer):
+    submission_datetime = serializers.DateTimeField(format="%A, %-d %B %Y, %-I:%M %p")
     status = serializers.CharField(source='get_status', required=False)
 
     class Meta:
         model = RotationRequest
         fields = ('id', 'internship', 'month', 'specialty',
-                  'requested_department', 'delete', 'status')
+                  'requested_department', 'delete', 'submission_datetime', 'status')
 
 
 class RotationRequestResponseSerializer(serializers.ModelSerializer):

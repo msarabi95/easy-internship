@@ -107,7 +107,7 @@ class RotationRequestViewSet(viewsets.ModelViewSet):
 
 
 class RotationRequestFormView(django_generics.FormView):
-    template_name = "planner/forms/rotation-request.html"
+    template_name = "planner/intern/rotation-request-create.html"
     form_class = RotationRequestForm
 
     def post(self, request, *args, **kwargs):
