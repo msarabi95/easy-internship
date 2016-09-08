@@ -132,6 +132,8 @@ class RotationRequestFormView(django_generics.FormView):
                 requested_department=requested_department,
             )
 
+            # TODO: Notify internship unit (take care not to send a lot of simultaneous notifications though!)
+
             messages.success(request, "Your request has been submitted successfully.")
 
         response_data = {'errors': form.errors}

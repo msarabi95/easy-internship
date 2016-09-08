@@ -51,26 +51,39 @@
               </div>
             </div><!-- /.box-header -->
             <div class="box-body">
-              <div class="col-xs-12" style="height: 130px;">
-                <div ng-if="!months[i].occupied && !months[i].requested">
-                  <!-- #1 Not Occupied, Not Requested -->
-                  <br>
-                  <br>
-                  <h3 class="text-center">No rotation</h3>
+              <div class="col-xs-12" style="height: 130px; position: relative;">
+                <!-- Regarding the CSS centering , check: https://css-tricks.com/centering-css-complete-guide/#both-unknown -->
+                <div style="width: 100%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                  <div ng-if="!months[i].occupied && !months[i].requested">
+                    <!-- #1 Not Occupied, Not Requested -->
+                    <h3 class="text-center">No rotation</h3>
+                  </div>
+
+                  <div ng-if="!months[i].occupied && months[i].requested">
+                    <!-- #2 Not Occupied, Requested -->
+                    <h3 class="text-yellow text-center">Pending</h3>
+                    <h4 class="text-yellow text-center">{{ months[i].current_request.specialty.name }}</h4>
+                    <h5 class="text-center">{{ months[i].current_request.requested_department.department.hospital.name }}</h5>
+                  </div>
+
+                  <div ng-if="months[i].occupied && !months[i].requested">
+                    <!-- #3 Occupied, Not Requested -->
+                    <h3 class="text-blue text-center">{{ months[i].current_rotation.department.specialty.name }}</h3>
+                    <h5 class="text-center">{{ months[i].current_rotation.department.hospital.name }}</h5>
+                  </div>
+
+                  <div ng-if="months[i].occupied && months[i].requested">
+                    <!-- #4 Occupied, Requested -->
+                    <h5 class="text-blue text-center">Current: {{ months[i].current_rotation.department.specialty.name }}</h5>
+                    <h6 class="text-center">{{ months[i].current_rotation.department.hospital.name }}</h6>
+
+                    <hr style="margin-top: 5px; margin-bottom: 5px;">
+
+                    <h5 class="text-yellow text-center">Pending: {{ months[i].current_request.specialty.name }}</h5>
+                    <h6 class="text-center">{{ months[i].current_request.requested_department.department.hospital.name }}</h6>
+
+                  </div>
                 </div>
-
-                <div ng-if="!month[i].occupied && months[i].requested">
-                  <!-- #2 Not Occupied, Requested -->
-                  <h3 class="text-yellow">Pending</h3>
-                  <h4 class="text-blue">{{ months[i].current_request.specialty.name }}</h4>
-                  <h5>{{ months[i].current_request.requested_department.department.hospital.name }}</h5>
-                </div>
-
-                <!-- #3 Occupied, Not Requested -->
-                <!-- TODO -->
-
-                <!-- #4 Occupied, Requested -->
-                <!-- TODO -->
 
               </div>
             </div><!-- /.box-body -->
@@ -101,15 +114,27 @@
                 </ul>
               </div>
 
-              <!-- TODO: #3 & #4 -->
-              <div class="btn-group btn-group-xs" ng-if="months[i].occupied">
+              <div class="btn-group btn-group-xs" ng-if="months[i].occupied && !months[i].requested">
+                <!-- #3 Occupied, Not Requested -->
                 <a class="btn btn-xs btn-{{ getTileClass(months[i]) }} btn-flat" href="#/planner/{{ months[i].month }}/">Get more info</a>
                 <button type="button" class="btn btn-xs btn-{{ getTileClass(months[i]) }} btn-flat dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                   <span class="caret"></span>
                   <span class="sr-only">Toggle Dropdown</span>
                 </button>
                 <ul class="dropdown-menu">
-                  <li><a href="#">Request a change</a></li>
+                  <li><a href="#/planner/{{ months[i].month }}/new/">Request a different rotation</a></li>
+                  <li><a href="#/planner/{{ months[i].month }}/history/">See previous requests for this month</a></li>
+                </ul>
+              </div>
+
+              <div class="btn-group btn-group-xs" ng-if="months[i].occupied && months[i].requested">
+                <!-- #4 Occupied, Requested -->
+                <a class="btn btn-xs btn-{{ getTileClass(months[i]) }} btn-flat" href="#/planner/{{ months[i].month }}/">Get more info</a>
+                <button type="button" class="btn btn-xs btn-{{ getTileClass(months[i]) }} btn-flat dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  <span class="caret"></span>
+                  <span class="sr-only">Toggle Dropdown</span>
+                </button>
+                <ul class="dropdown-menu">
                   <li><a href="#/planner/{{ months[i].month }}/history/">See previous requests for this month</a></li>
                 </ul>
               </div>

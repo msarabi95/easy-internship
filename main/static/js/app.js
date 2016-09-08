@@ -112,6 +112,9 @@ app.controller("MonthListCtrl", ["$scope", "InternshipMonth", "Rotation", "Rotat
                 }
             });
 
+            console.log(occupied);
+            console.log($scope.months[occupied[0]]);
+
             // Load all details of occupied months
             angular.forEach(occupied, function (monthIndex) {
                 // Load current rotation
@@ -123,6 +126,10 @@ app.controller("MonthListCtrl", ["$scope", "InternshipMonth", "Rotation", "Rotat
                         Department.get({id: rotation.department});
 
                     $scope.months[monthIndex].current_rotation.department.$promise.then(function (department) {
+                        // Load current rotation specialty
+                        $scope.months[monthIndex].current_rotation.department.specialty =
+                            Specialty.get({id: department.specialty});
+
                         // Load current rotation hospital
                         $scope.months[monthIndex].current_rotation.department.hospital =
                             Hospital.get({id: department.hospital});
@@ -190,6 +197,10 @@ app.controller("MonthDetailCtrl", ["$scope", "$routeParams", "InternshipMonth", 
                         Department.get({id: rotation.department});
 
                     $scope.month.current_rotation.department.$promise.then(function (department) {
+                        // Load current rotation hospital
+                        $scope.month.current_rotation.department.specialty =
+                            Specialty.get({id: department.specialty});
+
                         // Load current rotation hospital
                         $scope.month.current_rotation.department.hospital =
                             Hospital.get({id: department.hospital});
@@ -288,7 +299,41 @@ app.controller("RotationRequestCreateCtrl", ["$scope", "$routeParams", "$locatio
 
 }]);
 
-app.controller("RotationRequestHistoryCtrl", ["$scope", "$routeParams", "InternshipMonth", function ($scope, $routeParams, InternshipMonth) {
-    $scope.internshipMonth = InternshipMonth.get({month_id: $routeParams.month_id});
+app.controller("RotationRequestHistoryCtrl", ["$scope", "$routeParams", "InternshipMonth", "RotationRequest", "RotationRequestResponse", "Specialty", "RequestedDepartment", "Department", "Hospital",
+    function ($scope, $routeParams, InternshipMonth, RotationRequest, RotationRequestResponse, Specialty, RequestedDepartment, Department, Hospital) {
+        $scope.month = InternshipMonth.get({month_id: $routeParams.month_id});
 
+        $scope.month.$promise.then(function (month) {
+
+            // Load the rotation request history
+            angular.forEach(month.request_history, function (rotation_request, index) {
+                $scope.month.request_history[index] = RotationRequest.get({id: rotation_request});
+
+                $scope.month.request_history[index].$promise.then(function (rotation_request) {
+
+                    console.log($scope.month);
+
+                    $scope.month.request_history[index].specialty = Specialty.get({id: rotation_request.specialty});
+
+                    $scope.month.request_history[index].response = RotationRequestResponse.get({id: rotation_request.response});
+
+                    $scope.month.request_history[index].requested_department =
+                        RequestedDepartment.get({id: rotation_request.requested_department});
+
+                    $scope.month.request_history[index].requested_department.$promise.then(function (requested_department) {
+                        $scope.month.request_history[index].requested_department.department =
+                            Department.get({id: requested_department.department});
+
+                        $scope.month.request_history[index].requested_department.department.$promise.then(function (department) {
+                            $scope.month.request_history[index].requested_department.department.hospital =
+                                Hospital.get({id: department.hospital});
+
+                            console.log($scope.month);
+
+                        })
+                    })
+
+                });
+            });
+        });
 }]);

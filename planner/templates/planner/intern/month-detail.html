@@ -12,7 +12,7 @@
           <h4 class="text-bold">Summary</h4>
           <p>
             <span ng-if="month.occupied">
-              During this month, you have a rotation of {{ month.current_rotation.specialty.name }}
+              During this month, you have a rotation of {{ month.current_rotation.department.specialty.name }}
               in {{ month.current_rotation.department.hospital.name }}.
             </span>
             <span ng-if="month.requested">
@@ -30,6 +30,8 @@
           <div ng-if="month.occupied">
             <hr>
             <h4 class="text-bold">Details of your rotation</h4>
+
+            <!-- TODO: Display details of the current rotation -->
 
           </div>
 
@@ -95,10 +97,13 @@
 
         <div class="modal-footer">
           <a class="btn btn-default pull-left" href="#/planner/">
-            Back
+            Back to Planner
           </a>
-          <a class="btn btn-default pull-left" href="#/planner/{{ month.month }}/history/">
+          <a class="btn btn-default" href="#/planner/{{ month.month }}/history/">
             See previous requests for this month
+          </a>
+          <a class="btn btn-warning" href="#/planner/{{ month.month }}/new/" ng-if="month.occupied && !month.requested">
+            Request a different rotation
           </a>
         </div>
 
