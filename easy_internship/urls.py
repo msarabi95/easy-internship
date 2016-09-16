@@ -25,6 +25,7 @@ from planner.urls import router, custom_departments_view_url
 
 urlpatterns = [
     url(r'^forwards/$', views.list_forwards, name="list_forwards"),  # Temporary, for testing only!
+    url(r'^rotation_request_responses/$', views.rotation_request_responses, name="rotation_request_responses"),
     custom_departments_view_url,
     url(r'^api/', include(router.urls)),
 
