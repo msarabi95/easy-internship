@@ -48,7 +48,9 @@ class Intern(models.Model):
     address = models.CharField(max_length=128)
 
     saudi_id_number = models.CharField(max_length=10)
+    saudi_id = models.ImageField(upload_to='saudi_ids')
     passport_number = models.CharField(max_length=10)
+    passport = models.ImageField(upload_to='passports')
     medical_record_number = models.CharField(max_length=10)
 
     contact_person_name = models.CharField(max_length=64)
