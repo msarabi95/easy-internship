@@ -28,7 +28,9 @@ class InternSignupForm(SignupFormOnlyEmail):
     address = forms.CharField(max_length=128, widget=forms.Textarea)
 
     saudi_id_number = forms.CharField(label="Saudi ID number", max_length=10)
+    saudi_id = forms.ImageField(label="Saudi ID image")
     passport_number = forms.CharField(max_length=32)
+    passport = forms.ImageField(label="Passport image")
     medical_record_number = forms.CharField(max_length=10)
 
     contact_person_name = forms.CharField(max_length=64)
@@ -93,7 +95,9 @@ class InternSignupForm(SignupFormOnlyEmail):
         intern_profile.address = self.cleaned_data['address']
 
         intern_profile.saudi_id_number = self.cleaned_data['saudi_id_number']
+        intern_profile.saudi_id = self.cleaned_data['saudi_id']
         intern_profile.passport_number = self.cleaned_data['passport_number']
+        intern_profile.passport = self.cleaned_data['passport']
         intern_profile.medical_record_number = self.cleaned_data['medical_record_number']
 
         intern_profile.contact_person_name = self.cleaned_data['contact_person_name']
@@ -130,7 +134,9 @@ class EditInternProfileForm(forms.ModelForm):
     address = forms.CharField(max_length=128, widget=forms.Textarea)
 
     saudi_id_number = forms.CharField(label="Saudi ID number", max_length=10)
+    saudi_id = forms.ImageField(label="Saudi ID Image")
     passport_number = forms.CharField(max_length=32)
+    passport = forms.ImageField(label="Passport Image")
     medical_record_number = forms.CharField(max_length=10)
 
     contact_person_name = forms.CharField(max_length=64)
@@ -158,7 +164,9 @@ class EditInternProfileForm(forms.ModelForm):
         self.fields['address'].initial = intern_profile.address
 
         self.fields['saudi_id_number'].initial = intern_profile.saudi_id_number
+        self.fields['saudi_id'].initial = intern_profile.saudi_id
         self.fields['passport_number'].initial = intern_profile.passport_number
+        self.fields['passport'].initial = intern_profile.passport
         self.fields['medical_record_number'].initial = intern_profile.medical_record_number
 
         self.fields['contact_person_name'].initial = intern_profile.contact_person_name
@@ -180,7 +188,9 @@ class EditInternProfileForm(forms.ModelForm):
         intern_profile.address = self.cleaned_data['address']
 
         intern_profile.saudi_id_number = self.cleaned_data['saudi_id_number']
+        intern_profile.saudi_id = self.cleaned_data['saudi_id']
         intern_profile.passport_number = self.cleaned_data['passport_number']
+        intern_profile.passport = self.cleaned_data['passport']
         intern_profile.medical_record_number = self.cleaned_data['medical_record_number']
 
         intern_profile.contact_person_name = self.cleaned_data['contact_person_name']

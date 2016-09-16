@@ -43,6 +43,7 @@ INSTALLED_APPS = (
     'sitetree',
     'djng',
     'bootstrap3',
+    'django_nyt',
     'rules.apps.AutodiscoverRulesConfig',
     'main.apps.MainConfig',
     'planner.apps.PlannerConfig',
@@ -131,9 +132,9 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Messages
-
-from django.contrib.messages import constants as message_constants
-MESSAGE_TAGS = {message_constants.ERROR: 'danger'}
+#
+# from django.contrib.messages import constants as message_constants
+# MESSAGE_TAGS = {message_constants.ERROR: 'danger'}
 
 # Email
 
@@ -162,3 +163,7 @@ USERENA_HTML_EMAIL = True
 USERENA_REGISTER_PROFILE = False
 USERENA_REGISTER_USER = False
 USERENA_PROFILE_DETAIL_TEMPLATE = "userena/profile_detail_custom.html"
+
+# Django NYT
+
+NYT_ENABLE_ADMIN = True

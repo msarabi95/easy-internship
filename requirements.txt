@@ -3,6 +3,7 @@ Django==1.9.7
 django-angular==0.8.2
 django-bootstrap3==7.0.1
 django-guardian==1.4.1
+django-nyt==0.9.9
 django-sitetree==1.5.1
 django-userena==2.0.1
 djangorestframework==3.4.0

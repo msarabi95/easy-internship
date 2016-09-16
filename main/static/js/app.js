@@ -1,17 +1,10 @@
 /**
  * Created by MSArabi on 6/16/16.
  */
-var app = angular.module("easyInternship", ["djng.urls", "djng.rmi", "ngRoute", "ui.bootstrap"]);
+var app = angular.module("easyInternship", ["djng.forms", "ngResource", "ngRoute", "easy.planner"]);
 
-const MonthStatus = {
-    UNOCCUPIED: "Unoccupied",
-    OCCUPIED: "Occupied",
-    REQUESTED_UNOCCUPIED: "RequestedUnoccupied",
-    REQUESTED_OCCUPIED: "RequestedOccupied"
-};
-
-app.config(["$httpProvider", "$routeProvider", "djangoRMIProvider",
-    function ($httpProvider, $routeProvider, djangoRMIProvider) {
+app.config(["$httpProvider", "$routeProvider", "$resourceProvider",
+    function ($httpProvider, $routeProvider, $resourceProvider) {
 
     // These settings enable Django to receive Angular requests properly.
     // Check:
@@ -21,304 +14,357 @@ app.config(["$httpProvider", "$routeProvider", "djangoRMIProvider",
     $httpProvider.defaults.xsrfCookieName = 'csrftoken';
     $httpProvider.defaults.xsrfHeaderName = 'X-CSRFToken';
 
-    djangoRMIProvider.configure(tags);
+    // Check for messages with each response
+    $httpProvider.interceptors.push(function ($q, $rootScope) {
+       return {
+           'response': function (response) {
+               if ( $rootScope.fetchingMessages != true ) {
+                   $rootScope.fetchingMessages = true;
+                   $rootScope.$broadcast("fetchMessages");
+               }
+               return response;
+           },
+           'responseError': function (rejection) {
+               if ( $rootScope.fetchingMessages != true ) {
+                   $rootScope.fetchingMessages = true;
+                   $rootScope.$broadcast("fetchMessages");
+               }
+               return $q.reject(rejection);
+           }
+       };
+    });
+
+    $resourceProvider.defaults.stripTrailingSlashes = false;
 
     $routeProvider
         .when("/", {
-            // This redirects users from / to /#/
-            redirectTo: "/"
+            templateUrl: "partials/dashboard.html"
         })
         .when("/planner/", {
-            templateUrl: "partials/planner/planner-index.html",
-            controller: "MyCtrl"
+            templateUrl: "partials/planner/intern/month-list.html",
+            controller: "MonthListCtrl"
+        })
+        .when("/planner/:month_id/", {
+            templateUrl: "partials/planner/intern/month-detail.html",
+            controller: "MonthDetailCtrl"
+        })
+        .when("/planner/:month_id/new/", {
+            templateUrl: "planner/rotation-request-form/",
+            controller: "RotationRequestCreateCtrl"
+        })
+        .when("/planner/:month_id/history/", {
+            templateUrl: "partials/planner/intern/rotation-request-history.html",
+            controller: "RotationRequestHistoryCtrl"
+        })
+        .when("/planner/:month_id/cancel/", {
+            templateUrl: "partials/planner/intern/deletion-request.html",
+            controller: "DeletionRequestCtrl"
         })
 
 }]);
 
-app.controller("MyCtrl", ["$scope", "djangoUrl", "djangoRMI", "$uibModal", function ($scope, djangoUrl, djangoRMI, $uibModal) {
-    function loadMonths() {
-        djangoRMI.planner.planner_api.get_internship_info()
-            .success(function (data) {
-                $scope.internshipInfo = data;
-            })
-            .error(function (message) {
-                // TODO: show an error notification
-                console.log(message);
-            });
+app.run(function ($rootScope, $resource) {
+    toastr.options.positionClass = "toast-top-center";
+    $rootScope.$on("fetchMessages", getMessages);
 
-        djangoRMI.planner.planner_api.get_possible_months()
-            .success(function (data) {
-                if ($scope.months != undefined) {
+    function getMessages(event, eventData) {
+        var messages = $resource("messages").query(function (messages) {
+            $rootScope.fetchingMessages = false;
+            for (var i = 0; i < messages.length; i++) {
+                toastr[messages[i].level_tag](messages[i].message);
+            }
+        });
+    }
 
-                    // Preserve the value of the show request flag
-                    for (var i = 0; i < data.length; i++) {
-                        data[i].showRequest = $scope.months[i].showRequest;
+    $rootScope.fetchingMessages = true;
+    getMessages("", {});
+});
 
-                        $scope.months[i] = data[i];
-                    }
+app.controller("MenuCtrl", ["$scope", "$route", "$location", function ($scope, $route, $location) {
+    //$scope.currentTab = $route.current.currentTab;
 
+    $scope.isActive = function (viewLocation) {
+        return viewLocation == "#" + $location.path();
+    }
+}]);
+
+app.controller("MonthListCtrl", ["$scope", "InternshipMonth", "Rotation", "RotationRequest", "RequestedDepartment", "Department", "Hospital", "Specialty",
+    function ($scope, InternshipMonth, Rotation, RotationRequest, RequestedDepartment, Department, Hospital, Specialty) {
+        $scope.months = InternshipMonth.query();
+
+        $scope.months.$promise.then(function (results) {
+
+            var occupied = [];
+            var requested = [];
+
+            // Save the indices of occupied and requested months in 2 separate arrays
+            // Also add 2 flags (occupied and requested) with the appropriate boolean values to each month object
+            angular.forEach(results, function (month, index) {
+                if (month.current_rotation !== null) {
+                    occupied.push(index);
+                    $scope.months[index].occupied = true;
                 } else {
-                    $scope.months = data;
+                    $scope.months[index].occupied = false;
                 }
-            })
-            .error(function (message) {
-                // TODO: show an error notification
-                console.log(message);
+
+                if (month.current_request !== null) {
+                    requested.push(index);
+                    $scope.months[index].requested = true;
+                } else {
+                    $scope.months[index].requested = false;
+                }
             });
-    }
 
-    loadMonths();
+            console.log(occupied);
+            console.log($scope.months[occupied[0]]);
 
-    function getMessages() {
-        djangoRMI.planner.planner_api.get_messages()
-            .success(function (data) {
-                $scope.messages = data;
-            })
-            .error(function (message) {
-                console.log(message);
+            // Load all details of occupied months
+            angular.forEach(occupied, function (monthIndex) {
+                // Load current rotation
+                $scope.months[monthIndex].current_rotation = Rotation.get({id: $scope.months[monthIndex].current_rotation});
+
+                $scope.months[monthIndex].current_rotation.$promise.then(function (rotation) {
+                    // Load current rotation department
+                    $scope.months[monthIndex].current_rotation.department =
+                        Department.get({id: rotation.department});
+
+                    $scope.months[monthIndex].current_rotation.department.$promise.then(function (department) {
+                        // Load current rotation specialty
+                        $scope.months[monthIndex].current_rotation.department.specialty =
+                            Specialty.get({id: department.specialty});
+
+                        // Load current rotation hospital
+                        $scope.months[monthIndex].current_rotation.department.hospital =
+                            Hospital.get({id: department.hospital});
+                    })
+                })
             });
-    }
 
-    getMessages();
+            // Load all details of requested months
+            angular.forEach(requested, function (monthIndex) {
+                $scope.months[monthIndex].current_request = RotationRequest.get({id: $scope.months[monthIndex].current_request});
 
-    // TODO: Document following methods
-    $scope.hasRotation = function (monthIndex) {
-        var month = $scope.months[monthIndex];
-        return (month.currentRotation != null);
-    };
+                $scope.months[monthIndex].current_request.$promise.then(function (request) {
+                    // Load current request specialty
+                    $scope.months[monthIndex].current_request.specialty =
+                        Specialty.get({id: request.specialty});
 
-    $scope.hasRequest = function (monthIndex) {
-        var month = $scope.months[monthIndex];
-        return (month.currentRequest != null);
-    };
+                    // Load current request requested department
+                    $scope.months[monthIndex].current_request.requested_department =
+                        RequestedDepartment.get({id: request.requested_department});
 
-    // Month status checkers
+                    $scope.months[monthIndex].current_request.requested_department.$promise.then(function (requested_department) {
+                       // Load department object
+                       $scope.months[monthIndex].current_request.requested_department.department =
+                           Department.get({id: requested_department.department});
 
-    $scope.isUnoccupied = function (monthIndex) {
-        return (!$scope.hasRotation(monthIndex) && !$scope.hasRequest(monthIndex));
-    };
+                       $scope.months[monthIndex].current_request.requested_department.department.$promise.then(function (department) {
+                           $scope.months[monthIndex].current_request.requested_department.department.hospital =
+                               Hospital.get({id: department.hospital});
+                       })
+                    });
+                })
+            })
 
-    $scope.isOccupied = function (monthIndex) {
-        return ($scope.hasRotation(monthIndex) && !$scope.hasRequest(monthIndex));
-    };
+        });
 
-    $scope.isRequestedUnoccupied = function (monthIndex) {
-        return (!$scope.hasRotation(monthIndex) && $scope.hasRequest(monthIndex));
-    };
+        $scope.getTileClass = function (month) {
+            if (!month.occupied && !month.requested) {
+                return "default";
+            } else if (!month.occupied && month.requested) {
+                return "warning";
+            } else if (month.occupied && !month.requested) {
+                return "primary";
+            //} else if (month.occupied && month.requested && month.current_request.delete) {
+            //    return "danger";
+            } else {
+                return "primary";
+            }
+        };
+}]);
 
-    $scope.isRequestedOccupied = function (monthIndex) {
-        return ($scope.hasRotation(monthIndex) && $scope.hasRequest(monthIndex));
-    };
+app.controller("MonthDetailCtrl", ["$scope", "$routeParams", "InternshipMonth", "Hospital", "Department", "Specialty", "Rotation", "RotationRequest", "RequestedDepartment", "RotationRequestResponse",
+    function ($scope, $routeParams, InternshipMonth, Hospital, Department, Specialty, Rotation, RotationRequest, RequestedDepartment, RotationRequestResponse) {
+        $scope.month = InternshipMonth.get({month_id: $routeParams.month_id});
 
-    function getMonthStatus(monthIndex) {
-        if ($scope.isUnoccupied(monthIndex)) {
-            return MonthStatus.UNOCCUPIED;
-        } else if ($scope.isOccupied(monthIndex)) {
-            return MonthStatus.OCCUPIED;
-        } else if ($scope.isRequestedUnoccupied(monthIndex)) {
-            return MonthStatus.REQUESTED_UNOCCUPIED;
-        } else if ($scope.isRequestedOccupied(monthIndex)) {
-            return MonthStatus.REQUESTED_OCCUPIED;
-        }
-    }
+        $scope.month.$promise.then(function (month) {
 
-    // View type checkers
+            $scope.month.occupied = (month.current_rotation !== null);
+            $scope.month.requested = (month.current_request !== null);
 
-    $scope.rotationViewUnoccupied = function (monthIndex) {
-        return $scope.isUnoccupied(monthIndex);
-    };
+            if ($scope.month.occupied) {
+                // Load current rotation
+                $scope.month.current_rotation = Rotation.get({id: $scope.month.current_rotation});
 
-    $scope.rotationViewOccupied = function (monthIndex) {
-        return $scope.isOccupied(monthIndex);
-    };
+                $scope.month.current_rotation.$promise.then(function (rotation) {
+                    // Load current rotation department
+                    $scope.month.current_rotation.department =
+                        Department.get({id: rotation.department});
 
-    $scope.rotationViewReqUnoccupied = function (monthIndex) {
-        var month = $scope.months[monthIndex];
-        return ($scope.isRequestedUnoccupied(monthIndex) && month.showRequest != true);
-    };
+                    $scope.month.current_rotation.department.$promise.then(function (department) {
+                        // Load current rotation hospital
+                        $scope.month.current_rotation.department.specialty =
+                            Specialty.get({id: department.specialty});
 
-    $scope.requestViewReqUnoccupied = function (monthIndex) {
-        var month = $scope.months[monthIndex];
-        return ($scope.isRequestedUnoccupied(monthIndex) && month.showRequest == true);
-    };
+                        // Load current rotation hospital
+                        $scope.month.current_rotation.department.hospital =
+                            Hospital.get({id: department.hospital});
+                    })
 
-    $scope.rotationViewReqOccupied= function (monthIndex) {
-        var month = $scope.months[monthIndex];
-        return ($scope.isRequestedOccupied(monthIndex) && month.showRequest != true);
-    };
+                    $scope.month.current_rotation.rotation_request =
+                        RotationRequest.get({id: rotation.rotation_request});
 
-    $scope.requestViewUpdateReqOccupied = function (monthIndex) {
-        var month = $scope.months[monthIndex];
-        return ($scope.isRequestedOccupied(monthIndex) && month.showRequest == true && month.currentRequest.delete != true);
-    };
+                    $scope.month.current_rotation.rotation_request.$promise.then(function (rotation_request) {
+                        $scope.month.current_rotation.rotation_request.response =
+                            RotationRequestResponse.get({id: rotation_request.response});
+                    })
+                })
+            }
 
-    $scope.requestViewCancelReqOccupied = function (monthIndex) {
-        var month = $scope.months[monthIndex];
-        return ($scope.isRequestedOccupied(monthIndex) && month.showRequest == true && month.currentRequest.delete == true);
-    };
+            if ($scope.month.requested) {
+                $scope.month.current_request = RotationRequest.get({id: $scope.month.current_request});
 
-    $scope.rotationView = function (monthIndex) {
-        return ($scope.rotationViewUnoccupied(monthIndex) || $scope.rotationViewOccupied(monthIndex) || $scope.rotationViewReqUnoccupied(monthIndex) || $scope.rotationViewReqOccupied(monthIndex));
-    };
+                $scope.month.current_request.$promise.then(function (request) {
+                    // Load current request specialty
+                    $scope.month.current_request.specialty =
+                        Specialty.get({id: request.specialty});
 
-    $scope.requestView = function (monthIndex) {
-        return ($scope.requestViewReqUnoccupied(monthIndex) || $scope.requestViewUpdateReqOccupied(monthIndex) || $scope.requestViewCancelReqOccupied(monthIndex));
-    };
+                    // Load current request requested department
+                    $scope.month.current_request.requested_department =
+                        RequestedDepartment.get({id: request.requested_department});
 
-    $scope.toggleShowRequest = function (monthIndex) {
-        var month = $scope.months[monthIndex];
-        if (month.showRequest == undefined) {
-            month.showRequest = true;
-        } else {
-            month.showRequest = !month.showRequest;
-        }
-    };
+                    $scope.month.current_request.requested_department.$promise.then(function (requested_department) {
+                       // Load department object
+                       $scope.month.current_request.requested_department.department =
+                           Department.get({id: requested_department.department});
 
-    $scope.showModal = function (monthIndex) {
-        var modalTemplates = {};
-        modalTemplates[MonthStatus.UNOCCUPIED] = "partials/planner/modal-unoccupied.html";
-        modalTemplates[MonthStatus.OCCUPIED] = "partials/planner/modal-occupied.html";
-        modalTemplates[MonthStatus.REQUESTED_UNOCCUPIED] = "partials/planner/modal-requested-unoccupied.html";
-        modalTemplates[MonthStatus.REQUESTED_OCCUPIED] = "partials/planner/modal-requested-occupied.html";
+                       $scope.month.current_request.requested_department.department.$promise.then(function (department) {
+                           $scope.month.current_request.requested_department.department.hospital =
+                               Hospital.get({id: department.hospital});
+                       })
+                    });
+                })
+            }
 
-        var template = modalTemplates[getMonthStatus(monthIndex)];
+        })
 
-        var modalInstance = $uibModal.open({
-            animation: true,
-            templateUrl: template,
-            controller: 'ModalInstanceCtrl',
-            resolve: {
-                'month': $scope.months[monthIndex],
-                'submitted': $scope.internshipInfo.currentPlanRequestSubmitted
+
+
+}]);
+
+app.controller("RotationRequestCreateCtrl", ["$scope", "$routeParams", "$location", "Specialty", "Hospital", "Department",
+    "RequestedDepartment", "RotationRequest", "InternshipMonth", "djangoForm", "$http", "$compile",
+    function ($scope, $routeParams, $location, Specialty, Hospital, Department, RequestedDepartment, RotationRequest, InternshipMonth, djangoForm, $http, $compile) {
+        $scope.internshipMonth = InternshipMonth.get({month_id: $routeParams.month_id});
+
+        $scope.specialties = Specialty.query();
+        $scope.hospitals = Hospital.query();
+
+        $scope.$watchGroup(['rotationRequestData.department_specialty','rotationRequestData.department_hospital'],
+            function () {
+                $scope.getDepartment();
+        });
+
+        $scope.$watch('rotationRequestForm.$message', function (newValue, oldValue) {
+            if (newValue !== undefined && newValue !== "") {
+                toastr.warning(newValue);
+                $scope.rotationRequestForm.$message = undefined;
             }
         });
 
-        modalInstance.result.then(function (result) {
-            
-            var jobType = result.jobType;
-            var requestData = result.requestData || {};
-            
-            requestData.month = $scope.months[monthIndex].month;
+        $scope.getDepartment = function () {
+            // This function is called whenever the hospital or specialty fields are updated
+            if (!!$scope.rotationRequestData.department_specialty && !!$scope.rotationRequestData.department_hospital) {
 
-            console.log(requestData);
-
-            requestData.delete = requestData.delete === 'true';
-
-            console.log(requestData);
-
-            if (jobType == "create") {
-                //requestData.delete = false;  // FIXME
-
-                djangoRMI.planner.planner_api.create_request(requestData)
-                    .success(function (response) {
-                        console.log("SUCCESS!");
-                        loadMonths();
-                    })
-                    .error(function (message) {
-                        console.log(message);
-                    });
-            } else if (jobType == "update") {
-                //requestData.delete = false;  // FIXME
-
-                djangoRMI.planner.planner_api.update_request(requestData)
-                    .success(function (response) {
-                        console.log("SUCCESS!");
-                        loadMonths();
-                    })
-                    .error(function (message) {
-                        console.log(message);
-                    });
-
-            } else if (jobType == "delete") {
-                djangoRMI.planner.planner_api.delete_request(requestData)
-                    .success(function (response) {
-                        console.log("SUCCESS!");
-                        loadMonths();
-                    })
-                    .error(function (message) {
-                        console.log(message);
-                    });
+                $scope.department = Department.get_by_specialty_and_hospital({
+                    specialty: $scope.rotationRequestData.department_specialty,
+                    hospital: $scope.rotationRequestData.department_hospital
+                }, function (department) {
+                    $scope.rotationRequestData.department = department.id;
+                    $scope.rotationRequestData.is_in_database = true;
+                }, function (error) {
+                    if (error.status == 404) {
+                        $scope.rotationRequestData.is_in_database = false;
+                    } else {
+                        toastr.error(error.statusText);
+                        console.log(error);
+                    }
+                });
             }
-        }, function () {
-            // Well, nothing should be done here...
+        };
+
+        $scope.submit = function () {
+            if ($scope.rotationRequestData) {
+
+                $scope.rotationRequestData.month = $routeParams.month_id;
+
+                $http.post(
+                    "/planner/rotation-request-form/",
+                    $scope.rotationRequestData
+                ).success(function (out_data) {
+                    if (!djangoForm.setErrors($scope.rotationRequestForm, out_data.errors)) {
+                        $location.path("/planner");
+                    }
+                }).error(function (out_data) {
+                    toastr.error(out_data);
+                })
+            }
+
+            return false;
+        }
+
+}]);
+
+app.controller("RotationRequestHistoryCtrl", ["$scope", "$routeParams", "InternshipMonth", "RotationRequest", "RotationRequestResponse", "Specialty", "RequestedDepartment", "Department", "Hospital",
+    function ($scope, $routeParams, InternshipMonth, RotationRequest, RotationRequestResponse, Specialty, RequestedDepartment, Department, Hospital) {
+        $scope.month = InternshipMonth.get({month_id: $routeParams.month_id});
+
+        $scope.month.$promise.then(function (month) {
+
+            // Load the rotation request history
+            angular.forEach(month.request_history, function (rotation_request, index) {
+                $scope.month.request_history[index] = RotationRequest.get({id: rotation_request});
+
+                $scope.month.request_history[index].$promise.then(function (rotation_request) {
+
+                    console.log($scope.month);
+
+                    $scope.month.request_history[index].specialty = Specialty.get({id: rotation_request.specialty});
+
+                    $scope.month.request_history[index].response = RotationRequestResponse.get({id: rotation_request.response});
+
+                    $scope.month.request_history[index].requested_department =
+                        RequestedDepartment.get({id: rotation_request.requested_department});
+
+                    $scope.month.request_history[index].requested_department.$promise.then(function (requested_department) {
+                        $scope.month.request_history[index].requested_department.department =
+                            Department.get({id: requested_department.department});
+
+                        $scope.month.request_history[index].requested_department.department.$promise.then(function (department) {
+                            $scope.month.request_history[index].requested_department.department.hospital =
+                                Hospital.get({id: department.hospital});
+
+                            console.log($scope.month);
+
+                        })
+                    })
+
+                });
+            });
         });
-    };
+}]);
+
+app.controller("DeletionRequestCtrl", ["$scope", "$routeParams", "$location", "InternshipMonth",
+    function ($scope, $routeParams, $location, InternshipMonth) {
+    $scope.month = InternshipMonth.get({month_id: $routeParams.month_id});
 
     $scope.submit = function () {
-        djangoRMI.planner.planner_api.submit_plan_request()
-            .success(function (data) {
-                console.log("SUBMITTED? MAYBE.");
-                getMessages();
-                loadMonths();
-            })
-            .error(function (message) {
-                console.log(message);
-            });
-        getMessages();
-    };
 
-}]);
-
-app.controller("ModalInstanceCtrl", ["$scope", "djangoRMI", "$uibModalInstance", "month", "submitted", function ($scope, djangoRMI, $uibModalInstance, month, submitted) {
-    djangoRMI.planner.planner_api.get_hospitals_list()
-        .success(function (data) {
-            $scope.hospitals = data;
-        })
-        .error(function (message) {
-            // TODO: show an error notification
-            console.log(message);
-
+        $scope.month.$cancel_rotation({}, function (data) {
+            $location.path("/planner");
+        }, function (error) {
+            toastr.error(error.statusText);
         });
 
-    djangoRMI.planner.planner_api.get_specialties_list()
-        .success(function (data) {
-            $scope.specialties = data;
-        }).error(function (message) {
-            console.log(message);
-        });
-
-    $scope.month = month;
-    $scope.submitted = submitted;
-    $scope.unoccupiedDefaultTab = submitted ? 'request-history':'rotation-request';
-
-    $scope.chosen = {};
-    $scope.showDeleteConfirm = false;
-
-    $scope.toggleDeleteConfirm = function () {
-        $scope.showDeleteConfirm = !$scope.showDeleteConfirm;
     };
-
-    $scope.showUpdateForm = false;
-    $scope.toggleUpdateForm = function () {
-        $scope.showUpdateForm = !$scope.showUpdateForm;
-    };
-
-    $scope.ok = function () {
-        var jobType;
-        if ($scope.showUpdateForm) {
-            jobType = "update";
-        } else {
-            jobType = "create";
-        }
-        var data = {
-            jobType: jobType,
-            requestData: $scope.chosen
-        };
-        $uibModalInstance.close(data);
-    };
-    
-    $scope.deleteRequest = function () {
-        var data = {
-            jobType: "delete"
-        };
-        $uibModalInstance.close(data);
-    };
-
-    $scope.cancel = function () {
-        $uibModalInstance.dismiss('cancel');
-    };
-
-    $scope.dismissDeletePopover = function () {
-        $scope.popoverIsOpen = false;
-    }
 }]);

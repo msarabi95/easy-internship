@@ -13,27 +13,31 @@ Including another URLconf
     1. Add an import:  from blog import urls as blog_urls
     2. Add a URL to urlpatterns:  url(r'^blog/', include(blog_urls))
 """
-from accounts.forms import InternSignupForm, EditInternProfileForm
 from django.conf import settings
 from django.conf.urls import include, url
 from django.contrib import admin
-from planner import views
-from rest_framework import routers
+from django_nyt.urls import get_pattern as get_nyt_pattern
 
-router = routers.DefaultRouter()
-router.register(r'plan_requests', views.PlanRequestViewSet)
-router.register(r'rotation_requests', views.RotationRequestViewSet)
-router.register(r'rotation_request_forwards', views.RotationRequestForwardViewSet)
+from accounts.forms import InternSignupForm, EditInternProfileForm
+from main import views as main_views
+from planner import views
+from planner.urls import router, custom_departments_view_url
 
 urlpatterns = [
-    url(r'forwards/$', views.list_forwards, name="list_forwards"),  # Temporary, for testing only!
+    url(r'^forwards/$', views.list_forwards, name="list_forwards"),  # Temporary, for testing only!
+    custom_departments_view_url,
     url(r'^api/', include(router.urls)),
-    url(r'^planner/', include("planner.urls", namespace="planner")),
+
     url(r'^partials/(?P<template_name>.*\.html)$', "main.views.load_partial", name="load_partial"),
+
+    url(r'^planner/', include("planner.urls")),
 
     url(r'^accounts/(?P<username>[\@\.\w-]+)/edit/$', 'userena.views.profile_edit', {'edit_profile_form': EditInternProfileForm}),
     url(r'^accounts/signup/$', 'userena.views.signup', {'signup_form': InternSignupForm}),
     url(r'^accounts/', include('userena.urls')),
+
+    url(r'^messages/$', main_views.GetMessages.as_view()),
+    url(r'^notifications/', get_nyt_pattern()),
 
     url(r'^admin/', include(admin.site.urls)),
     url(r'^$', "main.views.index", name="index"),

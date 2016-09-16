@@ -11,10 +11,36 @@
 
 {% block content %}
 
-<form action="" method="post">
+<form action="" method="post" enctype="multipart/form-data">
   {% csrf_token %}
 
-  {% bootstrap_form form show_label=False %}
+  {% bootstrap_form_errors form %}
+
+  {% bootstrap_field form.ar_first_name show_label=False %}
+  {% bootstrap_field form.ar_middle_name show_label=False %}
+  {% bootstrap_field form.ar_last_name show_label=False %}
+  {% bootstrap_field form.en_first_name show_label=False %}
+  {% bootstrap_field form.en_middle_name show_label=False %}
+  {% bootstrap_field form.en_last_name show_label=False %}
+  {% bootstrap_field form.student_number show_label=False %}
+  {% bootstrap_field form.badge_number show_label=False %}
+  {% bootstrap_field form.email show_label=False %}
+  {% bootstrap_field form.phone_number show_label=False %}
+  {% bootstrap_field form.mobile_number show_label=False %}
+  {% bootstrap_field form.address show_label=False %}
+  {% bootstrap_field form.saudi_id_number show_label=False %}
+  {% bootstrap_field form.saudi_id %}
+  {% bootstrap_field form.passport_number show_label=False %}
+  {% bootstrap_field form.passport %}
+  {% bootstrap_field form.medical_record_number show_label=False %}
+  {% bootstrap_field form.contact_person_name show_label=False %}
+  {% bootstrap_field form.contact_person_relation show_label=False %}
+  {% bootstrap_field form.contact_person_mobile show_label=False %}
+  {% bootstrap_field form.contact_person_email show_label=False %}
+  {% bootstrap_field form.gpa show_label=False %}
+  <hr>
+  {% bootstrap_field form.password1 show_label=False %}
+  {% bootstrap_field form.password2 show_label=False %}
 
   <div class="row">
     <div class="col-xs-4 col-xs-offset-8">

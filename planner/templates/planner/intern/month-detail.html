@@ -1,0 +1,175 @@
+{% verbatim %}
+<div class="example-modal">
+  <div class="modal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+
+        <div class="modal-header">
+          <h3 class="modal-title">{{ month.label }}</h3>
+        </div>
+
+        <div class="modal-body">
+          <h4 class="text-bold">Summary</h4>
+          <p>
+            <span ng-if="month.occupied">
+              During this month, you have a rotation of {{ month.current_rotation.department.specialty.name }} <span ng-if="month.current_rotation.is_elective">(elective)</span>
+              in {{ month.current_rotation.department.hospital.name }}.
+            </span>
+            <span ng-if="month.requested">
+              <br ng-if="month.occupied">
+              You <span ng-if="month.occupied">also </span>have a pending request
+
+              <span ng-if="!month.current_request.delete">
+                for a rotation of
+                <span class="text-yellow">{{ month.current_request.specialty.name }}
+                  <span ng-if="month.current_request.is_elective">(elective)</span>
+                </span> in
+                <span class="text-yellow">{{ month.current_request.requested_department.department.hospital.name }}</span>
+              </span>
+              <span ng-if="month.current_request.delete">
+                to <span class="text-red">cancel your rotation</span>
+              </span>
+              .
+            </span>
+            <span ng-if="!month.occupied && !month.requested">
+              You don't have any active rotation or pending request for this month.
+            </span>
+          </p>
+
+          <div ng-if="month.occupied">
+            <hr>
+            <h4 class="text-bold">Details of your rotation</h4>
+
+            <div class="box box-solid">
+              <div class="box-body bg-info">
+                <dl class="dl-horizontal">
+                  <dt>Specialty</dt>
+                  <dd class="text-bold text-blue">{{ month.current_rotation.department.specialty.name }}</dd>
+
+                  <dt>Hospital</dt>
+                  <dd class="text-bold text-blue">{{ month.current_rotation.department.hospital.name }}</dd>
+
+                  <dt>Elective?</dt>
+                  <dd>
+                    <span ng-if="month.current_rotation.is_elective == true" class="text-blue text-bold">Yes</span>
+                    <span ng-if="month.current_rotation.is_elective == false">No</span>
+                  </dd>
+
+                  <dt>Request date and time</dt>
+                  <dd>{{ month.current_rotation.rotation_request.submission_datetime }}</dd>
+
+                  <dt>Approval date and time</dt>
+                  <dd>{{ month.current_rotation.rotation_request.response.response_datetime }}</dd><!-- FIXME: Account for forward responses as well -->
+                </dl>
+              </div>
+            </div>
+
+          </div>
+
+          <div ng-if="month.requested">
+            <hr>
+            <h4 class="text-bold" ng-class="{'text-yellow': !month.current_request.delete, 'text-red': month.current_request.delete}">
+              Details of your pending request</h4>
+
+            <p>
+              Below is a detailed breakdown of information about your request<span ng-if="month.current_request.delete">.</span>
+              <span ng-if="!month.current_request.delete"> , as well as the
+              department you'll be rotating in once it's approved.</span>
+            </p>
+
+            <div class="box box-solid">
+              <div class="box-body" ng-class="{'bg-warning': !month.current_request.delete, 'bg-danger': month.current_request.delete}" style="margin-bottom: 0;">
+                <dl class="dl-horizontal">
+                  <div ng-if="!month.current_request.delete">
+                    <dt>Specialty</dt>
+                    <dd class="text-yellow text-bold">{{ month.current_request.specialty.name }}</dd>
+
+                    <dt>Hospital</dt>
+                    <dd class="text-yellow text-bold">{{ month.current_request.requested_department.department.hospital.name }}</dd>
+
+                    <dt>Elective?</dt>
+                    <dd>
+                      <span ng-if="month.current_request.is_elective == true" class="text-yellow text-bold">Yes</span>
+                      <span ng-if="month.current_request.is_elective == false">No</span>
+                    </dd>
+                  </div>
+
+                  <div ng-if="month.current_request.delete">
+                    <dt>Description</dt>
+                    <dd>You have requested a <span class="text-red text-bold">cancellation of your rotation</span> during this month.</dd>
+                    <hr>
+                  </div>
+
+                  <dt style="width: inherit;">Submission date and time</dt>
+                  <dd>{{ month.current_request.submission_datetime }}</dd>
+
+                  <dt>Status</dt>
+                  <dd>{{ month.current_request.status }}</dd>
+                </dl>
+
+
+                <div class="box box-solid" style="margin-bottom: 0;" ng-if="!month.current_request.delete">
+                  <div class="box-header bg-light-blue">
+                    <h5 class="text-bold" style="margin-top: 0; margin-bottom: 0;">
+                      Details of the department you'll be rotating in
+                    </h5>
+                  </div>
+                  <div class="box-body bg-info">
+                    <dl class="dl-horizontal" style="margin-bottom: 0;">
+                      <dt>Name of department</dt>
+                      <dd>{{ month.current_request.requested_department.department.name }}</dd>
+
+                      <dt>Name of contact person</dt>
+                      <dd>{{ month.current_request.requested_department.department.contact_name }}</dd>
+
+                      <dt>Email</dt>
+                      <dd>{{ month.current_request.requested_department.department.email }}</dd>
+
+                      <dt>Phone</dt>
+                      <dd>{{ month.current_request.requested_department.department.phone }}</dd>
+
+                      <dt>Extension</dt>
+                      <dd>{{ month.current_request.requested_department.department.extension }}</dd>
+                    </dl>
+
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+
+        </div><!-- /.modal-body -->
+
+        <div class="modal-footer">
+          <a class="btn btn-default pull-left" href="#/planner/">
+            Back to Planner
+          </a>
+
+          <div class="btn-group dropup">
+            <a class="btn btn-default" href="#/planner/{{ month.month }}/history/">
+              See previous requests for this month
+            </a>
+            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <span class="caret"></span>
+              <span class="sr-only">Toggle Dropdown</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-right">
+              <li><a href="#/planner/{{ month.month }}/new/">
+                <span class="text-yellow text-bold">Request a different rotation</span>
+              </a></li>
+              <li><a href="#/planner/{{ month.month }}/cancel/">
+                <span class="text-red text-bold">Cancel this rotation</span>
+              </a></li>
+            </ul>
+          </div>
+
+        </div>
+
+      </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+  </div>
+</div>
+{% endverbatim %}
+

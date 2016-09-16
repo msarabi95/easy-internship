@@ -3,11 +3,11 @@ from __future__ import unicode_literals
 from copy import copy
 
 from accounts.models import Intern
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core import validators
+from django.core.exceptions import ObjectDoesNotExist, ValidationError, MultipleObjectsReturned
 from django.db import models
-from django.db.models.query_utils import Q
-from django.utils import timezone
 from django.utils.crypto import get_random_string
+from django_nyt.utils import notify
 from month.models import MonthField
 
 
@@ -20,12 +20,19 @@ class Hospital(models.Model):
         return self.name
 
 
+class SpecialtyManager(models.Manager):
+    def general(self):
+        return self.filter(parent_specialty__isnull=True)
+
+
 class Specialty(models.Model):
     name = models.CharField(max_length=128)
     abbreviation = models.CharField(max_length=4)
     required_months = models.PositiveIntegerField()
     parent_specialty = models.ForeignKey("Specialty", related_name="subspecialties", null=True,
                                          blank=True)
+
+    objects = SpecialtyManager()
 
     def is_subspecialty(self):
         """
@@ -126,152 +133,86 @@ class SeatAvailability(models.Model):
     #     unique_together = ("month", "specialty", "department")
 
 
+class InternshipMonth(object):
+    def __init__(self, month, current_rotation, current_request, request_history):
+        self.month = month
+        self.label = month.first_day().strftime("%B %Y")
+        self.current_rotation = current_rotation
+        self.current_request = current_request
+        self.request_history = request_history
+
+
 class Internship(models.Model):
     intern = models.OneToOneField(Intern)
     start_month = MonthField()
 
-    def get_internship_info(self):
-        """
-        Return a dictionary containing information about the internship and current
-        plan request, if any.
-        """
-        return {
-            "currentPlanRequest": True if self.plan_requests.current() else False,
-            "currentPlanRequestSubmitted": self.plan_requests.current().is_submitted if self.plan_requests.current() else False,
-            "currentPlanRequestSubmitDateTime": self.plan_requests.current().submission_datetime.strftime("%-d %B %Y")
-                                            if self.plan_requests.current() and self.plan_requests.current().is_submitted else None,
-        }
-
-    def get_internship_months(self):
-        """
-        Returns a list containing 15 month items starting with the internships' `start_month`.
-        Each month item is a dictionary of the format:
-        {
-            "month": `Month` object,
-            "rotations": a list of all `Rotation` objects associated with this month,
-            "requests": a list of all `RotationRequest` objects associated with this month,
-        }
-        """
+    def get_months(self):
         months = []
         for add in range(15):
             month = self.start_month + add
-            current_rotation = self.rotations.current(month)
-            rotation_history = self.rotations.history(month)
 
-            current_rotation_dict = {
-                "id": current_rotation.id,
-                "specialty": current_rotation.specialty.get_general_specialty().name,
-                "subSpecialty": current_rotation.specialty.name if current_rotation.specialty.is_subspecialty() else "-",
-                "department": current_rotation.department.parent_department.name
-                            if current_rotation.department.parent_department
-                            else current_rotation.department.name,
-                "section": current_rotation.department.name if current_rotation.department.parent_department else "-",
-                "hospital": current_rotation.department.hospital.name,
-                "submitDate": RotationRequest.objects.filter(month=current_rotation.month)
-                                .filter(Q(response__is_approved=True) | Q(forward__response__is_approved=True)).last()
-                                                            .plan_request.submission_datetime.strftime("%-d %B %Y"),
-                "reviewDate": RotationRequest.objects.filter(month=current_rotation.month)
-                                .filter(Q(response__is_approved=True) | Q(forward__response__is_approved=True)).last()
-                                                            .get_response().response_datetime.strftime("%-d %B %Y"),
-            } if current_rotation else None
+            current_rotation = self.rotations.current_for_month(month)
+            current_request = self.rotation_requests.current_for_month(month)
+            request_history = self.rotation_requests.month(month).closed()
 
-            rotation_history_dict = [{
-                "id": rotation.id,
-                "label": rotation.department.__unicode__(),
-            } for rotation in rotation_history]
-
-            if self.plan_requests.current():  # FIXME: reconsider?
-                current_request = self.plan_requests.current().rotation_requests.filter(month=month,
-                                                                                        response__isnull=True,
-                                                                                        forward__response__isnull=True).first()
-
-                current_request_dict = {
-                    "id": current_request.id,
-                    "delete": current_request.delete,
-                    "specialty": current_request.specialty.get_general_specialty().name,
-                    "subSpecialty": current_request.specialty.name if current_request.specialty.is_subspecialty() else "-",
-                    "department": current_request.requested_department.get_department().parent_department.name
-                                if current_request.requested_department.get_department().parent_department
-                                else current_request.requested_department.get_department().name,
-                    "section": current_request.requested_department.get_department().parent_department.name
-                                if current_request.requested_department.get_department().parent_department
-                                else "-",
-                    "hospital": current_request.requested_department.get_department().hospital.name,
-                    "date": current_request.plan_request.submission_datetime.strftime("%-d %B %Y")
-                                if current_request.plan_request.is_submitted else "Not submitted",
-
-
-                } if current_request else None
-
-            else:
-                current_request_dict = None
-
-            request_history = RotationRequest.objects.filter(plan_request__internship=self, month=month) \
-                .exclude(plan_request=self.plan_requests.current(), response__isnull=True, forward__response__isnull=True)
-
-            request_history_dict = [{
-                "id": request.id,
-                "delete": request.delete,
-                "department": request.requested_department.get_department().__unicode__(),
-                "shortDate": request.plan_request.submission_datetime.strftime("%-d %B")
-                            if request.plan_request.is_submitted else "Not submitted",
-                "fullDate": request.plan_request.submission_datetime.strftime("%-d %B %Y")
-                            if request.plan_request.is_submitted else "Not submitted",
-                "reviewed": request.get_status() == RotationRequest.REVIEWED_STATUS,
-                "approved": request.get_response().is_approved
-                            if request.get_status() == RotationRequest.REVIEWED_STATUS else False,
-                "reviewDate": request.get_response().response_datetime.strftime("%-d %B %Y")
-                            if request.get_status() == RotationRequest.REVIEWED_STATUS else "Pending",
-            } for request in request_history]
-
-            months.append({
-                "monthLabel": month.first_day().strftime("%B %Y"),
-                "month": int(month),
-                "currentRotation": current_rotation_dict,
-                "rotationHistory": rotation_history_dict,
-                "currentRequest": current_request_dict,
-                "requestHistory": request_history_dict,
-            })
+            months.append(InternshipMonth(
+                month,
+                current_rotation,
+                current_request,
+                request_history,
+            ))
         return months
+
+    months = property(get_months)
 
     def clean(self):
         """
-        Checks 2 conditions:
-        1- The internship plan consists of exactly 12 rotations.
-        2- The internship plan achieves the minimum number of months for each required specialty.
+        Checks that:
+        1- The internship plan doesn't exceed 12 months.
+        2- Each specialty doesn't exceed its required months in non-elective rotations.
+        3- Not more than 2 months are used for electives. (Electives can be any specialty)
         """
         # FIXME: Doesn't work with admin, because it checks data that's stored in the database; i.e. a ModelForm
         # can never evaluate! (e.g. the admin site)
         errors = []
-        if self.rotations.count() != 12:
-            errors.append(ValidationError("The internship plan should contain exactly 12 months."))
+        if self.rotations.count() > 12:
+            errors.append(ValidationError("The internship plan should contain no more than 12 months."))
 
-        # Get a list of general specialties
-        general_specialties = Specialty.objects.filter(parent_specialty__isnull=True)
+        # Get a list of general specialties.
+        general_specialties = Specialty.objects.general()
+        non_electives = filter(lambda rotation: not rotation.is_elective, self.rotations.all())
+        electives = filter(lambda rotation: rotation.is_elective, self.rotations.all())
 
-        # For each general specialty, check that the number of rotations under that specialty is not less
-        # the required number of months.
+        # Check that the internship plan contains at most 2 non-elective months of each general specialty.
         for specialty in general_specialties:
-            if len(filter(lambda rotation: rotation.specialty.get_general_specialty() == specialty,
-                          self.rotations.all())) < specialty.required_months:
-                errors.append(ValidationError("The internship plan should contain at least %d month(s) of %s.",
+            rotation_count = len(filter(lambda rotation: rotation.specialty.get_general_specialty() == specialty,
+                                        non_electives))
+
+            if rotation_count > specialty.required_months:
+                errors.append(ValidationError("The internship plan should contain at most %d month(s) of %s.",
                                               params=(specialty.required_months, specialty.name)))
+
+        # Check that the internship plan contains at most 2 months of electives.
+        if len(electives) > 2:
+            errors.append(ValidationError("The internship plan should contain at most %d month of %s.",
+                                          params=(2, "electives")))
+
         if errors:
             raise ValidationError(errors)
 
 
 class RotationManager(models.Manager):
-    def current(self, month):
+    def current_for_month(self, month):
         try:
-            return self.filter(month=month).latest("pk")  # TODO: Should be sorted by a new `addition_datetime` field
+            return self.get(month=month)
         except ObjectDoesNotExist:
             return None
 
-    def history(self, month):
-        if self.current(month):
-            return self.filter(month=month).exclude(id=self.current(month).id)
-        else:
-            return self.none()
+    def non_electives(self):
+        return self.filter(is_elective=False)
+
+    def electives(self):
+        return self.filter(is_elective=True)
 
 
 class Rotation(models.Model):
@@ -279,6 +220,8 @@ class Rotation(models.Model):
     month = MonthField()
     specialty = models.ForeignKey(Specialty, related_name="rotations")
     department = models.ForeignKey(Department, related_name="rotations")
+    is_elective = models.BooleanField(default=False)
+    rotation_request = models.OneToOneField("RotationRequest")
 
     objects = RotationManager()
 
@@ -286,136 +229,37 @@ class Rotation(models.Model):
         return "%s rotation in %s (%s)" % (self.specialty, self.department, self.month)
 
 
-class PlanRequestManager(models.Manager):
-    def current(self):
-        if self.open().exists():
-            return self.open().last()
-        else:
-            return None
-
-    def unsubmitted(self):
-        return self.filter(is_submitted=False)
-
-    def open(self):
-        return self.filter(is_closed=False)
-
-    def closed(self):
-        return self.filter(is_submitted=True, is_closed=True)
-
-
-class PlanRequest(models.Model):
-    internship = models.ForeignKey(Internship, related_name="plan_requests")
-    creation_datetime = models.DateTimeField(auto_now_add=True)
-    is_submitted = models.BooleanField(default=False)
-    submission_datetime = models.DateTimeField(blank=True, null=True)
-    is_closed = models.BooleanField(default=False)
-    closure_datetime = models.DateTimeField(blank=True, null=True)
-
-    objects = PlanRequestManager()
-
-    def get_predicted_plan(self):
-        """
-        Returns an `Internship` object representing what the internship plan will look like
-        if all the rotation requests in this plan request are accepted.
-        """
-        # Make a list of new rotation objects based on the rotation requests attached to the
-        # plan request
-        updated_rotations = [
-            Rotation(internship=self.internship,
-                     month=request.month,
-                     department=request.requested_department.get_department(),
-                     specialty=request.specialty)
-
-            for request in self.rotation_requests.filter(delete=False)
-        ]
-
-        # Exclude overlapping months
-        excluded_months = self.rotation_requests.values_list("month", flat=True)
-
-        # To make the final list of the updated rotations, add the existing unaffected rotations to the
-        # list of new ones
-        updated_rotations.extend(self.internship.rotations.exclude(month__in=excluded_months))
-
-        # Make a copy of the internship object
-        predicted = copy(self.internship)
-        predicted.pk = None
-        # predicted.intern = None
-
-        # We need to tweak some internal Django attributes to allow us to relate the updated rotations
-        # to the predicted internship object without having to save them in the database
-        # Check: http://stackoverflow.com/a/16222603
-        qs = predicted.rotations.all()
-        qs._result_cache = updated_rotations
-        qs._prefetch_done = True
-        predicted._prefetched_objects_cache = {'rotations': qs}
-
-        return predicted
-
-    def clean(self):
-        """
-        Checks 3 conditions:
-        1- The plan request contains at least 1 rotation request.
-        2- The plan request alters the internship plan in a way that keeps it at exactly 12 rotations.
-        3- The plan request alters the internship plan in a way that achieves the minimum number of months for
-         each required specialty.
-        """
-        # This checks for condition 1
-        if not self.rotation_requests.exists():
-            raise ValidationError("The plan request should contain at least 1 rotation request.")
-
-        # This checks for conditions 2 & 3
-        predicted_plan = self.get_predicted_plan()
-        predicted_plan.clean()
-
-    def check_closure(self):
-        """
-        Returns whether the current plan request has been closed or not.
-        """
-        if self.rotation_requests.filter(response__isnull=True, forward__response__isnull=True).exists():
-            return False
-        else:
-            self.is_closed = True
-
-            # Set the closure time to now
-            self.closure_datetime = timezone.now()
-
-            self.save()
-            return True
-
-    def submit(self):
-        """
-        Submit the plan request for review.
-        """
-        if not self.is_submitted:
-
-            # Make sure the plan request is valid before submission
-            self.full_clean()
-
-            self.is_submitted = True
-            self.submission_datetime = timezone.now()
-
-            self.save()
-
-            # TODO: send notification?
-        else:
-            raise Exception("This plan request has already been submitted.")  # FIXME: more appropriate exception?
-
-    def __unicode__(self):
-        return "%s's plan request created on %s" % (self.internship.intern.profile.get_en_full_name(),
-                                                    self.creation_datetime)
-
-
 class RequestedDepartment(models.Model):
     is_in_database = models.BooleanField()
     department = models.ForeignKey(Department, related_name="department_requests", null=True, blank=True)
 
     department_hospital = models.ForeignKey(Hospital, null=True, blank=True)
-    department_name = models.CharField(max_length=128)
+    department_name = models.CharField(max_length=128, blank=True)
     department_specialty = models.ForeignKey(Specialty, null=True, blank=True)
-    department_contact_name = models.CharField(max_length=128)
-    department_email = models.EmailField(max_length=128)
-    department_phone = models.CharField(max_length=128)
-    department_extension = models.CharField(max_length=16)
+    department_contact_name = models.CharField(max_length=128, blank=True)
+    department_email = models.EmailField(max_length=128, blank=True)
+    department_phone = models.CharField(
+        max_length=128,
+        blank=True,
+        validators=[
+            validators.RegexValidator(
+                r'^\+\d{12}$',
+                code='invalid_phone_number',
+                message="Phone number should follow the format +966XXXXXXXXX."
+            )
+        ]
+    )
+    department_extension = models.CharField(
+        max_length=16,
+        blank=True,
+        validators=[
+            validators.RegexValidator(
+                r'^\d{3}\d*$',
+                code='invalid_extension',
+                message="Extension should be at least 3 digits long."
+            )
+        ]
+    )
 
     def clean(self):
         """
@@ -513,18 +357,126 @@ class RequestedDepartment(models.Model):
         return self.get_department().name
 
 
+class RotationRequestQuerySet(models.QuerySet):
+    def month(self, month):
+        """
+        Return rotation requests for a particular month.
+        """
+        return self.filter(month=month)
+
+    def open(self):
+        """
+        Return rotation requests that don't yet have a response nor a forward response.
+        """
+        return self.filter(response__isnull=True, forward__response__isnull=True)
+
+    def closed(self):
+        """
+        Return rotation requests that have received either a response or a forward response.
+        """
+        return self.exclude(response__isnull=True, forward__response__isnull=True)
+
+    def current_for_month(self, month):
+        """
+        Return the current open request for a specific month.
+        (There should only be one open request per month at a time.)
+        """
+        # This only has meaning when filtering requests for a specific internship
+        open_requests = self.month(month).open()
+        if open_requests.count() > 1:
+            raise MultipleObjectsReturned(
+                "Expected at most 1 open rotation request for the month %s, found %d!" % (
+                    month.first_day().strftime("%B %Y"),
+                    open_requests.count()
+                )
+            )
+        try:
+            return open_requests.latest("submission_datetime")
+        except ObjectDoesNotExist:
+            return None
+
+
 class RotationRequest(models.Model):
-    plan_request = models.ForeignKey(PlanRequest, related_name="rotation_requests")
+    internship = models.ForeignKey(Internship, related_name="rotation_requests")
     month = MonthField()
     specialty = models.ForeignKey(Specialty, related_name="rotation_requests")  # TODO: Is this field really necessary?
     requested_department = models.OneToOneField(RequestedDepartment)
     delete = models.BooleanField(default=False)  # Flag to determine if this is a "delete" request
     # FIXME: Maybe department & specialty should be optional with delete=True
     # FIXME: The name `delete` conflicts with the api function `delete()`
+    is_elective = models.BooleanField(default=False)
+    submission_datetime = models.DateTimeField(auto_now_add=True)
+
+    objects = RotationRequestQuerySet().as_manager()
 
     PENDING_STATUS = "P"
     FORWARDED_STATUS = "F"
     REVIEWED_STATUS = "R"
+
+    def save(self, *args, **kwargs):
+        # Make sure the request is valid before saving
+        self.full_clean()
+
+        super(RotationRequest, self).save(*args, **kwargs)
+
+    def clean(self):
+        """
+        Checks that:
+        1- The rotation request alters the internship plan in a way that keeps it at 12 rotations or less.
+        2- The rotation request alters the internship plan in a way that doesn't exceed the maximum number of months
+         for each required specialty.
+        """
+        predicted_plan = self.get_predicted_plan()
+        predicted_plan.clean()
+
+    def get_predicted_plan(self):
+        """
+        Returns an `Internship` object representing what the internship plan will look like
+        if all the rotation requests in this plan request are accepted.
+        """
+        # Make a list of new rotation objects based on the rotation requests attached to the
+        # internship plan
+        updated_rotations = [
+            Rotation(internship=self.internship,
+                     month=request.month,
+                     department=request.requested_department.get_department(),
+                     specialty=request.specialty,
+                     is_elective=request.is_elective)
+
+            for request in self.internship.rotation_requests.open().filter(delete=False)
+        ]
+
+        # Don't forget this rotation request (self), since it's not yet saved when this is running
+        if not self.delete:
+            updated_rotations.append(
+                Rotation(internship=self.internship,
+                         month=self.month,
+                         department=self.requested_department.get_department(),
+                         specialty=self.specialty,
+                         is_elective=self.is_elective)
+            )
+
+        # Exclude overlapping months
+        excluded_months = self.internship.rotation_requests.open().values_list("month", flat=True)
+
+        # To make the final list of the updated rotations, add the existing unaffected rotations to the
+        # list of new ones
+        updated_rotations.extend(self.internship.rotations.exclude(month__in=excluded_months))
+
+        # Make a copy of the internship object
+        predicted = copy(self.internship)
+        predicted.pk = None
+        # predicted.intern = None
+
+        # We need to tweak some internal Django attributes to allow us to relate the updated rotations
+        # to the predicted internship object without having to save them in the database
+        # Check: http://stackoverflow.com/a/16222603
+        qs = predicted.rotations.all()
+        qs._result_cache = updated_rotations
+        qs._prefetch_done = True
+        predicted._prefetched_objects_cache = {'rotations': qs}
+
+        return predicted
 
     def get_status(self):
         """
@@ -582,7 +534,7 @@ class RotationRequest(models.Model):
             # TODO: Test
             if is_approved:
                 # Remove any previous rotation in the current month
-                self.plan_request.internship.rotations.filter(month=self.month).delete()
+                self.internship.rotations.filter(month=self.month).delete()
 
                 # Unless this is a delete, request, add a new rotation object for the current month
                 if not self.delete:
@@ -591,16 +543,32 @@ class RotationRequest(models.Model):
                     if not self.requested_department.is_in_database:
                         self.requested_department.add_to_database()
 
-                    self.plan_request.internship.rotations.create(
+                    self.internship.rotations.create(
                         month=self.month,
                         specialty=self.specialty,
                         department=self.requested_department.get_department(),
+                        is_elective=self.is_elective,
+                        rotation_request=self,
                     )
 
-            # Close the plan request if this is the last rotation request within it
-            self.plan_request.check_closure()
+            # Notify intern
+            if is_approved:
+                notify(
+                    "Rotation request for %s in %s has been approved." % (self.month.first_day().strftime("%B %Y"),
+                                                                          self.requested_department.get_department().name),
+                    "rotation_request_approved",
+                    target_object=self.internship,
+                    url="/#/planner",
+                )
+            else:
+                notify(
+                    "Rotation request for %s in %s has been declined." % (self.month.first_day().strftime("%B %Y"),
+                                                                          self.requested_department.get_department().name),
+                    "rotation_request_declined",
+                    target_object=self.internship,
+                    url="/#/planner",
+                )
 
-            # TODO: Notify
         else:
             raise Exception("This rotation request has already been responded to.")
 
@@ -640,7 +608,7 @@ class RotationRequest(models.Model):
                                                        self.month)
 
     class Meta:
-        ordering = ('plan_request', 'month', )
+        ordering = ('internship', 'month', )
 
 
 class RotationRequestResponse(models.Model):
@@ -673,20 +641,39 @@ class RotationRequestForward(models.Model):
             # TODO: Test
             if is_approved:
                 # Remove any previous rotation in the current month
-                self.rotation_request.plan_request.internship.rotations.filter(month=self.rotation_request.month).delete()
+                self.rotation_request.internship.rotations.filter(month=self.rotation_request.month).delete()
 
                 # Unless this is a delete request, add a new rotation object for the current month
                 if not self.rotation_request.delete:
-                    self.rotation_request.plan_request.internship.rotations.create(
+                    self.rotation_request.internship.rotations.create(
                         month=self.rotation_request.month,
                         specialty=self.rotation_request.specialty,
                         department=self.rotation_request.requested_department.get_department(),
+                        is_elective=self.rotation_request.is_elective,
+                        rotation_request=self.rotation_request,
                     )
 
             # Close the plan request if this is the last rotation request within it
-            self.rotation_request.plan_request.check_closure()
+            self.rotation_request.check_closure()
 
-            # TODO: Notify
+            # Notify intern
+            if is_approved:
+                notify(
+                    "Rotation request for %s in %s has been approved." % (self.rotation_request.month.first_day().strftime("%B %Y"),
+                                                                          self.rotation_request.requested_department.get_department().name),
+                    "rotation_request_approved",
+                    target_object=self.rotation_request.internship,
+                    url="/#/planner",
+                )
+            else:
+                notify(
+                    "Rotation request for %s in %s has been declined." % (self.rotation_request.month.first_day().strftime("%B %Y"),
+                                                                          self.rotation_request.requested_department.get_department().name),
+                    "rotation_request_declined",
+                    target_object=self.rotation_request.internship,
+                    url="/#/planner",
+                )
+
         else:
             raise Exception("This rotation request has already been responded to.")
 

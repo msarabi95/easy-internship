@@ -1,10 +1,10 @@
 /**
  * Created by MSArabi on 7/14/16.
  */
-var app = angular.module("easyInternship", ["djng.urls", "djng.rmi", "ngRoute", "ngResource", "ui.bootstrap"]);
+var app = angular.module("easyInternship", ["ngRoute", "ngResource", "ui.bootstrap"]);
 
-app.config(["$httpProvider", "$routeProvider", "djangoRMIProvider", "$resourceProvider",
-    function ($httpProvider, $routeProvider, djangoRMIProvider, $resourceProvider) {
+app.config(["$httpProvider", "$routeProvider", "$resourceProvider",
+    function ($httpProvider, $routeProvider, $resourceProvider) {
 
     // These settings enable Django to receive Angular requests properly.
     // Check:
@@ -14,7 +14,25 @@ app.config(["$httpProvider", "$routeProvider", "djangoRMIProvider", "$resourcePr
     $httpProvider.defaults.xsrfCookieName = 'csrftoken';
     $httpProvider.defaults.xsrfHeaderName = 'X-CSRFToken';
 
-    djangoRMIProvider.configure(tags);
+    // Check for messages with each response
+    $httpProvider.interceptors.push(function ($q, $rootScope) {
+       return {
+           'response': function (response) {
+               if ( $rootScope.fetchingMessages != true ) {
+                   $rootScope.fetchingMessages = true;
+                   $rootScope.$broadcast("fetchMessages");
+               }
+               return response;
+           },
+           'responseError': function (rejection) {
+               if ( $rootScope.fetchingMessages != true ) {
+                   $rootScope.fetchingMessages = true;
+                   $rootScope.$broadcast("fetchMessages");
+               }
+               return $q.reject(rejection);
+           }
+       };
+    });
 
     $routeProvider
         .when("/", {
@@ -30,6 +48,29 @@ app.config(["$httpProvider", "$routeProvider", "djangoRMIProvider", "$resourcePr
 
 }]);
 
+app.run(function ($rootScope, $resource) {
+    toastr.options.positionClass = "toast-top-center";
+    $rootScope.$on("fetchMessages", getMessages);
+
+    function getMessages(event, eventData) {
+        var messages = $resource("messages").query(function (messages) {
+            $rootScope.fetchingMessages = false;
+            for (var i = 0; i < messages.length; i++) {
+                toastr[messages[i].level_tag](messages[i].message);
+            }
+        });
+    }
+
+    $rootScope.fetchingMessages = true;
+    getMessages("", {});
+});
+
+app.controller("MenuCtrl", ["$scope", "$route", "$location", function ($scope, $route, $location) {
+    $scope.isActive = function (viewLocation) {
+        return viewLocation == "#" + $location.path();
+    }
+}]);
+
 app.factory("PlanRequest", ["$resource", function($resource) {
     // Refer to: https://www.sitepoint.com/creating-crud-app-minutes-angulars-resource/
     return $resource('/api/plan_requests/:id', {id: '@id'});
@@ -43,6 +84,7 @@ app.factory("RotationRequest", ["$resource", function($resource) {
     });
 }]);
 
+/* FIXME: Re-write with PlanRequests out of mind */
 app.controller("MyCtrl", ["$scope", "PlanRequest", "RotationRequest", "$resource",
 function ($scope, PlanRequest, RotationRequest, $resource) {
     function getPlanRequests() {
