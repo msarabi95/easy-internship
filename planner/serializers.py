@@ -58,7 +58,7 @@ class RotationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Rotation
-        fields = ('id', 'internship', 'month', 'specialty', 'department', 'rotation_request')
+        fields = ('id', 'internship', 'month', 'specialty', 'department', 'is_elective', 'rotation_request')
 
 
 class RequestedDepartmentSerializer(serializers.ModelSerializer):
@@ -77,7 +77,7 @@ class RotationRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = RotationRequest
         fields = ('id', 'internship', 'month', 'specialty',
-                  'requested_department', 'delete', 'submission_datetime', 'status', 'response')
+                  'requested_department', 'delete', 'is_elective', 'submission_datetime', 'status', 'response')
 
 
 class RotationRequestResponseSerializer(serializers.ModelSerializer):

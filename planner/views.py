@@ -2,7 +2,7 @@ import json
 
 from accounts.models import Profile
 from django.contrib import messages
-from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
+from django.core.exceptions import PermissionDenied, ObjectDoesNotExist, ValidationError, NON_FIELD_ERRORS
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.views import generic as django_generics
@@ -159,15 +159,21 @@ class RotationRequestFormView(django_generics.FormView):
         form = self.form_class(data=data)
         if form.is_valid():
             requested_department = form.save()
-            internship.rotation_requests.create(
-                month=month,
-                specialty=requested_department.department_specialty,
-                requested_department=requested_department,
-            )
+            try:
+                internship.rotation_requests.create(
+                    month=month,
+                    specialty=requested_department.department_specialty,
+                    requested_department=requested_department,
+                    is_elective=form.cleaned_data['is_elective'],
+                )
+            except ValidationError as e:
+                for error in e.message_dict[NON_FIELD_ERRORS]:
+                    form.add_error(None, error)
 
-            # TODO: Notify internship unit (take care not to send a lot of simultaneous notifications though!)
+            else:
 
-            messages.success(request, "Your request has been submitted successfully.")
+                # TODO: Notify internship unit (take care not to send a lot of simultaneous notifications though!)
+                messages.success(request, "Your request has been submitted successfully.")
 
         response_data = {'errors': form.errors}
         return HttpResponse(json.dumps(response_data), content_type="application/json")

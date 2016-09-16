@@ -308,6 +308,7 @@
       <column name="internship_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
       <column name="specialty_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
       <column name="rotation_request_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="is_elective" sqlType="BOOL" precision="0" scale="-1" nullable="false" jdbcType="4"/>
       <primary-key columns="id"/>
       <foreign-key name="#FAKE_planner_rotation_1" columns="rotation_request_id" ref-table="planner_rotationrequest" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
       <foreign-key name="#FAKE_planner_rotation_2" columns="specialty_id" ref-table="planner_specialty" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
@@ -325,6 +326,7 @@
       <column name="delete" sqlType="BOOL" precision="0" scale="-1" nullable="false" jdbcType="4"/>
       <column name="submission_datetime" sqlType="DATETIME" precision="0" scale="-1" nullable="false" jdbcType="12"/>
       <column name="internship_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="is_elective" sqlType="BOOL" precision="0" scale="-1" nullable="false" jdbcType="4"/>
       <primary-key columns="id"/>
       <foreign-key name="#FAKE_planner_rotationrequest_1" columns="internship_id" ref-table="planner_internship" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
       <foreign-key name="#FAKE_planner_rotationrequest_2" columns="specialty_id" ref-table="planner_specialty" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>

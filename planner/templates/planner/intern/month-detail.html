@@ -12,7 +12,7 @@
           <h4 class="text-bold">Summary</h4>
           <p>
             <span ng-if="month.occupied">
-              During this month, you have a rotation of {{ month.current_rotation.department.specialty.name }}
+              During this month, you have a rotation of {{ month.current_rotation.department.specialty.name }} <span ng-if="month.current_rotation.is_elective">(elective)</span>
               in {{ month.current_rotation.department.hospital.name }}.
             </span>
             <span ng-if="month.requested">
@@ -21,7 +21,9 @@
 
               <span ng-if="!month.current_request.delete">
                 for a rotation of
-                <span class="text-yellow">{{ month.current_request.specialty.name }}</span> in
+                <span class="text-yellow">{{ month.current_request.specialty.name }}
+                  <span ng-if="month.current_request.is_elective">(elective)</span>
+                </span> in
                 <span class="text-yellow">{{ month.current_request.requested_department.department.hospital.name }}</span>
               </span>
               <span ng-if="month.current_request.delete">
@@ -38,8 +40,6 @@
             <hr>
             <h4 class="text-bold">Details of your rotation</h4>
 
-            <!-- TODO: Display details of the current rotation -->
-
             <div class="box box-solid">
               <div class="box-body bg-info">
                 <dl class="dl-horizontal">
@@ -48,6 +48,12 @@
 
                   <dt>Hospital</dt>
                   <dd class="text-bold text-blue">{{ month.current_rotation.department.hospital.name }}</dd>
+
+                  <dt>Elective?</dt>
+                  <dd>
+                    <span ng-if="month.current_rotation.is_elective == true" class="text-blue text-bold">Yes</span>
+                    <span ng-if="month.current_rotation.is_elective == false">No</span>
+                  </dd>
 
                   <dt>Request date and time</dt>
                   <dd>{{ month.current_rotation.rotation_request.submission_datetime }}</dd>
@@ -80,6 +86,12 @@
 
                     <dt>Hospital</dt>
                     <dd class="text-yellow text-bold">{{ month.current_request.requested_department.department.hospital.name }}</dd>
+
+                    <dt>Elective?</dt>
+                    <dd>
+                      <span ng-if="month.current_request.is_elective == true" class="text-yellow text-bold">Yes</span>
+                      <span ng-if="month.current_request.is_elective == false">No</span>
+                    </dd>
                   </div>
 
                   <div ng-if="month.current_request.delete">

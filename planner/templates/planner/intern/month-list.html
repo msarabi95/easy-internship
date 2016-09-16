@@ -17,15 +17,10 @@
         <div class="box-header">
           <h5 class="box-title"><b>Welcome to the Internship Planner!</b></h5>
         </div>
-        <div class="box-body" ng-if="!internshipInfo.currentPlanRequestSubmitted">
+        <div class="box-body">
 
               Choose your desired rotation for each of the months below.
               You have to fill 12 months.
-
-        </div>
-        <div class="box-body" ng-if="internshipInfo.currentPlanRequestSubmitted">
-
-              Your last plan request was submitted on <b><i>{{ internshipInfo.currentPlanRequestSubmitDateTime }}</i></b>.
 
         </div>
       </div>
@@ -53,7 +48,7 @@
             <div class="box-body">
               <div class="col-xs-12" style="height: 130px; position: relative;">
                 <!-- Regarding the CSS centering , check: https://css-tricks.com/centering-css-complete-guide/#both-unknown -->
-                <div style="width: 100%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                <div style="width: 95%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
                   <div ng-if="!months[i].occupied && !months[i].requested">
                     <!-- #1 Not Occupied, Not Requested -->
                     <h3 class="text-center">No rotation</h3>
@@ -62,19 +57,28 @@
                   <div ng-if="!months[i].occupied && months[i].requested">
                     <!-- #2 Not Occupied, Requested -->
                     <h3 class="text-yellow text-center">Pending</h3>
-                    <h4 class="text-yellow text-center">{{ months[i].current_request.specialty.name }}</h4>
+                    <h4 class="text-yellow text-center">
+                      {{ months[i].current_request.specialty.name }}
+                      <small ng-if="months[i].current_request.is_elective">(Elective)</small>
+                    </h4>
                     <h5 class="text-center">{{ months[i].current_request.requested_department.department.hospital.name }}</h5>
                   </div>
 
                   <div ng-if="months[i].occupied && !months[i].requested">
                     <!-- #3 Occupied, Not Requested -->
-                    <h3 class="text-blue text-center">{{ months[i].current_rotation.department.specialty.name }}</h3>
+                    <h3 class="text-blue text-center">
+                      {{ months[i].current_rotation.department.specialty.name }}
+                      <small ng-if="months[i].current_rotation.is_elective">(Elective)</small>
+                    </h3>
                     <h5 class="text-center">{{ months[i].current_rotation.department.hospital.name }}</h5>
                   </div>
 
                   <div ng-if="months[i].occupied && months[i].requested">
                     <!-- #4 Occupied, Requested -->
-                    <h5 class="text-blue text-center">Current: {{ months[i].current_rotation.department.specialty.name }}</h5>
+                    <h5 class="text-blue text-center">
+                      Current: {{ months[i].current_rotation.department.specialty.name }}
+                      <small ng-if="months[i].current_rotation.is_elective">(Elective)</small>
+                    </h5>
                     <h6 class="text-center">{{ months[i].current_rotation.department.hospital.name }}</h6>
 
                     <hr style="margin-top: 5px; margin-bottom: 5px;">
@@ -85,7 +89,10 @@
                     </div>
 
                     <div ng-if="!months[i].current_request.delete">
-                      <h5 class="text-yellow text-center">Pending: {{ months[i].current_request.specialty.name }}</h5>
+                      <h5 class="text-yellow text-center">
+                        Pending: {{ months[i].current_request.specialty.name }}
+                        <small ng-if="months[i].current_request.is_elective">(Elective)</small>
+                      </h5>
                       <h6 class="text-center">{{ months[i].current_request.requested_department.department.hospital.name }}</h6>
                     </div>
 

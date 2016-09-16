@@ -20,12 +20,19 @@ class Hospital(models.Model):
         return self.name
 
 
+class SpecialtyManager(models.Manager):
+    def general(self):
+        return self.filter(parent_specialty__isnull=True)
+
+
 class Specialty(models.Model):
     name = models.CharField(max_length=128)
     abbreviation = models.CharField(max_length=4)
     required_months = models.PositiveIntegerField()
     parent_specialty = models.ForeignKey("Specialty", related_name="subspecialties", null=True,
                                          blank=True)
+
+    objects = SpecialtyManager()
 
     def is_subspecialty(self):
         """
@@ -162,7 +169,7 @@ class Internship(models.Model):
         """
         Checks that:
         1- The internship plan doesn't exceed 12 months.
-        2- Each specialty doesn't exceed its required months.
+        2- Each specialty doesn't exceed its required months in non-elective rotations.
         3- Not more than 2 months are used for electives. (Electives can be any specialty)
         """
         # FIXME: Doesn't work with admin, because it checks data that's stored in the database; i.e. a ModelForm
@@ -171,28 +178,24 @@ class Internship(models.Model):
         if self.rotations.count() > 12:
             errors.append(ValidationError("The internship plan should contain no more than 12 months."))
 
-        # Get a list of general specialties
-        general_specialties = Specialty.objects.filter(parent_specialty__isnull=True)
+        # Get a list of general specialties.
+        general_specialties = Specialty.objects.general()
+        non_electives = filter(lambda rotation: not rotation.is_elective, self.rotations.all())
+        electives = filter(lambda rotation: rotation.is_elective, self.rotations.all())
 
-        # For each general specialty, check that the number of rotations under that specialty is not less
-        # the required number of months.
-        extra_months = 0
-        specialties_with_extra = []
-
+        # Check that the internship plan contains at most 2 non-elective months of each general specialty.
         for specialty in general_specialties:
             rotation_count = len(filter(lambda rotation: rotation.specialty.get_general_specialty() == specialty,
-                                        self.rotations.all()))
+                                        non_electives))
 
             if rotation_count > specialty.required_months:
-                extra_months += rotation_count - specialty.required_months
-                specialties_with_extra.append(specialty)
-
-        if extra_months > 2:
-            for specialty in specialties_with_extra:
                 errors.append(ValidationError("The internship plan should contain at most %d month(s) of %s.",
-                                      params=(specialty.required_months, specialty.name)))
-            errors.append(ValidationError("The internship plan should contain at most %d month(s) of %s.",
-                                      params=(2, "electives")))
+                                              params=(specialty.required_months, specialty.name)))
+
+        # Check that the internship plan contains at most 2 months of electives.
+        if len(electives) > 2:
+            errors.append(ValidationError("The internship plan should contain at most %d month of %s.",
+                                          params=(2, "electives")))
 
         if errors:
             raise ValidationError(errors)
@@ -205,12 +208,19 @@ class RotationManager(models.Manager):
         except ObjectDoesNotExist:
             return None
 
+    def non_electives(self):
+        return self.filter(is_elective=False)
+
+    def electives(self):
+        return self.filter(is_elective=True)
+
 
 class Rotation(models.Model):
     internship = models.ForeignKey(Internship, related_name="rotations")
     month = MonthField()
     specialty = models.ForeignKey(Specialty, related_name="rotations")
     department = models.ForeignKey(Department, related_name="rotations")
+    is_elective = models.BooleanField(default=False)
     rotation_request = models.OneToOneField("RotationRequest")
 
     objects = RotationManager()
@@ -394,6 +404,7 @@ class RotationRequest(models.Model):
     delete = models.BooleanField(default=False)  # Flag to determine if this is a "delete" request
     # FIXME: Maybe department & specialty should be optional with delete=True
     # FIXME: The name `delete` conflicts with the api function `delete()`
+    is_elective = models.BooleanField(default=False)
     submission_datetime = models.DateTimeField(auto_now_add=True)
 
     objects = RotationRequestQuerySet().as_manager()
@@ -424,18 +435,29 @@ class RotationRequest(models.Model):
         if all the rotation requests in this plan request are accepted.
         """
         # Make a list of new rotation objects based on the rotation requests attached to the
-        # plan request
+        # internship plan
         updated_rotations = [
             Rotation(internship=self.internship,
                      month=request.month,
                      department=request.requested_department.get_department(),
-                     specialty=request.specialty)
+                     specialty=request.specialty,
+                     is_elective=request.is_elective)
 
             for request in self.internship.rotation_requests.open().filter(delete=False)
         ]
 
+        # Don't forget this rotation request (self), since it's not yet saved when this is running
+        if not self.delete:
+            updated_rotations.append(
+                Rotation(internship=self.internship,
+                         month=self.month,
+                         department=self.requested_department.get_department(),
+                         specialty=self.specialty,
+                         is_elective=self.is_elective)
+            )
+
         # Exclude overlapping months
-        excluded_months = self.internship.rotation_requests.values_list("month", flat=True)
+        excluded_months = self.internship.rotation_requests.open().values_list("month", flat=True)
 
         # To make the final list of the updated rotations, add the existing unaffected rotations to the
         # list of new ones
@@ -525,6 +547,7 @@ class RotationRequest(models.Model):
                         month=self.month,
                         specialty=self.specialty,
                         department=self.requested_department.get_department(),
+                        is_elective=self.is_elective,
                         rotation_request=self,
                     )
 
@@ -626,6 +649,7 @@ class RotationRequestForward(models.Model):
                         month=self.rotation_request.month,
                         specialty=self.rotation_request.specialty,
                         department=self.rotation_request.requested_department.get_department(),
+                        is_elective=self.rotation_request.is_elective,
                         rotation_request=self.rotation_request,
                     )
 

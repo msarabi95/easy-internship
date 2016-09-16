@@ -26,7 +26,10 @@
                         <h3 class="timeline-header">
                           Requested
                           <span ng-if="!rotation_request.delete">
-                            <span ng-class="{'text-green': rotation_request.response.is_approved, 'text-red': rotation_request.response.is_approved == false}">{{ rotation_request.specialty.name }}</span>  @
+                            <span ng-class="{'text-green': rotation_request.response.is_approved, 'text-red': rotation_request.response.is_approved == false}">
+                              {{ rotation_request.specialty.name }}
+                              <span ng-if="rotation_request.is_elective">(elective)</span>
+                            </span>  @
                             {{ rotation_request.requested_department.department.hospital.abbreviation }}
                           </span>
                           <span ng-if="rotation_request.delete" class="text-red">
@@ -42,6 +45,14 @@
 
                               <dt>Hospital</dt>
                               <dd class="text-bold" ng-class="{'text-green': rotation_request.response.is_approved, 'text-red': rotation_request.response.is_approved == false}">{{ rotation_request.requested_department.department.hospital.name }}</dd>
+
+                              <dt>Elective?</dt>
+                              <dd>
+                                <span ng-if="rotation_request.is_elective == true" class="text-bold" ng-class="{'text-green': rotation_request.response.is_approved, 'text-red': rotation_request.response.is_approved == false}">
+                                  Yes
+                                </span>
+                                <span ng-if="rotation_request.is_elective == false">No</span>
+                              </dd>
                             </div>
                             <div ng-if="rotation_request.delete">
                               <dt>Description</dt>

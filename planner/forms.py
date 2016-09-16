@@ -19,10 +19,14 @@ class RotationRequestForm(NgFormValidationMixin, NgModelFormMixin, Bootstrap3Mod
         self.fields['department_phone'].label = "Phone"
         self.fields['department_extension'].label = "Extension"
 
+    is_elective = forms.BooleanField(required=False, initial=False,
+                                     label="This is an elective.",
+                                     help_text="Check this box if this is an elective rotation.")
+
     class Meta:
         model = RequestedDepartment
         fields = ('department_specialty', 'department_hospital', 'department_name',
                   'department_contact_name', 'department_email',
                   'department_phone', 'department_extension',
-                  'department', 'is_in_database')
+                  'department', 'is_in_database', 'is_elective')
         widgets = {'department': forms.HiddenInput(), 'is_in_database': forms.HiddenInput()}
