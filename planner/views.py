@@ -2,7 +2,7 @@ import json
 
 from accounts.models import Profile
 from django.contrib import messages
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.views import generic as django_generics
@@ -16,10 +16,13 @@ from month import Month
 from planner.models import Hospital, RequestedDepartment, Department, Specialty, \
     RotationRequest, RotationRequestForward, SeatAvailability, Internship, Rotation, RotationRequestResponse, \
     RotationRequestForwardResponse
-from rest_framework.decorators import list_route
+from rest_framework.decorators import list_route, detail_route
 from rest_framework.response import Response
 
 # For testing purposes only
+from rest_framework.status import HTTP_201_CREATED
+
+
 def list_forwards(request):
     context = {"forwards": RotationRequestForward.objects.all()}
     return render(request, "planner/list_forwards.html", context)
@@ -67,10 +70,40 @@ class InternshipMonthViewSet(viewsets.ReadOnlyModelViewSet):
             return internship.months
         else:
             return []
+
     def get_object(self):
         queryset = self.get_queryset()
         month = Month.from_int(int(self.kwargs[self.lookup_field]))
         return filter(lambda m: m.month == month, queryset)[0]
+
+    @detail_route(methods=["post"])
+    def cancel_rotation(self, request, month=None):
+        internship = request.user.profile.intern.internship
+        month = Month.from_int(int(month))
+        current_rotation = internship.rotations.current_for_month(month)
+
+        if not current_rotation:
+            raise ObjectDoesNotExist("This month has no rotation to cancel.")
+
+        if internship.rotation_requests.current_for_month(month):
+            raise PermissionDenied("There is a pending rotation request for this month already.")
+
+        requested_department = current_rotation.rotation_request.requested_department
+        requested_department.id = None
+        requested_department.save()
+
+        internship.rotation_requests.create(
+            month=month,
+            specialty=requested_department.department_specialty,
+            requested_department=requested_department,
+            delete=True,
+        )
+
+        messages.success(request._request, "Your cancellation request has been submitted successfully.")
+
+        # TODO: Notify internship unit
+
+        return Response(status=HTTP_201_CREATED)
 
 
 class InternshipViewSet(viewsets.ReadOnlyModelViewSet):

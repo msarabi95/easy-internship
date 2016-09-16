@@ -29,7 +29,15 @@ plannerModule.factory("SeatAvailability", ["$resource", function($resource) {
 }]);
 
 plannerModule.factory("InternshipMonth", ["$resource", function($resource) {
-    return $resource('/api/internship_months/:month_id', {month_id: '@month'});
+    return $resource('/api/internship_months/:month_id', {month_id: '@month'}, {
+        cancel_rotation: {
+            method: 'post',
+            url: '/api/internship_months/:month_id/cancel_rotation/',
+            params: {
+                month_id: '@month'
+            }
+        }
+    });
 }]);
 
 plannerModule.factory("Internship", ["$resource", function($resource) {

@@ -79,8 +79,15 @@
 
                     <hr style="margin-top: 5px; margin-bottom: 5px;">
 
-                    <h5 class="text-yellow text-center">Pending: {{ months[i].current_request.specialty.name }}</h5>
-                    <h6 class="text-center">{{ months[i].current_request.requested_department.department.hospital.name }}</h6>
+                    <div ng-if="months[i].current_request.delete">
+                      <h5 class="text-red text-center">Pending</h5>
+                      <h6 class="text-center">Rotation to be cancelled</h6>
+                    </div>
+
+                    <div ng-if="!months[i].current_request.delete">
+                      <h5 class="text-yellow text-center">Pending: {{ months[i].current_request.specialty.name }}</h5>
+                      <h6 class="text-center">{{ months[i].current_request.requested_department.department.hospital.name }}</h6>
+                    </div>
 
                   </div>
                 </div>
@@ -123,6 +130,7 @@
                 </button>
                 <ul class="dropdown-menu">
                   <li><a href="#/planner/{{ months[i].month }}/new/">Request a different rotation</a></li>
+                  <li><a href="#/planner/{{ months[i].month }}/cancel/">Cancel this rotation</a></li>
                   <li><a href="#/planner/{{ months[i].month }}/history/">See previous requests for this month</a></li>
                 </ul>
               </div>

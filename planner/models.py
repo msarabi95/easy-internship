@@ -144,7 +144,7 @@ class Internship(models.Model):
         for add in range(15):
             month = self.start_month + add
 
-            current_rotation = self.rotations.current(month)
+            current_rotation = self.rotations.current_for_month(month)
             current_request = self.rotation_requests.current_for_month(month)
             request_history = self.rotation_requests.month(month).closed()
 
@@ -199,17 +199,11 @@ class Internship(models.Model):
 
 
 class RotationManager(models.Manager):
-    def current(self, month):
+    def current_for_month(self, month):
         try:
-            return self.filter(month=month).latest("pk")  # TODO: Should be sorted by a new `addition_datetime` field
+            return self.get(month=month)
         except ObjectDoesNotExist:
             return None
-
-    def history(self, month):
-        if self.current(month):
-            return self.filter(month=month).exclude(id=self.current(month).id)
-        else:
-            return self.none()
 
 
 class Rotation(models.Model):
@@ -217,28 +211,12 @@ class Rotation(models.Model):
     month = MonthField()
     specialty = models.ForeignKey(Specialty, related_name="rotations")
     department = models.ForeignKey(Department, related_name="rotations")
+    rotation_request = models.OneToOneField("RotationRequest")
 
     objects = RotationManager()
 
     def __unicode__(self):
         return "%s rotation in %s (%s)" % (self.specialty, self.department, self.month)
-
-
-class PlanRequestManager(models.Manager):
-    def current(self):
-        if self.open().exists():
-            return self.open().last()
-        else:
-            return None
-
-    def unsubmitted(self):
-        return self.filter(is_submitted=False)
-
-    def open(self):
-        return self.filter(is_closed=False)
-
-    def closed(self):
-        return self.filter(is_submitted=True, is_closed=True)
 
 
 class RequestedDepartment(models.Model):
@@ -547,6 +525,7 @@ class RotationRequest(models.Model):
                         month=self.month,
                         specialty=self.specialty,
                         department=self.requested_department.get_department(),
+                        rotation_request=self,
                     )
 
             # Notify intern
@@ -647,6 +626,7 @@ class RotationRequestForward(models.Model):
                         month=self.rotation_request.month,
                         specialty=self.rotation_request.specialty,
                         department=self.rotation_request.requested_department.get_department(),
+                        rotation_request=self.rotation_request,
                     )
 
             # Close the plan request if this is the last rotation request within it

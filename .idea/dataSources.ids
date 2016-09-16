@@ -288,11 +288,11 @@
       <column name="department_name" sqlType="VARCHAR(128)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
       <column name="department_contact_name" sqlType="VARCHAR(128)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
       <column name="department_email" sqlType="VARCHAR(128)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
-      <column name="department_phone" sqlType="VARCHAR(128)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
       <column name="department_extension" sqlType="VARCHAR(16)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
       <column name="department_id" sqlType="INTEGER" precision="0" scale="-1" nullable="true" jdbcType="4"/>
       <column name="department_hospital_id" sqlType="INTEGER" precision="0" scale="-1" nullable="true" jdbcType="4"/>
       <column name="department_specialty_id" sqlType="INTEGER" precision="0" scale="-1" nullable="true" jdbcType="4"/>
+      <column name="department_phone" sqlType="VARCHAR(128)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
       <primary-key columns="id"/>
       <foreign-key name="#FAKE_planner_requesteddepartment_1" columns="department_specialty_id" ref-table="planner_specialty" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
       <foreign-key name="#FAKE_planner_requesteddepartment_2" columns="department_hospital_id" ref-table="planner_hospital" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
@@ -307,10 +307,12 @@
       <column name="department_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
       <column name="internship_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
       <column name="specialty_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="rotation_request_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
       <primary-key columns="id"/>
-      <foreign-key name="#FAKE_planner_rotation_1" columns="specialty_id" ref-table="planner_specialty" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
-      <foreign-key name="#FAKE_planner_rotation_2" columns="internship_id" ref-table="planner_internship" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
-      <foreign-key name="#FAKE_planner_rotation_3" columns="department_id" ref-table="planner_department" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+      <foreign-key name="#FAKE_planner_rotation_1" columns="rotation_request_id" ref-table="planner_rotationrequest" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+      <foreign-key name="#FAKE_planner_rotation_2" columns="specialty_id" ref-table="planner_specialty" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+      <foreign-key name="#FAKE_planner_rotation_3" columns="internship_id" ref-table="planner_internship" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+      <foreign-key name="#FAKE_planner_rotation_4" columns="department_id" ref-table="planner_department" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
       <index name="planner_rotation_2f27de08" unique="true" columns="specialty_id"/>
       <index name="planner_rotation_ccd05cf1" unique="true" columns="internship_id"/>
       <index name="planner_rotation_bf691be4" unique="true" columns="department_id"/>

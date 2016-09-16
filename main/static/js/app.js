@@ -57,6 +57,10 @@ app.config(["$httpProvider", "$routeProvider", "$resourceProvider",
             templateUrl: "partials/planner/intern/rotation-request-history.html",
             controller: "RotationRequestHistoryCtrl"
         })
+        .when("/planner/:month_id/cancel/", {
+            templateUrl: "partials/planner/intern/deletion-request.html",
+            controller: "DeletionRequestCtrl"
+        })
 
 }]);
 
@@ -172,6 +176,8 @@ app.controller("MonthListCtrl", ["$scope", "InternshipMonth", "Rotation", "Rotat
                 return "warning";
             } else if (month.occupied && !month.requested) {
                 return "primary";
+            //} else if (month.occupied && month.requested && month.current_request.delete) {
+            //    return "danger";
             } else {
                 return "primary";
             }
@@ -336,4 +342,19 @@ app.controller("RotationRequestHistoryCtrl", ["$scope", "$routeParams", "Interns
                 });
             });
         });
+}]);
+
+app.controller("DeletionRequestCtrl", ["$scope", "$routeParams", "$location", "InternshipMonth",
+    function ($scope, $routeParams, $location, InternshipMonth) {
+    $scope.month = InternshipMonth.get({month_id: $routeParams.month_id});
+
+    $scope.submit = function () {
+
+        $scope.month.$cancel_rotation({}, function (data) {
+            $location.path("/planner");
+        }, function (error) {
+            toastr.error(error.statusText);
+        });
+
+    };
 }]);

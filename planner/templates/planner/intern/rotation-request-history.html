@@ -24,17 +24,29 @@
                         <span class="time"><i class="fa fa-clock-o"></i> {{ rotation_request.submission_datetime }}</span>
 
                         <h3 class="timeline-header">
-                          Requested <span ng-class="{'text-green': rotation_request.response.is_approved, 'text-red': rotation_request.response.is_approved == false}">{{ rotation_request.specialty.name }}</span>  @
-                          {{ rotation_request.requested_department.department.hospital.abbreviation }}
+                          Requested
+                          <span ng-if="!rotation_request.delete">
+                            <span ng-class="{'text-green': rotation_request.response.is_approved, 'text-red': rotation_request.response.is_approved == false}">{{ rotation_request.specialty.name }}</span>  @
+                            {{ rotation_request.requested_department.department.hospital.abbreviation }}
+                          </span>
+                          <span ng-if="rotation_request.delete" class="text-red">
+                            cancellation of rotation
+                          </span>
                         </h3>
 
                         <div class="timeline-body">
                           <dl class="dl-horizontal">
-                            <dt>Specialty</dt>
-                            <dd class="text-bold" ng-class="{'text-green': rotation_request.response.is_approved, 'text-red': rotation_request.response.is_approved == false}">{{ rotation_request.specialty.name }}</dd>
+                            <div ng-if="!rotation_request.delete">
+                              <dt>Specialty</dt>
+                              <dd class="text-bold" ng-class="{'text-green': rotation_request.response.is_approved, 'text-red': rotation_request.response.is_approved == false}">{{ rotation_request.specialty.name }}</dd>
 
-                            <dt>Hospital</dt>
-                            <dd class="text-bold" ng-class="{'text-green': rotation_request.response.is_approved, 'text-red': rotation_request.response.is_approved == false}">{{ rotation_request.requested_department.department.hospital.name }}</dd>
+                              <dt>Hospital</dt>
+                              <dd class="text-bold" ng-class="{'text-green': rotation_request.response.is_approved, 'text-red': rotation_request.response.is_approved == false}">{{ rotation_request.requested_department.department.hospital.name }}</dd>
+                            </div>
+                            <div ng-if="rotation_request.delete">
+                              <dt>Description</dt>
+                              <dd class="text-bold text-red">Cancellation of rotation</dd>
+                            </div>
 
                             <dt style="width: inherit;">Submission date and time</dt>
                             <dd>{{ rotation_request.submission_datetime }}</dd>
@@ -88,11 +100,8 @@
         </div><!-- /.modal-body -->
 
         <div class="modal-footer">
-          <a class="btn btn-default pull-left" href="#/planner/">
-            Back to Planner
-          </a>
-          <a class="btn btn-default pull-left" href="#/planner/{{ month.month }}/">
-            Back to month info
+          <a class="btn btn-default pull-left" href="javascript:history.back()">
+            Back
           </a>
         </div>
 
