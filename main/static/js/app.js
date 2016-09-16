@@ -38,8 +38,7 @@ app.config(["$httpProvider", "$routeProvider", "$resourceProvider",
 
     $routeProvider
         .when("/", {
-            // This redirects users from / to /#/
-            redirectTo: "/"
+            templateUrl: "partials/dashboard.html"
         })
         .when("/planner/", {
             templateUrl: "partials/planner/intern/month-list.html",
