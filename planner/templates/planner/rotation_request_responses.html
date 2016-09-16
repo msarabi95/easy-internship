@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Rotation Requests</title>
+</head>
+<body>
+  <h1>Respond to Rotation Requests</h1>
+  <p>{{ count }} pending requests.</p>
+    <form method="post" action=".">
+      {% csrf_token %}
+      <button type="submit" name="response" value="approveall">Approve all</button>
+      <button type="submit" name="response" value="declineall">Decline all</button>
+    </form>
+</body>
+</html>

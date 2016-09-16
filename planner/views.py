@@ -3,7 +3,8 @@ import json
 from accounts.models import Profile
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist, ValidationError, NON_FIELD_ERRORS
-from django.http import HttpResponse
+from django.core.urlresolvers import reverse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
 from django.views import generic as django_generics
 from planner.forms import RotationRequestForm
@@ -26,6 +27,23 @@ from rest_framework.status import HTTP_201_CREATED
 def list_forwards(request):
     context = {"forwards": RotationRequestForward.objects.all()}
     return render(request, "planner/list_forwards.html", context)
+
+
+def rotation_request_responses(request):
+    if request.method == "POST":
+        import random
+        if request.POST.get("response") == "approveall":
+            for request in RotationRequest.objects.open():
+                request.respond(True, random.choice(["This is a random comment", ""]))
+
+        elif request.POST.get("response") == "declineall":
+            for request in RotationRequest.objects.open():
+                request.respond(False, random.choice(["This is a random comment", ""]))
+
+        return HttpResponseRedirect(reverse("rotation_request_responses"))
+
+    context = {'count': RotationRequest.objects.open().count()}
+    return render(request, "planner/rotation_request_responses.html", context)
 
 
 class HospitalViewSet(viewsets.ReadOnlyModelViewSet):
