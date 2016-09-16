@@ -282,29 +282,17 @@
       <primary-key columns="id"/>
       <foreign-key name="#FAKE_planner_internship_1" columns="intern_id" ref-table="accounts_intern" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
     </table>
-    <table name="planner_planrequest" schema="" catalog="" type="TABLE">
-      <column name="id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
-      <column name="creation_datetime" sqlType="DATETIME" precision="0" scale="-1" nullable="false" jdbcType="12"/>
-      <column name="is_submitted" sqlType="BOOL" precision="0" scale="-1" nullable="false" jdbcType="4"/>
-      <column name="is_closed" sqlType="BOOL" precision="0" scale="-1" nullable="false" jdbcType="4"/>
-      <column name="closure_datetime" sqlType="DATETIME" precision="0" scale="-1" nullable="true" jdbcType="12"/>
-      <column name="internship_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
-      <column name="submission_datetime" sqlType="DATETIME" precision="0" scale="-1" nullable="true" jdbcType="12"/>
-      <primary-key columns="id"/>
-      <foreign-key name="#FAKE_planner_planrequest_1" columns="internship_id" ref-table="planner_internship" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
-      <index name="planner_planrequest_ccd05cf1" unique="true" columns="internship_id"/>
-    </table>
     <table name="planner_requesteddepartment" schema="" catalog="" type="TABLE">
       <column name="id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
       <column name="is_in_database" sqlType="BOOL" precision="0" scale="-1" nullable="false" jdbcType="4"/>
       <column name="department_name" sqlType="VARCHAR(128)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
       <column name="department_contact_name" sqlType="VARCHAR(128)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
       <column name="department_email" sqlType="VARCHAR(128)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
-      <column name="department_phone" sqlType="VARCHAR(128)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
       <column name="department_extension" sqlType="VARCHAR(16)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
       <column name="department_id" sqlType="INTEGER" precision="0" scale="-1" nullable="true" jdbcType="4"/>
       <column name="department_hospital_id" sqlType="INTEGER" precision="0" scale="-1" nullable="true" jdbcType="4"/>
       <column name="department_specialty_id" sqlType="INTEGER" precision="0" scale="-1" nullable="true" jdbcType="4"/>
+      <column name="department_phone" sqlType="VARCHAR(128)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
       <primary-key columns="id"/>
       <foreign-key name="#FAKE_planner_requesteddepartment_1" columns="department_specialty_id" ref-table="planner_specialty" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
       <foreign-key name="#FAKE_planner_requesteddepartment_2" columns="department_hospital_id" ref-table="planner_hospital" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
@@ -319,10 +307,13 @@
       <column name="department_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
       <column name="internship_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
       <column name="specialty_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="rotation_request_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="is_elective" sqlType="BOOL" precision="0" scale="-1" nullable="false" jdbcType="4"/>
       <primary-key columns="id"/>
-      <foreign-key name="#FAKE_planner_rotation_1" columns="specialty_id" ref-table="planner_specialty" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
-      <foreign-key name="#FAKE_planner_rotation_2" columns="internship_id" ref-table="planner_internship" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
-      <foreign-key name="#FAKE_planner_rotation_3" columns="department_id" ref-table="planner_department" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+      <foreign-key name="#FAKE_planner_rotation_1" columns="rotation_request_id" ref-table="planner_rotationrequest" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+      <foreign-key name="#FAKE_planner_rotation_2" columns="specialty_id" ref-table="planner_specialty" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+      <foreign-key name="#FAKE_planner_rotation_3" columns="internship_id" ref-table="planner_internship" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+      <foreign-key name="#FAKE_planner_rotation_4" columns="department_id" ref-table="planner_department" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
       <index name="planner_rotation_2f27de08" unique="true" columns="specialty_id"/>
       <index name="planner_rotation_ccd05cf1" unique="true" columns="internship_id"/>
       <index name="planner_rotation_bf691be4" unique="true" columns="department_id"/>
@@ -330,16 +321,18 @@
     <table name="planner_rotationrequest" schema="" catalog="" type="TABLE">
       <column name="id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
       <column name="month" sqlType="DATE" precision="0" scale="-1" nullable="false" jdbcType="12"/>
-      <column name="plan_request_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
       <column name="requested_department_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
       <column name="specialty_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
       <column name="delete" sqlType="BOOL" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="submission_datetime" sqlType="DATETIME" precision="0" scale="-1" nullable="false" jdbcType="12"/>
+      <column name="internship_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="is_elective" sqlType="BOOL" precision="0" scale="-1" nullable="false" jdbcType="4"/>
       <primary-key columns="id"/>
-      <foreign-key name="#FAKE_planner_rotationrequest_1" columns="specialty_id" ref-table="planner_specialty" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
-      <foreign-key name="#FAKE_planner_rotationrequest_2" columns="requested_department_id" ref-table="planner_requesteddepartment" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
-      <foreign-key name="#FAKE_planner_rotationrequest_3" columns="plan_request_id" ref-table="planner_planrequest" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+      <foreign-key name="#FAKE_planner_rotationrequest_1" columns="internship_id" ref-table="planner_internship" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+      <foreign-key name="#FAKE_planner_rotationrequest_2" columns="specialty_id" ref-table="planner_specialty" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+      <foreign-key name="#FAKE_planner_rotationrequest_3" columns="requested_department_id" ref-table="planner_requesteddepartment" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+      <index name="planner_rotationrequest_ccd05cf1" unique="true" columns="internship_id"/>
       <index name="planner_rotationrequest_2f27de08" unique="true" columns="specialty_id"/>
-      <index name="planner_rotationrequest_06d845a7" unique="true" columns="plan_request_id"/>
     </table>
     <table name="planner_rotationrequestforward" schema="" catalog="" type="TABLE">
       <column name="id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
@@ -451,10 +444,10 @@
       <column name="last_active" sqlType="DATETIME" precision="0" scale="-1" nullable="true" jdbcType="12"/>
       <column name="activation_key" sqlType="VARCHAR(40)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
       <column name="activation_notification_send" sqlType="BOOL" precision="0" scale="-1" nullable="false" jdbcType="4"/>
-      <column name="email_unconfirmed" sqlType="VARCHAR(75)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
       <column name="email_confirmation_key" sqlType="VARCHAR(40)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
       <column name="email_confirmation_key_created" sqlType="DATETIME" precision="0" scale="-1" nullable="true" jdbcType="12"/>
       <column name="user_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="email_unconfirmed" sqlType="VARCHAR(254)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
       <primary-key columns="id"/>
       <foreign-key name="#FAKE_userena_userenasignup_1" columns="user_id" ref-table="auth_user" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
     </table>

@@ -1,10 +1,10 @@
 /**
  * Created by MSArabi on 7/31/16.
  */
-var app = angular.module("easyInternship", ["djng.urls", "djng.rmi", "ngRoute", "ngResource", "ui.bootstrap", "ngFileUpload"]);
+var app = angular.module("easyInternship", ["ngRoute", "ngResource", "ui.bootstrap", "ngFileUpload"]);
 
-app.config(["$httpProvider", "$routeProvider", "djangoRMIProvider", "$resourceProvider",
-    function ($httpProvider, $routeProvider, djangoRMIProvider, $resourceProvider) {
+app.config(["$httpProvider", "$routeProvider", "$resourceProvider",
+    function ($httpProvider, $routeProvider, $resourceProvider) {
 
     // These settings enable Django to receive Angular requests properly.
     // Check:
@@ -13,8 +13,6 @@ app.config(["$httpProvider", "$routeProvider", "djangoRMIProvider", "$resourcePr
     $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
     $httpProvider.defaults.xsrfCookieName = 'csrftoken';
     $httpProvider.defaults.xsrfHeaderName = 'X-CSRFToken';
-
-    djangoRMIProvider.configure(tags);
 
     // Check for messages with each response
     $httpProvider.interceptors.push(function ($q, $rootScope) {

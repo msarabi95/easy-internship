@@ -2,7 +2,7 @@ import factory
 from accounts.models import Profile, Intern
 from django.contrib.auth.models import User
 from month import Month
-from planner.models import Rotation, Internship, Hospital, Department, Specialty, PlanRequest, RotationRequest, \
+from planner.models import Rotation, Internship, Hospital, Department, Specialty, RotationRequest, \
     RequestedDepartment, RotationRequestResponse, RotationRequestForward, RotationRequestForwardResponse
 
 
@@ -109,18 +109,11 @@ class RotationFactory(factory.django.DjangoModelFactory):
     )
 
 
-class PlanRequestFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = PlanRequest
-
-    internship = factory.SubFactory("planner.test_factories.InternshipFactory")
-
-
 class RotationRequestFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = RotationRequest
 
-    plan_request = factory.SubFactory("planner.test_factories.PlanRequestFactory")
+    internship = factory.SubFactory("planner.test_factories.InternshipFactory")
     month = factory.Sequence(lambda n: Month(2016, 6) + n)
     requested_department = factory.SubFactory("planner.test_factories.RequestedDepartmentFactory",
                                               rotation_request=None)

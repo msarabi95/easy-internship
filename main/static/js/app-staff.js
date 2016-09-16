@@ -1,10 +1,10 @@
 /**
  * Created by MSArabi on 7/14/16.
  */
-var app = angular.module("easyInternship", ["djng.urls", "djng.rmi", "ngRoute", "ngResource", "ui.bootstrap"]);
+var app = angular.module("easyInternship", ["ngRoute", "ngResource", "ui.bootstrap"]);
 
-app.config(["$httpProvider", "$routeProvider", "djangoRMIProvider", "$resourceProvider",
-    function ($httpProvider, $routeProvider, djangoRMIProvider, $resourceProvider) {
+app.config(["$httpProvider", "$routeProvider", "$resourceProvider",
+    function ($httpProvider, $routeProvider, $resourceProvider) {
 
     // These settings enable Django to receive Angular requests properly.
     // Check:
@@ -33,8 +33,6 @@ app.config(["$httpProvider", "$routeProvider", "djangoRMIProvider", "$resourcePr
            }
        };
     });
-
-    djangoRMIProvider.configure(tags);
 
     $routeProvider
         .when("/", {
@@ -86,6 +84,7 @@ app.factory("RotationRequest", ["$resource", function($resource) {
     });
 }]);
 
+/* FIXME: Re-write with PlanRequests out of mind */
 app.controller("MyCtrl", ["$scope", "PlanRequest", "RotationRequest", "$resource",
 function ($scope, PlanRequest, RotationRequest, $resource) {
     function getPlanRequests() {
