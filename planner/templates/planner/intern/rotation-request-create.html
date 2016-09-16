@@ -18,14 +18,12 @@
 
             <div class="has-feedback form-group"><label class="control-label" for="id_department_specialty">Specialty</label><select class="form-control" id="id_department_specialty" name="department_specialty" ng-model="rotationRequestData[&#39;department_specialty&#39;]">
               <option value="" selected="selected">---------</option>
-              <option value="1">Internal Medicine</option>{# FIXME: Options are hardcoded!!! #}
-              <option value="2">Surgery</option>
+              <option ng-repeat="specialty in specialties" value="{{ specialty.id }}">{{ specialty.name }}</option>
             </select><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.department_specialty.$dirty" ng-cloak><li ng-show="rotationRequestForm['department_specialty'].$valid" class="valid"></li></ul><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.department_specialty.$pristine" ng-cloak><li ng-show="rotationRequestForm.department_specialty.$message" class="invalid" ng-bind="rotationRequestForm.department_specialty.$message"></li></ul></div>
 
             <div class="has-feedback form-group"><label class="control-label" for="id_department_hospital">Hospital</label><select class="form-control" id="id_department_hospital" name="department_hospital" ng-model="rotationRequestData[&#39;department_hospital&#39;]">
               <option value="" selected="selected">---------</option>
-              <option value="1">King Abdulaziz Medical City</option>{# FIXME: Options are hardcoded!!! #}
-              <option value="2">King Fahad Medical City</option>
+              <option ng-repeat="hospital in hospitals" value="{{ hospital.id }}">{{ hospital.name }}</option>
             </select><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.department_hospital.$dirty" ng-cloak><li ng-show="rotationRequestForm['department_hospital'].$valid" class="valid"></li></ul><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.department_hospital.$pristine" ng-cloak><li ng-show="rotationRequestForm.department_hospital.$message" class="invalid" ng-bind="rotationRequestForm.department_hospital.$message"></li></ul></div>
 
             <div class="has-feedback form-group"><label class="checkbox-inline"><input id="id_is_elective" name="is_elective" ng-model="rotationRequestData[&#39;is_elective&#39;]" type="checkbox" /> <span class="text-bold">This is an elective.</span> (Check this box if this is an elective rotation.)</label><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.is_elective.$dirty" ng-cloak><li ng-show="rotationRequestForm['is_elective'].$valid" class="valid"></li></ul><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.is_elective.$pristine" ng-cloak><li ng-show="rotationRequestForm.is_elective.$message" class="invalid" ng-bind="rotationRequestForm.is_elective.$message"></li></ul>

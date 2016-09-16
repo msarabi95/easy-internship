@@ -258,6 +258,9 @@ app.controller("RotationRequestCreateCtrl", ["$scope", "$routeParams", "$locatio
     function ($scope, $routeParams, $location, Specialty, Hospital, Department, RequestedDepartment, RotationRequest, InternshipMonth, djangoForm, $http, $compile) {
         $scope.internshipMonth = InternshipMonth.get({month_id: $routeParams.month_id});
 
+        $scope.specialties = Specialty.query();
+        $scope.hospitals = Hospital.query();
+
         $scope.$watchGroup(['rotationRequestData.department_specialty','rotationRequestData.department_hospital'],
             function () {
                 $scope.getDepartment();
