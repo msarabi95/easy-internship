@@ -40,6 +40,24 @@
 
             <!-- TODO: Display details of the current rotation -->
 
+            <div class="box box-solid">
+              <div class="box-body bg-info">
+                <dl class="dl-horizontal">
+                  <dt>Specialty</dt>
+                  <dd class="text-bold text-blue">{{ month.current_rotation.department.specialty.name }}</dd>
+
+                  <dt>Hospital</dt>
+                  <dd class="text-bold text-blue">{{ month.current_rotation.department.hospital.name }}</dd>
+
+                  <dt>Request date and time</dt>
+                  <dd>{{ month.current_rotation.rotation_request.submission_datetime }}</dd>
+
+                  <dt>Approval date and time</dt>
+                  <dd>{{ month.current_rotation.rotation_request.response.response_datetime }}</dd><!-- FIXME: Account for forward responses as well -->
+                </dl>
+              </div>
+            </div>
+
           </div>
 
           <div ng-if="month.requested">

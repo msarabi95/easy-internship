@@ -184,8 +184,8 @@ app.controller("MonthListCtrl", ["$scope", "InternshipMonth", "Rotation", "Rotat
         };
 }]);
 
-app.controller("MonthDetailCtrl", ["$scope", "$routeParams", "InternshipMonth", "Hospital", "Department", "Specialty", "Rotation", "RotationRequest", "RequestedDepartment",
-    function ($scope, $routeParams, InternshipMonth, Hospital, Department, Specialty, Rotation, RotationRequest, RequestedDepartment) {
+app.controller("MonthDetailCtrl", ["$scope", "$routeParams", "InternshipMonth", "Hospital", "Department", "Specialty", "Rotation", "RotationRequest", "RequestedDepartment", "RotationRequestResponse",
+    function ($scope, $routeParams, InternshipMonth, Hospital, Department, Specialty, Rotation, RotationRequest, RequestedDepartment, RotationRequestResponse) {
         $scope.month = InternshipMonth.get({month_id: $routeParams.month_id});
 
         $scope.month.$promise.then(function (month) {
@@ -210,6 +210,14 @@ app.controller("MonthDetailCtrl", ["$scope", "$routeParams", "InternshipMonth", 
                         // Load current rotation hospital
                         $scope.month.current_rotation.department.hospital =
                             Hospital.get({id: department.hospital});
+                    })
+
+                    $scope.month.current_rotation.rotation_request =
+                        RotationRequest.get({id: rotation.rotation_request});
+
+                    $scope.month.current_rotation.rotation_request.$promise.then(function (rotation_request) {
+                        $scope.month.current_rotation.rotation_request.response =
+                            RotationRequestResponse.get({id: rotation_request.response});
                     })
                 })
             }
