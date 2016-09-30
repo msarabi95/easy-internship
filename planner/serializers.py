@@ -37,6 +37,7 @@ class SeatAvailabilitySerializer(serializers.ModelSerializer):
 class InternshipMonthSerializer(serializers.Serializer):
     month = serializers.IntegerField()
     label = serializers.CharField()
+    label_short = serializers.CharField()
     current_rotation = serializers.PrimaryKeyRelatedField(read_only=True)
     current_request = serializers.PrimaryKeyRelatedField(read_only=True)
     request_history = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
@@ -49,12 +50,16 @@ class InternshipMonthSerializer(serializers.Serializer):
 
 
 class InternshipSerializer(serializers.ModelSerializer):
+    months = serializers.SerializerMethodField()
     unreviewed_rotation_requests = serializers.SerializerMethodField()
     forwarded_unreviewed_rotation_requests = serializers.SerializerMethodField()
     closed_rotation_requests = serializers.SerializerMethodField()
     unreviewed_request_count = serializers.SerializerMethodField()
     latest_request_datetime = serializers.SerializerMethodField()
     latest_response_datetime = serializers.SerializerMethodField()
+
+    def get_months(self, obj):
+        return map(lambda internship_month: int(internship_month.month), obj.months)
 
     def get_unreviewed_rotation_requests(self, obj):
         return obj.rotation_requests.unreviewed().values_list("id", flat=True)
@@ -84,7 +89,7 @@ class InternshipSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Internship
-        fields = ('id', 'intern', 'start_month', 'unreviewed_rotation_requests',
+        fields = ('id', 'intern', 'start_month', 'months', 'unreviewed_rotation_requests',
                   'forwarded_unreviewed_rotation_requests', 'closed_rotation_requests',
                   'unreviewed_request_count', 'latest_request_datetime', 'latest_response_datetime')
 

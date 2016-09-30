@@ -20,6 +20,9 @@ router.register(r'rotation_request_forward_responses', views.RotationRequestForw
 custom_departments_view_url = url(r'^api/departments/(?P<specialty>\d+)/(?P<hospital>\d+)/$',
                                   views.DepartmentBySpecialtyAndHospital.as_view())
 
+custom_internship_months_view_url = url(r'^api/internship_months/(?P<internship_id>\d+)/(?P<month_id>\d+)/$',
+                                        views.InternshipMonthByInternshipAndId.as_view())
+
 urlpatterns = [
     url(r'^rotation-request-form/$', RotationRequestFormView.as_view()),
 ]

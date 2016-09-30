@@ -137,6 +137,7 @@ class InternshipMonth(object):
     def __init__(self, month, current_rotation, current_request, request_history):
         self.month = month
         self.label = month.first_day().strftime("%B %Y")
+        self.label_short = month.first_day().strftime("%b. %Y")
         self.current_rotation = current_rotation
         self.current_request = current_request
         self.request_history = request_history

@@ -124,6 +124,15 @@ class InternshipMonthViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(status=HTTP_201_CREATED)
 
 
+class InternshipMonthByInternshipAndId(generics.RetrieveAPIView):
+    serializer_class = InternshipMonthSerializer
+
+    def get_object(self):
+        internship = get_object_or_404(Internship, pk=int(self.kwargs['internship_id']))
+        month_id = int(self.kwargs['month_id'])
+        return filter(lambda month: int(month.month) == month_id, internship.months)[0]
+
+
 class InternshipViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = InternshipSerializer
     queryset = Internship.objects.all()

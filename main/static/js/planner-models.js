@@ -36,6 +36,10 @@ plannerModule.factory("InternshipMonth", ["$resource", function($resource) {
             params: {
                 month_id: '@month'
             }
+        },
+        get_by_internship_and_id: {
+            method: 'get',
+            url: '/api/internship_months/:internship_id/:month_id'
         }
     });
 }]);
