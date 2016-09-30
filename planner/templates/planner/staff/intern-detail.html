@@ -117,6 +117,8 @@
             <hr>
             <h4 class="text-bold">Intern details</h4>
 
+            <p>Below are the details of {{ internship.intern.profile.en_full_name }}.</p>
+
             <div class="row">
               <div class="col-md-10 col-md-offset-1">
                 <div class="box box-widget widget-user-2">
@@ -193,6 +195,30 @@
             <hr>
             <h4 class="text-bold">Current internship plan</h4>
 
+            <p>This is a snapshot of {{ internship.intern.profile.en_full_name }}'s current internship plan.
+            Each box represents a specific month.</p>
+
+            <!-- Check out: -->
+            <!-- http://stackoverflow.com/a/25838091 -->
+            <div ng-init="months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]"></div>
+
+            <div  style="background-color: #ecf0f5; border-radius: 3px; padding: 5px;">
+              <div id="internship-plan-grid" class="row" ng-repeat="month in months track by $index" ng-if="$index % 5 == 0">
+                <div class="col-md-2 internship-plan-box" ng-class="{'col-md-offset-1': $index % 5 == 0}" ng-repeat="i in [$index, $index + 1, $index + 2, $index + 3, $index + 4]">
+                  <div class="box box-primary">
+                    <div class="box-header with-border">
+                      <h7 class="box-title">Jan. 2016</h7>
+                    </div>
+                    <div class="box-body">
+                      <h4 class="text-blue text-center">OBGN</h4>
+                      <h5 class="text-center">KAMC</h5>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
             <hr>
             <h4 class="text-bold">
               Previous requests
@@ -218,6 +244,9 @@
                 </select>
               </span>
             </h4>
+
+            <p>Following are the full details of all previous requests made by this intern. You can use the filter
+            above to show requests for a specific month.</p>
 
             <script type="text/ng-template" id="accordion-template.html">
               <div class="panel">
