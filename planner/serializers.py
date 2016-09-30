@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from planner.models import RotationRequest, RotationRequestForward, Rotation, Hospital, Specialty, \
     Department, Internship, RequestedDepartment, RotationRequestResponse, RotationRequestForwardResponse, \
     SeatAvailability
@@ -48,10 +49,44 @@ class InternshipMonthSerializer(serializers.Serializer):
 
 
 class InternshipSerializer(serializers.ModelSerializer):
+    unreviewed_rotation_requests = serializers.SerializerMethodField()
+    forwarded_unreviewed_rotation_requests = serializers.SerializerMethodField()
+    closed_rotation_requests = serializers.SerializerMethodField()
+    unreviewed_request_count = serializers.SerializerMethodField()
+    latest_request_datetime = serializers.SerializerMethodField()
+    latest_response_datetime = serializers.SerializerMethodField()
+
+    def get_unreviewed_rotation_requests(self, obj):
+        return obj.rotation_requests.unreviewed().values_list("id", flat=True)
+
+    def get_forwarded_unreviewed_rotation_requests(self, obj):
+        return obj.rotation_requests.forwarded_unreviewed().values_list("id", flat=True)
+
+    def get_closed_rotation_requests(self, obj):
+        return obj.rotation_requests.closed().values_list("id", flat=True)
+
+    def get_unreviewed_request_count(self, obj):
+        return obj.rotation_requests.unreviewed().count()
+
+    def get_latest_request_datetime(self, obj):
+        try:
+            return obj.rotation_requests.latest("submission_datetime")\
+                .submission_datetime.strftime("%A, %-d %B %Y, %-I:%M %p")
+        except ObjectDoesNotExist:
+            return None
+
+    def get_latest_response_datetime(self, obj):
+        try:
+            return obj.rotation_requests.closed().latest("response__response_datetime")\
+                .response.response_datetime.strftime("%A, %-d %B %Y, %-I:%M %p")
+        except ObjectDoesNotExist:
+            return None
 
     class Meta:
         model = Internship
-        fields = ('id', 'intern', 'start_month')
+        fields = ('id', 'intern', 'start_month', 'unreviewed_rotation_requests',
+                  'forwarded_unreviewed_rotation_requests', 'closed_rotation_requests',
+                  'unreviewed_request_count', 'latest_request_datetime', 'latest_response_datetime')
 
 
 class RotationSerializer(serializers.ModelSerializer):
@@ -71,13 +106,18 @@ class RequestedDepartmentSerializer(serializers.ModelSerializer):
 
 
 class RotationRequestSerializer(serializers.ModelSerializer):
+    month = serializers.SerializerMethodField()
     submission_datetime = serializers.DateTimeField(format="%A, %-d %B %Y, %-I:%M %p")
     status = serializers.CharField(source='get_status', required=False)
+
+    def get_month(self, obj):
+        return int(obj.month)
 
     class Meta:
         model = RotationRequest
         fields = ('id', 'internship', 'month', 'specialty',
-                  'requested_department', 'delete', 'is_elective', 'submission_datetime', 'status', 'response')
+                  'requested_department', 'delete', 'is_elective', 'submission_datetime',
+                  'status', 'response', 'forward')
 
 
 class RotationRequestResponseSerializer(serializers.ModelSerializer):

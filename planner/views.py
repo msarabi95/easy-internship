@@ -4,6 +4,7 @@ from accounts.models import Profile
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist, ValidationError, NON_FIELD_ERRORS
 from django.core.urlresolvers import reverse
+from django.db.models.aggregates import Count
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
 from django.views import generic as django_generics
@@ -63,8 +64,8 @@ class DepartmentViewSet(viewsets.ReadOnlyModelViewSet):
 
 class DepartmentBySpecialtyAndHospital(generics.RetrieveAPIView):
     serializer_class = DepartmentSerializer
-
     queryset = Department.objects.all()
+
     def get_object(self):
         specialty = Specialty.objects.get(id=self.kwargs['specialty'])
         hospital = Hospital.objects.get(id=self.kwargs['hospital'])
@@ -78,7 +79,6 @@ class SeatAvailabilityViewSet(viewsets.ReadOnlyModelViewSet):
 
 class InternshipMonthViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = InternshipMonthSerializer
-
     lookup_field = 'month'
 
     def get_queryset(self):
@@ -128,6 +128,13 @@ class InternshipViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = InternshipSerializer
     queryset = Internship.objects.all()
 
+    @list_route(methods=['get'])
+    def with_unreviewed_requests(self, request):
+        internships = Internship.objects.all()
+        unreviewed_requests = RotationRequest.objects.unreviewed()
+        filtered = filter(lambda i: any([r in unreviewed_requests for r in i.rotation_requests.all()]), internships)
+        return Response(self.get_serializer(filtered, many=True).data)
+
 
 class RotationViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = RotationSerializer
@@ -143,15 +150,17 @@ class RotationRequestViewSet(viewsets.ModelViewSet):
     serializer_class = RotationRequestSerializer
     queryset = RotationRequest.objects.all()
 
-    @list_route(methods=["post"])
-    def respond(self, request):
-        pk = request.data.get("id")
+    @detail_route(methods=["post"])
+    def respond(self, request, pk=None):
         rr = RotationRequest.objects.get(pk=pk)
-        rr.respond(request.data.get("is_approved"), request.data.get("comments", ""))
+        rr.respond(bool(int(request.query_params.get("is_approved"))), request.query_params.get("comments", ""))
+
+        messages.success(request._request, "Your response has been recorded.")
+
         return Response({"status": RotationRequest.REVIEWED_STATUS, "is_approved": request.data.get("is_approved")})
-    @list_route(methods=["post"])
-    def forward(self, request):
-        pk = request.data.get("id")
+
+    @detail_route(methods=["post"])
+    def forward(self, request, pk=None):
         rr = RotationRequest.objects.get(pk=pk)
         rr.forward_request()
         return Response({"status": RotationRequest.FORWARDED_STATUS})

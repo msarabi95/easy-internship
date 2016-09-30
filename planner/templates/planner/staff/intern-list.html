@@ -1,0 +1,51 @@
+{% verbatim %}
+<!-- Content Header (Page header) -->
+<section class="content-header">
+  <h1>Internship Planner</h1>
+</section>
+
+<!-- Main content -->
+<section class="content">
+  <div class="row">
+    <div class="col-xs-12">
+
+      <div class="box box-solid">
+        <div class="box-header">
+          <h4 class="box-title">All interns</h4>
+        </div>
+        <div class="box-body">
+
+          <table class="table"><!-- TODO: datatable this table -->
+            <thead>
+              <tr>
+                <th></th>
+                <th>Name</th>
+                <th>Student Number</th>
+                <th>Date of latest request</th>
+                <th>Date of latest response</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr ng-repeat="internship in internships">
+                <td>
+                  <img ng-src="{{ internship.intern.profile.mugshot }}" class="img-circle img-bordered-sm img-sm"/>
+                </td>
+                <td>{{ internship.intern.profile.en_full_name }}</td>
+                <td>{{ internship.intern.student_number }}</td>
+                <td>{{ internship.latest_request_datetime }}</td>
+                <td>{{ internship.latest_response_datetime }}</td>
+                <td>
+                  <a class="btn btn-default btn-flat" href="#/planner/{{ internship.id }}/">View details</a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+{% endverbatim %}

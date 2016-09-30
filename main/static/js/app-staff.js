@@ -1,7 +1,7 @@
 /**
  * Created by MSArabi on 7/14/16.
  */
-var app = angular.module("easyInternship", ["ngRoute", "ngResource", "ui.bootstrap"]);
+var app = angular.module("easyInternship", ["ngRoute", "ngResource", "easy.planner", "easy.accounts", "ui.bootstrap"]);
 
 app.config(["$httpProvider", "$routeProvider", "$resourceProvider",
     function ($httpProvider, $routeProvider, $resourceProvider) {
@@ -40,9 +40,20 @@ app.config(["$httpProvider", "$routeProvider", "$resourceProvider",
             redirectTo: "/"
         })
         .when("/planner/", {
-            templateUrl: "partials/planner/staff/index.html",
-            controller: "MyCtrl"
+            redirectTo: "/planner/recent/"
         })
+        .when("/planner/recent/", {
+            templateUrl: "partials/planner/staff/list-recent-requests.html",
+            controller: "ListRecentRequestsCtrl"
+        })
+        .when("/planner/all/", {
+            templateUrl: "partials/planner/staff/intern-list.html",
+            controller: "InternListCtrl"
+        })
+        .when("/planner/:id/", {
+            templateUrl: "partials/planner/staff/intern-detail.html",
+            controller: "InternDetailCtrl"
+        });
 
     $resourceProvider.defaults.stripTrailingSlashes = false;
 
@@ -71,64 +82,157 @@ app.controller("MenuCtrl", ["$scope", "$route", "$location", function ($scope, $
     }
 }]);
 
-app.factory("PlanRequest", ["$resource", function($resource) {
-    // Refer to: https://www.sitepoint.com/creating-crud-app-minutes-angulars-resource/
-    return $resource('/api/plan_requests/:id', {id: '@id'});
+app.controller("ListRecentRequestsCtrl", ["$scope", "Internship", "RotationRequest", "Intern", "Profile",
+    function ($scope, Internship, RotationRequest, Intern, Profile) {
+        $scope.internships = Internship.with_unreviewed_requests();
+
+        $scope.internships.$promise.then(function (internships) {
+            angular.forEach(internships, function (internship, index) {
+                // Load the intern profile and standard profile
+                $scope.internships[index].intern = Intern.get({id: internship.intern});
+                $scope.internships[index].intern.$promise.then(function (intern) {
+                    $scope.internships[index].intern.profile = Profile.get({id: intern.profile});
+                });
+
+                // Load rotation requests
+                angular.forEach(internship.rotation_requests, function (request_id, request_id_index) {
+                    $scope.internships[index].rotation_requests[request_id_index] = RotationRequest.get({id: request_id});
+                });
+
+            });
+        });
 }]);
 
-app.factory("RotationRequest", ["$resource", function($resource) {
-    // Refer to: https://www.sitepoint.com/creating-crud-app-minutes-angulars-resource/
-    return $resource('/api/rotation_requests/:id/', {id: '@id'}, {
-      respond: {method:'POST', url: '/api/rotation_requests/respond/'},
-      forward: {method:'POST', url: '/api/rotation_requests/forward/'}
+app.controller("InternListCtrl", ["$scope", "Internship", "Intern", "Profile", function ($scope, Internship, Intern, Profile) {
+    $scope.internships = Internship.query();
+
+    $scope.internships.$promise.then(function (internships) {
+        angular.forEach(internships, function (internship, index) {
+            // Load the intern profile and standard profile
+            $scope.internships[index].intern = Intern.get({id: internship.intern});
+            $scope.internships[index].intern.$promise.then(function (intern) {
+                $scope.internships[index].intern.profile = Profile.get({id: intern.profile});
+            });
+        });
     });
 }]);
 
-/* FIXME: Re-write with PlanRequests out of mind */
-app.controller("MyCtrl", ["$scope", "PlanRequest", "RotationRequest", "$resource",
-function ($scope, PlanRequest, RotationRequest, $resource) {
-    function getPlanRequests() {
-        $scope.planRequests = PlanRequest.query();
+app.controller("InternDetailCtrl", ["$scope", "$routeParams", "$timeout", "Internship", "Intern", "Profile", "User", "InternshipMonth", "RotationRequest", "RequestedDepartment", "Specialty", "Department", "Hospital", "RotationRequestResponse", "RotationRequestForward", "RotationRequestForwardResponse",
+    function ($scope, $routeParams, $timeout, Internship, Intern, Profile, User, InternshipMonth, RotationRequest, RequestedDepartment, Specialty, Department, Hospital, RotationRequestResponse, RotationRequestForward, RotationRequestForwardResponse) {
+        $scope.internship = Internship.get({id: $routeParams.id});
 
-        if (!!$scope.selectedPlanRequest) {
-            var currentPR = PlanRequest.get({id: $scope.selectedPlanRequest.id}, function () {
-                if (currentPR.is_closed) {
-                    $scope.selectedPlanRequest = null;
-                }
+        $scope.internship.$promise.then(function (internship) {
+
+            $scope.internship.intern = Intern.get({id: internship.intern});
+            $scope.internship.intern.$promise.then(function (intern) {
+                $scope.internship.intern.profile = Profile.get({id: intern.profile});
+                $scope.internship.intern.profile.$promise.then(function (profile) {
+                    $scope.internship.intern.profile.user = User.get({id: profile.user});
+                })
             });
 
-        }
-    }
+            // Load unreviewed and closed rotation requests separately
+            angular.forEach($scope.internship.unreviewed_rotation_requests, function (id, index) {
+                $scope.internship.unreviewed_rotation_requests[index] = RotationRequest.get({id: id});
+                $scope.internship.unreviewed_rotation_requests[index].$promise.then(loadRotationRequestDetails(index, "unreviewed"));
+            });
 
-    getPlanRequests();
+            angular.forEach($scope.internship.forwarded_unreviewed_rotation_requests, function (id, index) {
+                $scope.internship.forwarded_unreviewed_rotation_requests[index] = RotationRequest.get({id: id});
+                $scope.internship.forwarded_unreviewed_rotation_requests[index].$promise.then(loadRotationRequestDetails(index, "forwarded_unreviewed"));
+            });
 
-    $scope.selectPlanRequest = function (requestId) {
-        $scope.selectedPlanRequest = PlanRequest.get({id: requestId}, function () {
-            for (var i = 0; i < $scope.selectedPlanRequest.rotation_requests.length; i++) {
-                var id = $scope.selectedPlanRequest.rotation_requests[i];
-                $scope.selectedPlanRequest.rotation_requests[i] = RotationRequest.get({id: id});
+            angular.forEach($scope.internship.closed_rotation_requests, function (id, index) {
+                $scope.internship.closed_rotation_requests[index] = RotationRequest.get({id: id});
+                $scope.internship.closed_rotation_requests[index].$promise.then(loadRotationRequestDetails(index, "closed"));
+            });
+
+            // A common function to avoid repitition
+            function loadRotationRequestDetails(index, type) {
+                return function (request) {
+                    //$scope.internship[type + "_rotation_requests"][index].month =
+                    //    InternshipMonth.get({month_id: request.month});
+
+                    $scope.internship[type + "_rotation_requests"][index].specialty =
+                        Specialty.get({id: request.specialty});
+
+                    $scope.internship[type + "_rotation_requests"][index].requested_department =
+                        RequestedDepartment.get({id: request.requested_department});
+
+                    $scope.internship[type + "_rotation_requests"][index].requested_department.$promise.then(function (requested_department) {
+                        $scope.internship[type + "_rotation_requests"][index].requested_department.department =
+                            Department.get({id: requested_department.department});
+
+                        $scope.internship[type + "_rotation_requests"][index].requested_department.department.$promise.then(function (department) {
+                            $scope.internship[type + "_rotation_requests"][index].requested_department.department.hospital =
+                                Hospital.get({id: department.hospital});
+                        })
+                    });
+
+                    if (!!request.response) {
+                        $scope.internship[type + "_rotation_requests"][index].response =
+                            RotationRequestResponse.get({id: request.response});
+                    }
+
+                    if (!!request.forward) {
+                        $scope.internship[type + "_rotation_requests"][index].forward =
+                            RotationRequestForward.get({id: request.forward});
+
+                        $scope.internship[type + "_rotation_requests"][index].forward.$promise.then(function (forward) {
+                            if (!!forward.response) {
+                                $scope.internship[type + "_rotation_requests"][index].forward.response =
+                                    RotationRequestForwardResponse.get({id: forward.response});
+                            }
+                        })
+                    }
+                };
             }
         });
-    };
 
-    $scope.approve = function (rotationRequest) {
-        var response = RotationRequest.respond({id: rotationRequest.id, is_approved: true, comments: ""}, function () {
-            rotationRequest.status = response.status;
-            getPlanRequests(); // FIXME: There should be a better way than this
-        });
-    };
+        $scope.flag = function (flagName) {
+            $scope.flags = {};  // reset all flags
+            $scope.flags[flagName] = true;
 
-    $scope.decline = function (rotationRequest) {
-        var response = RotationRequest.respond({id: rotationRequest.id, is_approved: false, comments: ""}, function () {
-            rotationRequest.status = response.status;
-            getPlanRequests(); // FIXME: There should be a better way than this
-        });
-    };
+            $timeout(function () {try {$scope.flags[flagName] = false;} catch(e) {/* Do nothing */}},  5000);
+        };
 
-    $scope.forward = function (rotationRequest) {
-        var response = RotationRequest.forward({id: rotationRequest.id}, function () {
-            rotationRequest.status = response.status;
-            getPlanRequests(); // FIXME: There should be a better way than this
-        });
-    };
+        $scope.respond = function (request, response, comments) {
+            request.$respond({is_approved: response, comments: comments}, function (data) {
+                // Move request to *closed* requests
+                var index = $scope.internship.unreviewed_rotation_requests.indexOf(request);  // WARNING: indexOf not supported in all browsers (IE7 & 8)
+                $scope.internship.unreviewed_rotation_requests.splice(index, 1);
+                $scope.internship.closed_rotation_requests.push(request);
+            }, function (error) {
+                toastr.error(error);
+            });
+        };
+
+        $scope.forward = function (request) {
+            request.$forward({}, function (data) {
+                // Move request to *forwarded* requests
+                var index = $scope.internship.unreviewed_rotation_requests.indexOf(request);  // WARNING: indexOf not supported in all browsers (IE7 & 8)
+                $scope.internship.unreviewed_rotation_requests.splice(index, 1);
+
+                $scope.internship.forwarded_unreviewed_rotation_requests.push(request);
+            }, function (error) {
+                toastr.error(error);
+            });
+        };
+
+        $scope.getStatus = function (request) {
+            if (!!request.response) {
+                return request.response.is_approved ? "Approved" : "Declined";
+            } else if (!!request.forward && !!request.forward.response) {
+                return request.forward.response.is_approved ? "Approved" : "Declined";
+            }
+        };
+
+        $scope.getClass = function (request) {
+            var status = $scope.getStatus(request);
+            if (status == "Approved") {
+                return "success";
+            } else {
+                return "danger";
+            }
+        }
 }]);

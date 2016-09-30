@@ -41,7 +41,13 @@ plannerModule.factory("InternshipMonth", ["$resource", function($resource) {
 }]);
 
 plannerModule.factory("Internship", ["$resource", function($resource) {
-    return $resource('/api/internships/:id', {id: '@id'});
+    return $resource('/api/internships/:id', {id: '@id'}, {
+        with_unreviewed_requests: {
+            method: 'get',
+            url: '/api/internships/with_unreviewed_requests/',
+            isArray: true
+        }
+    });
 }]);
 
 plannerModule.factory("Rotation", ["$resource", function($resource) {
@@ -54,9 +60,19 @@ plannerModule.factory("RequestedDepartment", ["$resource", function($resource) {
 
 plannerModule.factory("RotationRequest", ["$resource", function($resource) {
     return $resource('/api/rotation_requests/:id', {id: '@id'}, {
-        submit: {
+        respond: {
             method: "post",
-            url: '/api/rotation_requests/submit/'
+            url: '/api/rotation_requests/:id/respond/',
+            params: {
+                id: '@id'
+            }
+        },
+        forward: {
+            method: "post",
+            url: '/api/rotation_requests/:id/forward/',
+            params: {
+                id: '@id'
+            }
         }
     });
 }]);
