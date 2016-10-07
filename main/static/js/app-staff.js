@@ -1,7 +1,9 @@
 /**
  * Created by MSArabi on 7/14/16.
  */
-var app = angular.module("easyInternship", ["ngRoute", "ngResource", "easy.planner", "easy.accounts", "ui.bootstrap"]);
+var app = angular.module("easyInternship",
+                         ["ngRoute", "ngResource", "easy.planner", "easy.accounts", "ui.bootstrap",
+                             "datatables", "datatables.bootstrap"]);
 
 app.config(["$httpProvider", "$routeProvider", "$resourceProvider",
     function ($httpProvider, $routeProvider, $resourceProvider) {
@@ -103,18 +105,37 @@ app.controller("ListRecentRequestsCtrl", ["$scope", "Internship", "RotationReque
         });
 }]);
 
-app.controller("InternListCtrl", ["$scope", "Internship", "Intern", "Profile", function ($scope, Internship, Intern, Profile) {
-    $scope.internships = Internship.query();
+app.controller("InternListCtrl", ["$scope", "DTOptionsBuilder", "DTColumnDefBuilder", "Internship", "Intern", "Profile",
+    function ($scope, DTOptionsBuilder, DTColumnDefBuilder, Internship, Intern, Profile) {
+        $scope.internships = Internship.query();
 
-    $scope.internships.$promise.then(function (internships) {
-        angular.forEach(internships, function (internship, index) {
-            // Load the intern profile and standard profile
-            $scope.internships[index].intern = Intern.get({id: internship.intern});
-            $scope.internships[index].intern.$promise.then(function (intern) {
-                $scope.internships[index].intern.profile = Profile.get({id: intern.profile});
+        $scope.internships.$promise.then(function (internships) {
+            angular.forEach(internships, function (internship, index) {
+                // Load the intern profile and standard profile
+                $scope.internships[index].intern = Intern.get({id: internship.intern});
+                $scope.internships[index].intern.$promise.then(function (intern) {
+                    $scope.internships[index].intern.profile = Profile.get({id: intern.profile});
+                });
             });
         });
-    });
+
+
+        /* FIXME:
+        * - Load datatable data from a dedicated endpoint.
+        * - Display more info.
+        * - Fix search and sorting issues.
+        * */
+        $scope.dtOptions = DTOptionsBuilder
+            .fromSource()
+            .withOption("order", [[ 2, "asc" ]])
+            .withOption("responsive", true)
+            .withBootstrap();
+
+        $scope.dtColumns = [
+            DTColumnDefBuilder.newColumnDef(0).notSortable(),
+            DTColumnDefBuilder.newColumnDef([1, 2]).withOption("width", "20%"),
+            DTColumnDefBuilder.newColumnDef(5).notSortable()
+        ];
 }]);
 
 app.controller("InternDetailCtrl", ["$scope", "$routeParams", "$timeout", "Internship", "Intern", "Profile", "User", "InternshipMonth",
