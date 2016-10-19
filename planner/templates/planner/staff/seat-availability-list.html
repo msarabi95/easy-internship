@@ -1,0 +1,45 @@
+{% verbatim %}
+<!-- Content Header (Page header) -->
+<section class="content-header">
+  <h1>Seat Availabilities</h1>
+</section>
+
+<!-- Main content -->
+<section class="content">
+  <div class="row">
+    <div class="col-xs-12">
+
+      <div class="box box-solid">
+        <div class="box-header with-border">
+          <h3 class="box-title">Seat Availabilities during {{ displayYear }}</h3>
+          <div class="box-tools">
+            <div class="btn-group btn-group-sm">
+              <a class="btn btn-sm btn-primary" ng-click="loadPreviousYear()">
+                <i class="fa fa-angle-double-left"></i>
+                Show {{ displayYear - 1}}
+              </a>
+              <a class="btn btn-sm btn-primary" ng-click="loadNextYear()">
+                Show {{ displayYear + 1 }}
+                <i class="fa fa-angle-double-right"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="box-body">
+          <p>
+            The table below shows the number of available seats in each department during every month of the year {{ displayYear }}.
+            You can update the numbers by directly selecting and editing. Changes will be automatically saved.
+          </p>
+
+          <!-- Table container -->
+          <div style="height: 330px;" ng-scrollbars ng-scrollbars-config="scrollbarsConfig">
+            <hot-table hot-id="seat-availabilities"></hot-table>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+{% endverbatim %}

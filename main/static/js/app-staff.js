@@ -3,7 +3,7 @@
  */
 var app = angular.module("easyInternship",
                          ["ngRoute", "ngResource", "easy.planner", "easy.accounts", "ui.bootstrap",
-                             "datatables", "datatables.bootstrap"]);
+                             "datatables", "datatables.bootstrap", "ngHandsontable", "ngScrollbars"]);
 
 app.config(["$httpProvider", "$routeProvider", "$resourceProvider",
     function ($httpProvider, $routeProvider, $resourceProvider) {
@@ -55,6 +55,10 @@ app.config(["$httpProvider", "$routeProvider", "$resourceProvider",
         .when("/planner/:id/", {
             templateUrl: "partials/planner/staff/intern-detail.html",
             controller: "InternDetailCtrl"
+        })
+        .when("/seats/", {
+            templateUrl: "partials/planner/staff/seat-availability-list.html",
+            controller: "SeatAvailabilityList"
         });
 
     $resourceProvider.defaults.stripTrailingSlashes = false;
@@ -309,4 +313,109 @@ app.controller("InternDetailCtrl", ["$scope", "$routeParams", "$timeout", "Inter
                 return "danger";
             }
         }
+}]);
+
+app.controller("SeatAvailabilityList", ["$scope", "hotRegisterer", "Department", "SeatAvailability", function ($scope, hotRegisterer, Department, SeatAvailability) {
+
+    $scope.scrollbarsConfig = {
+        theme: 'dark',
+        axis: 'x'
+    };
+
+    $scope.monthLabels = {
+        0: "January",
+        1: "February",
+        2: "March",
+        3: "April",
+        4: "May",
+        5: "June",
+        6: "July",
+        7: "August",
+        8: "September",
+        9: "October",
+        10: "November",
+        11: "December"
+    };
+
+    $scope.$watch('displayYear', function (newValue, oldValue) {
+        $scope.startMonth = newValue * 12;
+
+        // Make data
+
+        $scope.months = Array.apply(null, Array(12)).map(function (_, i) {return $scope.startMonth + i;});
+        $scope.data = $scope.months.map(function (_, i) {return {label: $scope.monthLabels[i] + " " + $scope.displayYear, month: _}});
+
+        // Configure the table
+
+        var hot = hotRegisterer.getInstance('seat-availabilities');
+
+        var columns = [{data: 'label'}];
+        for (var i = 0; i < $scope.departments.length; i++) {
+            var department = $scope.departments[i];
+            columns.push({
+                data: availabilityByDepartmentAndMonth(department)
+            })
+        }
+        var schema = {label: null, month: null};
+
+        hot.updateSettings({
+            dataSchema: schema,
+            columns: columns,
+            data: $scope.data,
+            colHeaders: function (index) {return index == 0 ? "Month" : $scope.departments[index - 1].name}
+        });
+
+        // The Joker function :)
+        // Handles reading & writing data between the table and ngResource
+
+        function availabilityByDepartmentAndMonth(department) {
+            return function (row, value) {
+
+                // Retrieve the `SeatAvailability` record if it's present
+                var monthId = row.month;
+                var availability = $scope.seats.find(function (obj, index) {
+                    return obj.department == department.id && obj.month == monthId;
+                });
+
+                if (typeof value == 'undefined') {  // No value passed, just return the available seat count
+                    if (typeof availability !== 'undefined') {
+                       return availability.available_seat_count;
+                    }
+                } else { // SET
+                    // TODO: Delete record if cell set to empty value
+                    // TODO: Make sure new value is actually different
+                    if (typeof availability !== 'undefined') {
+                        availability.available_seat_count = value;
+                        availability.$update(); // Should saving be done here or in the `AfterChange` event callback?
+                    } else {
+                        availability = new SeatAvailability({
+                            department: department.id,
+                            month: monthId,
+                            available_seat_count: value
+                        });
+                        $scope.seats.push(availability);
+                        availability.$save(); // Should saving be done here or in the `AfterChange` event callback?
+                    }
+                }
+            }
+        }
+
+
+    });
+
+    // Load department and seat data and initiate table by displaying current year
+
+    $scope.departments = Department.query(function (departments) {
+        $scope.seats = SeatAvailability.query(function (seats) {
+            $scope.displayYear = new Date().getFullYear(); // Show current year
+        });
+    });
+
+    $scope.loadNextYear = function () {
+        $scope.displayYear += 1;
+    };
+
+    $scope.loadPreviousYear = function () {
+        $scope.displayYear -= 1;
+    };
 }]);

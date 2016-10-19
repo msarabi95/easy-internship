@@ -1,4 +1,5 @@
 from django.core.exceptions import ObjectDoesNotExist
+from month import Month
 from planner.models import RotationRequest, RotationRequestForward, Rotation, Hospital, Specialty, \
     Department, Internship, RequestedDepartment, RotationRequestResponse, RotationRequestForwardResponse, \
     SeatAvailability
@@ -27,11 +28,26 @@ class DepartmentSerializer(serializers.ModelSerializer):
                   'email', 'phone', 'extension')
 
 
+class MonthField(serializers.Field):
+    """
+    Month objects are serialized into month id' notation.
+    """
+    def to_representation(self, obj):
+        return int(obj)
+
+    def to_internal_value(self, data):
+        return Month.from_int(int(data))
+
+
 class SeatAvailabilitySerializer(serializers.ModelSerializer):
+    month = MonthField()
+    #
+    # def get_month(self, obj):
+    #     return int(obj.month)
 
     class Meta:
         model = SeatAvailability
-        fields = ('id', 'month', 'specialty', 'department', 'available_seat_count')
+        fields = ('id', 'month', 'department', 'available_seat_count')
 
 
 class InternshipMonthSerializer(serializers.Serializer):

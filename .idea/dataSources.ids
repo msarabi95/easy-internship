@@ -369,12 +369,10 @@
       <column name="month" sqlType="DATE" precision="0" scale="-1" nullable="false" jdbcType="12"/>
       <column name="available_seat_count" sqlType="INTEGER UNSIGNED" precision="0" scale="-1" nullable="false" jdbcType="4"/>
       <column name="department_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
-      <column name="specialty_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
       <primary-key columns="id"/>
-      <foreign-key name="#FAKE_planner_seatavailability_1" columns="specialty_id" ref-table="planner_specialty" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
-      <foreign-key name="#FAKE_planner_seatavailability_2" columns="department_id" ref-table="planner_department" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
-      <index name="planner_seatavailability_2f27de08" unique="true" columns="specialty_id"/>
+      <foreign-key name="#FAKE_planner_seatavailability_1" columns="department_id" ref-table="planner_department" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
       <index name="planner_seatavailability_bf691be4" unique="true" columns="department_id"/>
+      <index name="planner_seatavailability_month_ed9ac3fd_uniq" unique="true" columns="month,department_id"/>
     </table>
     <table name="planner_specialty" schema="" catalog="" type="TABLE">
       <column name="id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>

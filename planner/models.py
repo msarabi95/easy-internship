@@ -120,17 +120,15 @@ class Department(models.Model):
 
 class SeatAvailability(models.Model):
     month = MonthField()
-    specialty = models.ForeignKey(Specialty, related_name="seats")  # FIXME: This field is unnecessary
     department = models.ForeignKey(Department, related_name="seats")
     available_seat_count = models.PositiveIntegerField()
 
     def __unicode__(self):
-        return "Seat availability for %s in %s during %s" % (self.specialty.name,
-                                                             self.department.__unicode__(),
-                                                             self.month)
+        return "Seat availability in %s during %s" % (self.department.__unicode__(),
+                                                      self.month)
 
-    # class Meta:
-    #     unique_together = ("month", "specialty", "department")
+    class Meta:
+        unique_together = ("month", "department")
 
 
 class InternshipMonth(object):

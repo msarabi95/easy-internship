@@ -1,12 +1,14 @@
 import json
 
+from datetime import datetime
+
 from accounts.models import Profile
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist, ValidationError, NON_FIELD_ERRORS
 from django.core.urlresolvers import reverse
-from django.db.models.aggregates import Count
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
+from django.utils import timezone
 from django.views import generic as django_generics
 from planner.forms import RotationRequestForm
 from planner.serializers import RotationRequestSerializer, RotationRequestForwardSerializer, \
@@ -72,9 +74,23 @@ class DepartmentBySpecialtyAndHospital(generics.RetrieveAPIView):
         return get_object_or_404(Department, specialty=specialty, hospital=hospital)
 
 
-class SeatAvailabilityViewSet(viewsets.ReadOnlyModelViewSet):
+class SeatAvailabilityViewSet(viewsets.ModelViewSet):
     serializer_class = SeatAvailabilitySerializer
     queryset = SeatAvailability.objects.all()
+
+    @list_route(methods=['get'], url_path='starting_month')
+    def get_display_starting_month(self, request):
+        return Response({'id': int(Month.from_date(datetime(timezone.now().year, 1, 1)))})
+
+    def create(self, request, *args, **kwargs):
+        response = super(SeatAvailabilityViewSet, self).create(request, *args, **kwargs)
+        messages.success(request._request, "Created!")
+        return response
+
+    def update(self, request, *args, **kwargs):
+        response = super(SeatAvailabilityViewSet, self).update(request, *args, **kwargs)
+        messages.success(request._request, "Updated!")
+        return response
 
 
 class InternshipMonthViewSet(viewsets.ReadOnlyModelViewSet):

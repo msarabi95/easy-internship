@@ -25,7 +25,17 @@ plannerModule.factory("Department", ["$resource", function($resource) {
 }]);
 
 plannerModule.factory("SeatAvailability", ["$resource", function($resource) {
-    return $resource('/api/seat_availabilities/:id', {id: '@id'});
+    return $resource('/api/seat_availabilities/:id/', {
+        id: '@id'
+    }, {
+        get_display_starting_month: {
+            method: 'get',
+            url: '/api/seat_availabilities/starting_month/'
+        },
+        update: {
+            method: 'put'
+        }
+    });
 }]);
 
 plannerModule.factory("InternshipMonth", ["$resource", function($resource) {
