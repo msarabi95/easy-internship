@@ -58,7 +58,7 @@ app.config(["$httpProvider", "$routeProvider", "$resourceProvider",
         })
         .when("/seats/", {
             templateUrl: "partials/planner/staff/seat-availability-list.html",
-            controller: "SeatAvailabilityList"
+            controller: "AcceptanceSettingsList"
         });
 
     $resourceProvider.defaults.stripTrailingSlashes = false;
@@ -315,7 +315,7 @@ app.controller("InternDetailCtrl", ["$scope", "$routeParams", "$timeout", "Inter
         }
 }]);
 
-app.controller("SeatAvailabilityList", ["$scope", "hotRegisterer", "Department", "SeatAvailability", function ($scope, hotRegisterer, Department, SeatAvailability) {
+app.controller("AcceptanceSettingsList", ["$scope", "hotRegisterer", "Department", "DepartmentMonthSettings", function ($scope, hotRegisterer, Department, DepartmentMonthSettings) {
 
     $scope.scrollbarsConfig = {
         theme: 'dark',
@@ -371,7 +371,7 @@ app.controller("SeatAvailabilityList", ["$scope", "hotRegisterer", "Department",
         function availabilityByDepartmentAndMonth(department) {
             return function (row, value) {
 
-                // Retrieve the `SeatAvailability` record if it's present
+                // Retrieve the `DepartmentMonthSettings` record if it's present
                 var monthId = row.month;
                 var availability = $scope.seats.find(function (obj, index) {
                     return obj.department == department.id && obj.month == monthId;
@@ -388,7 +388,7 @@ app.controller("SeatAvailabilityList", ["$scope", "hotRegisterer", "Department",
                         availability.available_seat_count = value;
                         availability.$update(); // Should saving be done here or in the `AfterChange` event callback?
                     } else {
-                        availability = new SeatAvailability({
+                        availability = new DepartmentMonthSettings({
                             department: department.id,
                             month: monthId,
                             available_seat_count: value
@@ -406,7 +406,7 @@ app.controller("SeatAvailabilityList", ["$scope", "hotRegisterer", "Department",
     // Load department and seat data and initiate table by displaying current year
 
     $scope.departments = Department.query(function (departments) {
-        $scope.seats = SeatAvailability.query(function (seats) {
+        $scope.seats = DepartmentMonthSettings.query(function (seats) {
             $scope.displayYear = new Date().getFullYear(); // Show current year
         });
     });

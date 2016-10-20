@@ -24,13 +24,25 @@ plannerModule.factory("Department", ["$resource", function($resource) {
     });
 }]);
 
-plannerModule.factory("SeatAvailability", ["$resource", function($resource) {
-    return $resource('/api/seat_availabilities/:id/', {
+plannerModule.factory("GlobalSettings", ["$resource", function($resource) {
+    return $resource('/api/global_settings/:id', {id: '@id'});
+}]);
+
+plannerModule.factory("MonthSettings", ["$resource", function($resource) {
+    return $resource('/api/month_settings/:id', {id: '@id'});
+}]);
+
+plannerModule.factory("DepartmentSettings", ["$resource", function($resource) {
+    return $resource('/api/department_settings/:id', {id: '@id'});
+}]);
+
+plannerModule.factory("DepartmentMonthSettings", ["$resource", function($resource) {
+    return $resource('/api/department_month_settings/:id/', {
         id: '@id'
     }, {
         get_display_starting_month: {
             method: 'get',
-            url: '/api/seat_availabilities/starting_month/'
+            url: '/api/department_month_settings/starting_month/'
         },
         update: {
             method: 'put'

@@ -2,7 +2,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from month import Month
 from planner.models import RotationRequest, RotationRequestForward, Rotation, Hospital, Specialty, \
     Department, Internship, RequestedDepartment, RotationRequestResponse, RotationRequestForwardResponse, \
-    SeatAvailability
+    DepartmentMonthSettings, GlobalSettings, MonthSettings, DepartmentSettings
 from rest_framework import serializers
 
 
@@ -39,15 +39,54 @@ class MonthField(serializers.Field):
         return Month.from_int(int(data))
 
 
-class SeatAvailabilitySerializer(serializers.ModelSerializer):
-    month = MonthField()
-    #
-    # def get_month(self, obj):
-    #     return int(obj.month)
+class GlobalSettingsSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = SeatAvailability
-        fields = ('id', 'month', 'department', 'available_seat_count')
+        model = GlobalSettings
+        fields = ('acceptance_criterion', 'acceptance_start_date_interval', 'acceptance_end_date_interval')
+
+
+class MonthSettingsSerializer(serializers.ModelSerializer):
+    month = MonthField()
+    acceptance_start_date = serializers.DateTimeField(format="%A, %-d %B %Y, %-I:%M %p")
+    acceptance_end_date = serializers.DateTimeField(format="%A, %-d %B %Y, %-I:%M %p")
+
+    class Meta:
+        model = MonthSettings
+        fields = ('id', 'month', 'acceptance_criterion', 'acceptance_start_date', 'acceptance_end_date')
+
+
+class DepartmentSettingsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = DepartmentSettings
+        fields = ('id', 'department', 'acceptance_criterion',
+                  'acceptance_start_date_interval', 'acceptance_end_date_criterion')
+
+
+class DepartmentMonthSettingsSerializer(serializers.ModelSerializer):
+    month = MonthField()
+    acceptance_start_date = serializers.DateTimeField(format="%A, %-d %B %Y, %-I:%M %p")
+    acceptance_end_date = serializers.DateTimeField(format="%A, %-d %B %Y, %-I:%M %p")
+
+    booked_seats = serializers.SerializerMethodField()
+    occupied_seats = serializers.SerializerMethodField()
+    available_seats = serializers.SerializerMethodField()
+
+    def get_booked_seats(self, obj):
+        return 0  # TODO
+
+    def get_occupied_seats(self, obj):
+        return 0  # TODO
+
+    def get_available_seats(self, obj):
+        return 0  # TODO
+
+    class Meta:
+        model = DepartmentMonthSettings
+        fields = ('id', 'month', 'department',
+                  'total_seats', 'booked_seats', 'occupied_seats', 'available_seats',
+                  'acceptance_criterion', 'acceptance_start_date', 'acceptance_end_date')
 
 
 class InternshipMonthSerializer(serializers.Serializer):

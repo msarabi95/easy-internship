@@ -12,14 +12,15 @@ from django.utils import timezone
 from django.views import generic as django_generics
 from planner.forms import RotationRequestForm
 from planner.serializers import RotationRequestSerializer, RotationRequestForwardSerializer, \
-    InternshipMonthSerializer, HospitalSerializer, SpecialtySerializer, DepartmentSerializer, SeatAvailabilitySerializer, \
+    InternshipMonthSerializer, HospitalSerializer, SpecialtySerializer, DepartmentSerializer, DepartmentMonthSettingsSerializer, \
     InternshipSerializer, RotationSerializer, RequestedDepartmentSerializer, RotationRequestResponseSerializer, \
-    RotationRequestForwardResponseSerializer
+    RotationRequestForwardResponseSerializer, GlobalSettingsSerializer, MonthSettingsSerializer, \
+    DepartmentSettingsSerializer
 from rest_framework import viewsets, generics
 from month import Month
 from planner.models import Hospital, RequestedDepartment, Department, Specialty, \
-    RotationRequest, RotationRequestForward, SeatAvailability, Internship, Rotation, RotationRequestResponse, \
-    RotationRequestForwardResponse
+    RotationRequest, RotationRequestForward, DepartmentMonthSettings, Internship, Rotation, RotationRequestResponse, \
+    RotationRequestForwardResponse, GlobalSettings, MonthSettings, DepartmentSettings
 from rest_framework.decorators import list_route, detail_route
 from rest_framework.response import Response
 
@@ -74,21 +75,36 @@ class DepartmentBySpecialtyAndHospital(generics.RetrieveAPIView):
         return get_object_or_404(Department, specialty=specialty, hospital=hospital)
 
 
-class SeatAvailabilityViewSet(viewsets.ModelViewSet):
-    serializer_class = SeatAvailabilitySerializer
-    queryset = SeatAvailability.objects.all()
+class GlobalSettingsViewSet(viewsets.ModelViewSet):
+    serializer_class = GlobalSettingsSerializer
+    queryset = GlobalSettings.objects.all()
+
+
+class MonthSettingsViewSet(viewsets.ModelViewSet):
+    serializer_class = MonthSettingsSerializer
+    queryset = MonthSettings.objects.all()
+
+
+class DepartmentSettingsViewSet(viewsets.ModelViewSet):
+    serializer_class = DepartmentSettingsSerializer
+    queryset = DepartmentSettings.objects.all()
+
+
+class DepartmentMonthSettingsViewSet(viewsets.ModelViewSet):
+    serializer_class = DepartmentMonthSettingsSerializer
+    queryset = DepartmentMonthSettings.objects.all()
 
     @list_route(methods=['get'], url_path='starting_month')
     def get_display_starting_month(self, request):
         return Response({'id': int(Month.from_date(datetime(timezone.now().year, 1, 1)))})
 
     def create(self, request, *args, **kwargs):
-        response = super(SeatAvailabilityViewSet, self).create(request, *args, **kwargs)
+        response = super(DepartmentMonthSettingsViewSet, self).create(request, *args, **kwargs)
         messages.success(request._request, "Created!")
         return response
 
     def update(self, request, *args, **kwargs):
-        response = super(SeatAvailabilityViewSet, self).update(request, *args, **kwargs)
+        response = super(DepartmentMonthSettingsViewSet, self).update(request, *args, **kwargs)
         messages.success(request._request, "Updated!")
         return response
 
