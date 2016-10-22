@@ -1,7 +1,0 @@
-from planner.utils import get_global_acceptance_criterion, get_global_acceptance_start_date_interval, \
-    get_global_acceptance_end_date_interval
-
-# Acceptance settings constants
-GLOBAL_ACCEPTANCE_CRITERION = get_global_acceptance_criterion()
-GLOBAL_ACCEPTANCE_START_DATE_INTERVAL = get_global_acceptance_start_date_interval()
-GLOBAL_ACCEPTANCE_END_DATE_INTERVAL = get_global_acceptance_end_date_interval()

@@ -1,5 +1,6 @@
 from django.contrib import admin
-from planner.models import Hospital, Department, Specialty, Rotation, Internship, DepartmentMonthSettings
+from planner.models import Hospital, Department, Specialty, Rotation, Internship, DepartmentMonthSettings, \
+    DepartmentSettings, MonthSettings
 
 
 class HospitalAdmin(admin.ModelAdmin):
@@ -34,6 +35,8 @@ class InternshipAdmin(admin.ModelAdmin):
 
 admin.site.register(Hospital, HospitalAdmin)
 admin.site.register(Department, DepartmentAdmin)
+admin.site.register(MonthSettings)
+admin.site.register(DepartmentSettings)
 admin.site.register(DepartmentMonthSettings, DepartmentMonthSettingsAdmin)
 admin.site.register(Specialty, SpecialtyAdmin)
 admin.site.register(Internship, InternshipAdmin)

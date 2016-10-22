@@ -48,8 +48,8 @@ class GlobalSettingsSerializer(serializers.ModelSerializer):
 
 class MonthSettingsSerializer(serializers.ModelSerializer):
     month = MonthField()
-    acceptance_start_date = serializers.DateTimeField(format="%A, %-d %B %Y, %-I:%M %p")
-    acceptance_end_date = serializers.DateTimeField(format="%A, %-d %B %Y, %-I:%M %p")
+    acceptance_start_date = serializers.DateTimeField(format="%A, %-d %B %Y, %-I:%M %p", required=False, allow_null=True)
+    acceptance_end_date = serializers.DateTimeField(format="%A, %-d %B %Y, %-I:%M %p", required=False, allow_null=True)
 
     class Meta:
         model = MonthSettings
@@ -61,13 +61,13 @@ class DepartmentSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = DepartmentSettings
         fields = ('id', 'department', 'acceptance_criterion',
-                  'acceptance_start_date_interval', 'acceptance_end_date_criterion')
+                  'acceptance_start_date_interval', 'acceptance_end_date_interval')
 
 
 class DepartmentMonthSettingsSerializer(serializers.ModelSerializer):
     month = MonthField()
-    acceptance_start_date = serializers.DateTimeField(format="%A, %-d %B %Y, %-I:%M %p")
-    acceptance_end_date = serializers.DateTimeField(format="%A, %-d %B %Y, %-I:%M %p")
+    acceptance_start_date = serializers.DateTimeField(required=False, allow_null=True)
+    acceptance_end_date = serializers.DateTimeField(required=False, allow_null=True)
 
     booked_seats = serializers.SerializerMethodField()
     occupied_seats = serializers.SerializerMethodField()

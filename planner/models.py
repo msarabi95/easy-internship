@@ -223,7 +223,7 @@ class DepartmentMonthSettings(MonthSettingsMixin, models.Model):
     acceptance_criterion = models.CharField(
         max_length=4,
         choices=ACCEPTANCE_CRITERION_CHOICES,
-        default=FCFS_ACCEPTANCE
+        blank=True, null=True
     )
     acceptance_start_date = models.DateTimeField(blank=True, null=True)
     acceptance_end_date = models.DateTimeField(blank=True, null=True)
