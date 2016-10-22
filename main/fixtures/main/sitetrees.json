@@ -67,7 +67,7 @@
     "model": "sitetree.treeitem",
     "pk": 5,
     "fields": {
-        "title": "Recent requests",
+        "title": "{{ \"<i class='fa fa-clock-o'></i> Recent requests\" }}",
         "hint": "",
         "url": "#/planner/recent/",
         "urlaspattern": false,
@@ -91,7 +91,7 @@
     "model": "sitetree.treeitem",
     "pk": 6,
     "fields": {
-        "title": "Interns",
+        "title": "{{ \"<i class='fa fa-users'></i> Interns\" }}",
         "hint": "",
         "url": "#/planner/all/",
         "urlaspattern": false,
@@ -115,7 +115,7 @@
     "model": "sitetree.treeitem",
     "pk": 7,
     "fields": {
-        "title": "Seat Availabilities",
+        "title": "{{ \"<i class='fa fa-balance-scale'></i> Seats & Acceptance Settings\" }}",
         "hint": "",
         "url": "#/seats/",
         "urlaspattern": false,
