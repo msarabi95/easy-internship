@@ -270,6 +270,35 @@
       <index name="planner_department_2f27de08" unique="true" columns="specialty_id"/>
       <index name="planner_department_8a738e00" unique="true" columns="hospital_id"/>
     </table>
+    <table name="planner_departmentmonthsettings" schema="" catalog="" type="TABLE">
+      <column name="id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="month" sqlType="DATE" precision="0" scale="-1" nullable="false" jdbcType="12"/>
+      <column name="total_seats" sqlType="INTEGER UNSIGNED" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="acceptance_start_date" sqlType="DATETIME" precision="0" scale="-1" nullable="true" jdbcType="12"/>
+      <column name="acceptance_end_date" sqlType="DATETIME" precision="0" scale="-1" nullable="true" jdbcType="12"/>
+      <column name="department_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="acceptance_criterion" sqlType="VARCHAR(4)" precision="0" scale="-1" nullable="true" jdbcType="12"/>
+      <primary-key columns="id"/>
+      <foreign-key name="#FAKE_planner_departmentmonthsettings_1" columns="department_id" ref-table="planner_department" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+      <index name="planner_departmentmonthsettings_bf691be4" unique="true" columns="department_id"/>
+      <index name="planner_departmentmonthsettings_month_a55263f7_uniq" unique="true" columns="month,department_id"/>
+    </table>
+    <table name="planner_departmentsettings" schema="" catalog="" type="TABLE">
+      <column name="id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="acceptance_criterion" sqlType="VARCHAR(4)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
+      <column name="acceptance_start_date_interval" sqlType="INTEGER UNSIGNED" precision="0" scale="-1" nullable="true" jdbcType="4"/>
+      <column name="acceptance_end_date_interval" sqlType="INTEGER UNSIGNED" precision="0" scale="-1" nullable="true" jdbcType="4"/>
+      <column name="department_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <primary-key columns="id"/>
+      <foreign-key name="#FAKE_planner_departmentsettings_1" columns="department_id" ref-table="planner_department" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+    </table>
+    <table name="planner_globalsettings" schema="" catalog="" type="TABLE">
+      <column name="id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="acceptance_criterion" sqlType="VARCHAR(4)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
+      <column name="acceptance_end_date_interval" sqlType="INTEGER UNSIGNED" precision="0" scale="-1" nullable="true" jdbcType="4"/>
+      <column name="acceptance_start_date_interval" sqlType="INTEGER UNSIGNED" precision="0" scale="-1" nullable="true" jdbcType="4"/>
+      <primary-key columns="id"/>
+    </table>
     <table name="planner_hospital" schema="" catalog="" type="TABLE">
       <column name="id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
       <column name="name" sqlType="VARCHAR(128)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
@@ -283,6 +312,14 @@
       <column name="intern_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
       <primary-key columns="id"/>
       <foreign-key name="#FAKE_planner_internship_1" columns="intern_id" ref-table="accounts_intern" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+    </table>
+    <table name="planner_monthsettings" schema="" catalog="" type="TABLE">
+      <column name="id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="month" sqlType="DATE" precision="0" scale="-1" nullable="false" jdbcType="12"/>
+      <column name="acceptance_criterion" sqlType="VARCHAR(4)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
+      <column name="acceptance_start_date" sqlType="DATETIME" precision="0" scale="-1" nullable="true" jdbcType="12"/>
+      <column name="acceptance_end_date" sqlType="DATETIME" precision="0" scale="-1" nullable="true" jdbcType="12"/>
+      <primary-key columns="id"/>
     </table>
     <table name="planner_requesteddepartment" schema="" catalog="" type="TABLE">
       <column name="id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
@@ -363,18 +400,6 @@
       <column name="rotation_request_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
       <primary-key columns="id"/>
       <foreign-key name="#FAKE_planner_rotationrequestresponse_1" columns="rotation_request_id" ref-table="planner_rotationrequest" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
-    </table>
-    <table name="planner_seatavailability" schema="" catalog="" type="TABLE">
-      <column name="id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
-      <column name="month" sqlType="DATE" precision="0" scale="-1" nullable="false" jdbcType="12"/>
-      <column name="available_seat_count" sqlType="INTEGER UNSIGNED" precision="0" scale="-1" nullable="false" jdbcType="4"/>
-      <column name="department_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
-      <column name="specialty_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
-      <primary-key columns="id"/>
-      <foreign-key name="#FAKE_planner_seatavailability_1" columns="specialty_id" ref-table="planner_specialty" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
-      <foreign-key name="#FAKE_planner_seatavailability_2" columns="department_id" ref-table="planner_department" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
-      <index name="planner_seatavailability_2f27de08" unique="true" columns="specialty_id"/>
-      <index name="planner_seatavailability_bf691be4" unique="true" columns="department_id"/>
     </table>
     <table name="planner_specialty" schema="" catalog="" type="TABLE">
       <column name="id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>

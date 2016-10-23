@@ -1,0 +1,390 @@
+{% verbatim %}
+<!-- Content Header (Page header) -->
+<section class="content-header">
+  <h1>Seat Availabilities & Acceptance Settings</h1>
+</section>
+
+<!-- Main content -->
+<section class="content">
+  <div class="row">
+    <div class="col-xs-12">
+      <div class="box box-solid">
+        <div class="box-header with-border">
+          <h4 class="box-title">Global Acceptance Settings</h4>
+        </div>
+
+        <div class="box-body">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>Acceptance Criterion</label>
+
+                <div class="radio">
+                  <label>
+                    <input type="radio" name="globalAcceptanceCriterion" ng-model="global.acceptance_criterion" value="FCFS">
+                    First-come, First-serve
+                  </label>
+                </div>
+                <div class="radio">
+                  <label>
+                    <input type="radio" name="globalAcceptanceCriterion" ng-model="global.acceptance_criterion" value="GPA">
+                    GPA
+                  </label>
+                </div>
+
+            </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="inputStartDateInterval">Start receiving requests before (in days)</label>
+                <input type="number" class="form-control" id="inputStartDateInterval" placeholder="Enter a number of days" ng-model="global.acceptance_start_date_interval">
+              </div>
+              <div class="form-group">
+                <label for="inputEndDateInterval">Close receiving requests before (in days)</label>
+                <input type="number" class="form-control" id="inputEndDateInterval" placeholder="Enter a number of days" ng-model="global.acceptance_end_date_interval">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="text/ng-template" id="department-month-setting-tooltip.html">
+    <h4>{{ department.name }} ({{ getMomentFromMonthId(month).format("MMMM YYYY") }})</h4>
+    <dl style="text-align: left;">
+      <dt><i class="fa fa-users"></i> Total Seats</dt>
+      <dd>{{ getTotalSeats(department, month) }}</dd>
+
+      <!-- TODO: add booked, occupied, and available seats -->
+
+      <br>
+
+      <dt><i class="fa fa-balance-scale"></i> Acceptance Criterion</dt>
+      <dd class="text-{{ getBadgeColor(department, month) }}">
+        <i class="fa {{ getAcceptanceCriterionIcon(department, month) }}"></i> {{ getAcceptanceCriterion(department, month) }}
+      </dd>
+
+      <br>
+
+      <div ng-if="getAcceptanceCriterion(department, month) == 'FCFS'">
+        <dt><i class="fa fa-calendar"></i> Start receiving requests on</dt>
+        <dd class="text-{{ getBadgeColor(department, month) }}">{{ getAcceptanceStartDate(department, month) }}</dd>
+      </div>
+      <div ng-if="getAcceptanceCriterion(department, month) == 'GPA'">
+        <dt><i class="fa fa-calendar"></i> Close receiving requests on</dt>
+        <dd class="text-{{ getBadgeColor(department, month) }}">{{ getAcceptanceEndDate(department, month) }}</dd>
+      </div>
+
+      <br>
+
+      <i ng-if="getSettingType(department, month) !== 'DM'">(Click to create a custom setting)</i>
+      <i ng-if="getSettingType(department, month) == 'DM'">(Click to edit this month's setting)</i>
+    </dl>
+  </script>
+
+  <script type="text/ng-template" id="department-month-setting-modal.html">
+    <div class="modal-header">
+      <button type="button" class="close" ng-click="cancel()" aria-label="Close"><span aria-hidden="true">×</span></button>
+      <h4 class="modal-title"><span class="text-bold">{{ department.name }} ({{ month.format('MMM YYYY') }})</span> <br> Acceptance Settings</h4>
+    </div>
+    <div class="modal-body">
+      <form>
+        <div class="form-group">
+          <label>Total seats offered by department</label>
+          <input type="number" class="form-control" placeholder="Total Seats" ng-model="dmSetting.total_seats" required>
+        </div>
+        <div class="form-group">
+          <label>Acceptance criterion</label>
+          <select ng-model="dmSetting.acceptance_criterion">
+            <option value>(Inherit settings)</option>
+            <option value="FCFS">First come, first serve</option>
+            <option value="GPA">GPA</option>
+          </select>
+        </div>
+
+        <div class="form-group" ng-if="dmSetting.acceptance_criterion == 'FCFS'">
+
+          <label>First day to submit requests</label>
+          <div uib-datepicker ng-model="dmSetting.acceptance_start_date_asDate" class="well well-sm" datepicker-options="dpOptions"></div>
+
+        </div>
+        <div class="form-group" ng-if="dmSetting.acceptance_criterion == 'GPA'">
+          <label>Last day to submit requests</label><!-- TODO: Use datepicker -->
+          <div uib-datepicker ng-model="dmSetting.acceptance_end_date_asDate" class="well well-sm" datepicker-options="dpOptions"></div>
+        </div>
+
+        <!-- TODO: Add delete option -->
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-default pull-left" ng-click="cancel()">Close</button>
+      <button type="button" class="btn btn-primary" ng-click="ok()">Save changes</button>
+    </div>
+  </script>
+
+  <!-- *** -->
+
+  <script type="text/ng-template" id="department-setting-tooltip.html">
+    <h4>{{ department.name }}</h4>
+    <dl style="text-align: left;">
+      <dt><i class="fa fa-balance-scale"></i> Acceptance Criterion</dt>
+      <dd class="text-{{ getBadgeColor(department, '') }}">
+        <i class="fa {{ getAcceptanceCriterionIcon(department, '') }}"></i> {{ getAcceptanceCriterion(department, '') }}
+      </dd>
+
+      <br>
+
+      <div ng-if="getAcceptanceCriterion(department, '') == 'FCFS'">
+        <dt><i class="fa fa-calendar"></i> Start receiving requests before</dt>
+        <dd class="text-{{ getBadgeColor(department, '') }}">{{ getSetting(department).acceptance_start_date_interval }} days</dd>
+      </div>
+      <div ng-if="getAcceptanceCriterion(department, '') == 'GPA'">
+        <dt><i class="fa fa-calendar"></i> Close receiving requests before</dt>
+        <dd class="text-{{ getBadgeColor(department, '') }}">{{ getSetting(department).acceptance_end_date_interval }} days</dd>
+      </div>
+
+      <br>
+
+      <i ng-if="!getDepartmentSetting(department)">(Click to create a custom setting for this department)</i>
+      <i ng-if="getDepartmentSetting(department)">(Click to edit this department's setting)</i>
+    </dl>
+  </script>
+
+  <script type="text/ng-template" id="department-setting-modal.html">
+    <div class="modal-header">
+      <button type="button" class="close" ng-click="cancel()" aria-label="Close"><span aria-hidden="true">×</span></button>
+      <h4 class="modal-title"><span class="text-bold">{{ department.name }}</span> <br> Acceptance Settings</h4>
+    </div>
+    <div class="modal-body">
+      <form>
+        <div class="form-group">
+          <label>Acceptance criterion</label>
+          <select ng-model="dSetting.acceptance_criterion">
+            <option value>(Inherit settings)</option>
+            <option value="FCFS">First come, first serve</option>
+            <option value="GPA">GPA</option>
+          </select>
+        </div>
+        
+        <div class="form-group" ng-if="dSetting.acceptance_criterion == 'FCFS'">
+          <label>Start receiving requests before</label>
+          <input type="number" class="form-control" placeholder="Enter a number (in days)"
+                 ng-model="dSetting.acceptance_start_date_interval" required>
+        </div>
+        
+        <div class="form-group" ng-if="dSetting.acceptance_criterion == 'GPA'">
+          <label>Close receiving requests before</label>
+          <input type="number" class="form-control" placeholder="Enter a number (in days)"
+                 ng-model="dSetting.acceptance_end_date_interval" required>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-default pull-left" ng-click="cancel()">Close</button>
+      <button type="button" class="btn btn-primary" ng-click="ok()">Save changes</button>
+    </div>
+  </script>
+
+  <!-- *** -->
+
+  <script type="text/ng-template" id="month-setting-tooltip.html">
+    <h4>{{ getMomentFromMonthId(month).format("MMM YYYY") }}</h4>
+    <dl style="text-align: left;">
+      <dt><i class="fa fa-balance-scale"></i> Acceptance Criterion</dt>
+      <dd class="text-{{ getBadgeColor('', month) }}">
+        <i class="fa {{ getAcceptanceCriterionIcon('', month) }}"></i> {{ getAcceptanceCriterion('', month) }}
+      </dd>
+
+      <br>
+
+      <div ng-if="getAcceptanceCriterion('', month) == 'FCFS'">
+        <dt><i class="fa fa-calendar"></i> Start receiving requests on</dt>
+        <dd class="text-{{ getBadgeColor('', month) }}">{{ getAcceptanceStartDate('', month) }}</dd>
+      </div>
+      <div ng-if="getAcceptanceCriterion('', month) == 'GPA'">
+        <dt><i class="fa fa-calendar"></i> Close receiving requests on</dt>
+        <dd class="text-{{ getBadgeColor('', month) }}">{{ getAcceptanceEndDate('', month) }} days</dd>
+      </div>
+
+      <br>
+
+      <i ng-if="!getMonthSetting(month)">(Click to create a custom setting for this month)</i>
+      <i ng-if="getMonthSetting(month)">(Click to edit this month's setting)</i>
+    </dl>
+  </script>
+  
+  <script type="text/ng-template" id="month-setting-modal.html">
+    <div class="modal-header">
+      <button type="button" class="close" ng-click="cancel()" aria-label="Close"><span aria-hidden="true">×</span></button>
+      <h4 class="modal-title"><span class="text-bold">{{ month.format('MMMM YYYY') }}</span> <br> Acceptance Settings</h4>
+    </div>
+    <div class="modal-body">
+      <form>
+        <div class="form-group">
+          <label>Acceptance criterion</label>
+          <select ng-model="mSetting.acceptance_criterion">
+            <option value>(Inherit settings)</option>
+            <option value="FCFS">First come, first serve</option>
+            <option value="GPA">GPA</option>
+          </select>
+        </div>
+        
+        <div class="form-group" ng-if="mSetting.acceptance_criterion == 'FCFS'">
+
+          <label>Start receiving requests on</label>
+          <div uib-datepicker ng-model="mSetting.acceptance_start_date_asDate" class="well well-sm" datepicker-options="dpOptions"></div>
+
+        </div>
+        
+        <div class="form-group" ng-if="mSetting.acceptance_criterion == 'GPA'">
+
+          <label>Close receiving requests on</label>
+          <div uib-datepicker ng-model="mSetting.acceptance_end_date_asDate" class="well well-sm" datepicker-options="dpOptions"></div>
+
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-default pull-left" ng-click="cancel()">Close</button>
+      <button type="button" class="btn btn-primary" ng-click="ok()">Save changes</button>
+    </div>
+  </script>
+
+  <div class="row">
+    <div class="col-xs-12">
+      <div class="box box-solid">
+        <div class="box-header with-border">
+          <h4 class="box-title">Acceptance Settings By Department and Month for {{ displayYear }}</h4>
+          <div class="box-tools">
+            <div class="btn-group btn-group-sm">
+              <a class="btn btn-sm btn-primary" ng-click="loadPreviousYear()">
+                <i class="fa fa-angle-double-left"></i>
+                Show {{ displayYear - 1}}
+              </a>
+              <a class="btn btn-sm btn-primary" ng-click="loadNextYear()">
+                Show {{ displayYear + 1 }}
+                <i class="fa fa-angle-double-right"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="box-body no-padding">
+          <table class="table table-striped table-condensed">
+            <thead>
+              <th>Department</th>
+              <th ng-repeat="label in monthLabels">{{ label }}</th>
+              <th>Dept. setting</th>
+            </thead>
+            <tbody>
+              <tr ng-repeat="department in departments">
+                <td style="max-width: 100px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                  {{ department.name }}
+                </td>
+                <td ng-repeat="month in months" style="width: 75px;">
+                  <div uib-tooltip-template="'department-month-setting-tooltip.html'" ng-click="openModal(department, month, 'sm')">
+                    <div class="text-gray">
+                      <i class="fa fa-users"></i> {{ getTotalSeats(department, month) }}
+                    </div>
+
+                    <div class="text-{{ getBadgeColor(department, month) }}" ng-class="{'text-bold': getSettingType(department, month) !== 'G'}">
+                      <i class="fa {{ getAcceptanceCriterionIcon(department, month) }}"></i>
+                      <span ng-if="getAcceptanceCriterion(department, month) == 'FCFS'">{{ getAcceptanceStartDate(department, month) }}</span>
+                      <span ng-if="getAcceptanceCriterion(department, month) == 'GPA'">{{ getAcceptanceEndDate(department, month) }}</span>
+                    </div>
+
+                  </div>
+                </td>
+                <td uib-tooltip-template="'department-setting-tooltip.html'" tooltip-placement="left" ng-click="openDModal(department, 'sm')"><!-- Department setting -->
+                  <div ng-if="getDepartmentSetting(department)" style="width: 75px;">
+                    <div class="text-yellow text-bold">
+                      <i class="fa {{ getAcceptanceCriterionIcon(department, '') }}"></i>
+                      <span ng-if="getDepartmentSetting(department).acceptance_criterion == 'FCFS'">
+                        {{ getDepartmentSetting(department).acceptance_start_date_interval }} days
+                      </span>
+                      <span ng-if="getDepartmentSetting(department).acceptance_criterion == 'GPA'">
+                        {{ getDepartmentSetting(department).acceptance_end_date_interval }} days
+                      </span>
+                    </div>
+                  </div>
+                  <div ng-if="getDepartmentSetting(department) == undefined">
+                    <button class="btn btn-link text-yellow btn-xs">
+                      <i class="fa fa-plus"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>Month setting</td>
+
+                <td ng-repeat="month in months"><!-- Month setting -->
+                  <div uib-tooltip-template="'month-setting-tooltip.html'" ng-click="openMModal(month, 'sm')">
+                    <div ng-if="getMonthSetting(month)">
+                      <div class="text-green text-bold">
+                        <i class="fa {{ getAcceptanceCriterionIcon('', month) }}"></i>
+                        {{ getAcceptanceStartDate('', month) }}
+                      </div>
+                    </div>
+                    <div ng-if="getMonthSetting(month) == undefined">
+                      <button class="btn btn-link text-green btn-xs">
+                        <i class="fa fa-plus"></i>
+                      </button>
+                    </div>
+                  </div>
+                </td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn btn-block btn-flat btn-default" ng-show="!showHotTable" ng-click="triggerHotTable()">
+    <i class="fa fa-chevron-down"></i>
+    Quickly fill in seat counts
+  </button>
+  <button class="btn btn-block btn-flat btn-default" ng-show="showHotTable" ng-click="triggerHotTable()">
+    <i class="fa fa-chevron-up"></i>
+    Hide quick table
+  </button>
+  <br>
+
+  <div ng-show="showHotTable" class="row">
+    <div class="col-xs-12">
+
+      <div class="box box-solid">
+        <div class="box-header with-border">
+          <h3 class="box-title">Seat Availabilities during {{ displayYear }}</h3>
+          <div class="box-tools">
+            <div class="btn-group btn-group-sm">
+              <a class="btn btn-sm btn-primary" ng-click="loadPreviousYear()">
+                <i class="fa fa-angle-double-left"></i>
+                Show {{ displayYear - 1}}
+              </a>
+              <a class="btn btn-sm btn-primary" ng-click="loadNextYear()">
+                Show {{ displayYear + 1 }}
+                <i class="fa fa-angle-double-right"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="box-body">
+          <p>
+            The table below shows the number of available seats in each department during every month of the year {{ displayYear }}.
+            You can update the numbers by directly selecting and editing. Changes will be automatically saved.
+          </p>
+
+          <!-- Table container -->
+          <div style="height: 330px;" ng-scrollbars ng-scrollbars-config="scrollbarsConfig">
+            <hot-table hot-id="seat-availabilities"></hot-table>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+{% endverbatim %}

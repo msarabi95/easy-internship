@@ -7,7 +7,10 @@ router = routers.DefaultRouter()
 router.register(r'hospitals', views.HospitalViewSet)
 router.register(r'specialties', views.SpecialtyViewSet)
 router.register(r'departments', views.DepartmentViewSet)
-router.register(r'seat_availabilities', views.SeatAvailabilityViewSet)
+router.register(r'global_settings', views.GlobalSettingsViewSet, base_name='globalsetting')
+router.register(r'month_settings', views.MonthSettingsViewSet)
+router.register(r'department_settings', views.DepartmentSettingsViewSet)
+router.register(r'department_month_settings', views.DepartmentMonthSettingsViewSet)
 router.register(r'internship_months', views.InternshipMonthViewSet, base_name='internshipmonth')
 router.register(r'internships', views.InternshipViewSet)
 router.register(r'rotations', views.RotationViewSet)
@@ -19,6 +22,9 @@ router.register(r'rotation_request_forward_responses', views.RotationRequestForw
 
 custom_departments_view_url = url(r'^api/departments/(?P<specialty>\d+)/(?P<hospital>\d+)/$',
                                   views.DepartmentBySpecialtyAndHospital.as_view())
+
+custom_internship_months_view_url = url(r'^api/internship_months/(?P<internship_id>\d+)/(?P<month_id>\d+)/$',
+                                        views.InternshipMonthByInternshipAndId.as_view())
 
 urlpatterns = [
     url(r'^rotation-request-form/$', RotationRequestFormView.as_view()),

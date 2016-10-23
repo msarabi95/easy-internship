@@ -1,22 +1,29 @@
 import json
 
+from datetime import datetime
+
 from accounts.models import Profile
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist, ValidationError, NON_FIELD_ERRORS
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
+from django.utils import timezone
 from django.views import generic as django_generics
 from planner.forms import RotationRequestForm
 from planner.serializers import RotationRequestSerializer, RotationRequestForwardSerializer, \
-    InternshipMonthSerializer, HospitalSerializer, SpecialtySerializer, DepartmentSerializer, SeatAvailabilitySerializer, \
+    InternshipMonthSerializer, HospitalSerializer, SpecialtySerializer, DepartmentSerializer, DepartmentMonthSettingsSerializer, \
     InternshipSerializer, RotationSerializer, RequestedDepartmentSerializer, RotationRequestResponseSerializer, \
-    RotationRequestForwardResponseSerializer
+    RotationRequestForwardResponseSerializer, MonthSettingsSerializer, \
+    DepartmentSettingsSerializer
+from planner.utils import set_global_acceptance_criterion, get_global_acceptance_criterion, \
+    get_global_acceptance_start_date_interval, set_global_acceptance_start_date_interval, \
+    get_global_acceptance_end_date_interval, set_global_acceptance_end_date_interval
 from rest_framework import viewsets, generics
 from month import Month
 from planner.models import Hospital, RequestedDepartment, Department, Specialty, \
-    RotationRequest, RotationRequestForward, SeatAvailability, Internship, Rotation, RotationRequestResponse, \
-    RotationRequestForwardResponse
+    RotationRequest, RotationRequestForward, DepartmentMonthSettings, Internship, Rotation, RotationRequestResponse, \
+    RotationRequestForwardResponse, MonthSettings, DepartmentSettings
 from rest_framework.decorators import list_route, detail_route
 from rest_framework.response import Response
 
@@ -63,22 +70,105 @@ class DepartmentViewSet(viewsets.ReadOnlyModelViewSet):
 
 class DepartmentBySpecialtyAndHospital(generics.RetrieveAPIView):
     serializer_class = DepartmentSerializer
-
     queryset = Department.objects.all()
+
     def get_object(self):
         specialty = Specialty.objects.get(id=self.kwargs['specialty'])
         hospital = Hospital.objects.get(id=self.kwargs['hospital'])
         return get_object_or_404(Department, specialty=specialty, hospital=hospital)
 
 
-class SeatAvailabilityViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = SeatAvailabilitySerializer
-    queryset = SeatAvailability.objects.all()
+class GlobalSettingsViewSet(viewsets.ViewSet):
+    @list_route(methods=["get", "post"])
+    def acceptance_criterion(self, request):
+        if request.method == 'GET':
+            return Response({'acceptance_criterion': get_global_acceptance_criterion()})
+        elif request.method == 'POST':
+            old_value = get_global_acceptance_criterion()
+            new_value = request.data.get('acceptance_criterion')
+            if old_value != new_value:
+                try:
+                    set_global_acceptance_criterion(new_value)
+                except ValidationError as e:
+                    messages.error(request._request, e)
+                else:
+                    messages.success(request._request, "Global acceptance criterion updated.")
+
+            return Response({'acceptance_criterion': get_global_acceptance_criterion()})
+
+    @list_route(methods=["get", "post"])
+    def acceptance_start_date_interval(self, request):
+        if request.method == 'GET':
+            return Response({'acceptance_start_date_interval': get_global_acceptance_start_date_interval()})
+        elif request.method == 'POST':
+            old_value = get_global_acceptance_start_date_interval()
+            new_value = request.data.get('acceptance_start_date_interval')
+            if old_value != new_value:
+                try:
+                    set_global_acceptance_start_date_interval(new_value)
+                except ValidationError as e:
+                    messages.error(request._request, e)
+                else:
+                    messages.success(request._request, "Global acceptance start date interval updated.")
+
+            return Response({'acceptance_start_date_interval': get_global_acceptance_start_date_interval()})
+
+    @list_route(methods=["get", "post"])
+    def acceptance_end_date_interval(self, request):
+        if request.method == 'GET':
+            return Response({'acceptance_end_date_interval': get_global_acceptance_end_date_interval()})
+        elif request.method == 'POST':
+            old_value = get_global_acceptance_end_date_interval()
+            new_value = request.data.get('acceptance_end_date_interval')
+            if old_value != new_value:
+                try:
+                    set_global_acceptance_end_date_interval(new_value)
+                except ValidationError as e:
+                    messages.error(request._request, e)
+                else:
+                    messages.success(request._request, "Global acceptance end date interval updated.")
+
+            return Response({'acceptance_end_date_interval': get_global_acceptance_end_date_interval()})
+
+
+class SettingsMessagesMixin(object):
+    def create(self, request, *args, **kwargs):
+        response = super(SettingsMessagesMixin, self).create(request, *args, **kwargs)
+        messages.success(request._request, "Created!")
+        return response
+
+    def update(self, request, *args, **kwargs):
+        response = super(SettingsMessagesMixin, self).update(request, *args, **kwargs)
+        messages.success(request._request, "Updated!")
+        return response
+
+    def destroy(self, request, *args, **kwargs):
+        response = super(SettingsMessagesMixin, self).destroy(request, *args, **kwargs)
+        messages.success(request._request, "Destroyed!")
+        return response
+
+
+class MonthSettingsViewSet(SettingsMessagesMixin, viewsets.ModelViewSet):
+    serializer_class = MonthSettingsSerializer
+    queryset = MonthSettings.objects.all()
+
+
+class DepartmentSettingsViewSet(SettingsMessagesMixin, viewsets.ModelViewSet):
+    serializer_class = DepartmentSettingsSerializer
+    queryset = DepartmentSettings.objects.all()
+
+
+class DepartmentMonthSettingsViewSet(SettingsMessagesMixin, viewsets.ModelViewSet):
+    serializer_class = DepartmentMonthSettingsSerializer
+    queryset = DepartmentMonthSettings.objects.all()
+
+    @list_route(methods=['get'], url_path='starting_month')
+    def get_display_starting_month(self, request):
+        return Response({'id': int(Month.from_date(datetime(timezone.now().year, 1, 1)))})
 
 
 class InternshipMonthViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = InternshipMonthSerializer
-
     lookup_field = 'month'
 
     def get_queryset(self):
@@ -124,9 +214,25 @@ class InternshipMonthViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(status=HTTP_201_CREATED)
 
 
+class InternshipMonthByInternshipAndId(generics.RetrieveAPIView):
+    serializer_class = InternshipMonthSerializer
+
+    def get_object(self):
+        internship = get_object_or_404(Internship, pk=int(self.kwargs['internship_id']))
+        month_id = int(self.kwargs['month_id'])
+        return filter(lambda month: int(month.month) == month_id, internship.months)[0]
+
+
 class InternshipViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = InternshipSerializer
     queryset = Internship.objects.all()
+
+    @list_route(methods=['get'])
+    def with_unreviewed_requests(self, request):
+        internships = Internship.objects.all()
+        unreviewed_requests = RotationRequest.objects.unreviewed()
+        filtered = filter(lambda i: any([r in unreviewed_requests for r in i.rotation_requests.all()]), internships)
+        return Response(self.get_serializer(filtered, many=True).data)
 
 
 class RotationViewSet(viewsets.ReadOnlyModelViewSet):
@@ -143,15 +249,17 @@ class RotationRequestViewSet(viewsets.ModelViewSet):
     serializer_class = RotationRequestSerializer
     queryset = RotationRequest.objects.all()
 
-    @list_route(methods=["post"])
-    def respond(self, request):
-        pk = request.data.get("id")
+    @detail_route(methods=["post"])
+    def respond(self, request, pk=None):
         rr = RotationRequest.objects.get(pk=pk)
-        rr.respond(request.data.get("is_approved"), request.data.get("comments", ""))
+        rr.respond(bool(int(request.query_params.get("is_approved"))), request.query_params.get("comments", ""))
+
+        messages.success(request._request, "Your response has been recorded.")
+
         return Response({"status": RotationRequest.REVIEWED_STATUS, "is_approved": request.data.get("is_approved")})
-    @list_route(methods=["post"])
-    def forward(self, request):
-        pk = request.data.get("id")
+
+    @detail_route(methods=["post"])
+    def forward(self, request, pk=None):
         rr = RotationRequest.objects.get(pk=pk)
         rr.forward_request()
         return Response({"status": RotationRequest.FORWARDED_STATUS})

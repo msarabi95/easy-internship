@@ -24,8 +24,64 @@ plannerModule.factory("Department", ["$resource", function($resource) {
     });
 }]);
 
-plannerModule.factory("SeatAvailability", ["$resource", function($resource) {
-    return $resource('/api/seat_availabilities/:id', {id: '@id'});
+plannerModule.factory("GlobalSettings", ["$resource", function($resource) {
+    // The resource itself does nothing (nothing at the endpoint). But the resource methods are what matter.
+    return $resource('/api/global_settings/:id', {id: '@id'}, {
+        get_acceptance_criterion: {
+            method: 'get',
+            url: '/api/global_settings/acceptance_criterion/'
+        },
+        set_acceptance_criterion: {
+            method: 'post',
+            url: '/api/global_settings/acceptance_criterion/'
+        },
+        get_acceptance_start_date_interval: {
+            method: 'get',
+            url: '/api/global_settings/acceptance_start_date_interval/'
+        },
+        set_acceptance_start_date_interval: {
+            method: 'post',
+            url: '/api/global_settings/acceptance_start_date_interval/'
+        },
+        get_acceptance_end_date_interval: {
+            method: 'get',
+            url: '/api/global_settings/acceptance_end_date_interval/'
+        },
+        set_acceptance_end_date_interval: {
+            method: 'post',
+            url: '/api/global_settings/acceptance_end_date_interval/'
+        }
+    });
+}]);
+
+plannerModule.factory("MonthSettings", ["$resource", function($resource) {
+    return $resource('/api/month_settings/:id', {id: '@id'}, {
+        update: {
+            method: 'put'
+        }
+    });
+}]);
+
+plannerModule.factory("DepartmentSettings", ["$resource", function($resource) {
+    return $resource('/api/department_settings/:id', {id: '@id'}, {
+        update: {
+            method: 'put'
+        }
+    });
+}]);
+
+plannerModule.factory("DepartmentMonthSettings", ["$resource", function($resource) {
+    return $resource('/api/department_month_settings/:id/', {
+        id: '@id'
+    }, {
+        get_display_starting_month: {
+            method: 'get',
+            url: '/api/department_month_settings/starting_month/'
+        },
+        update: {
+            method: 'put'
+        }
+    });
 }]);
 
 plannerModule.factory("InternshipMonth", ["$resource", function($resource) {
@@ -36,12 +92,22 @@ plannerModule.factory("InternshipMonth", ["$resource", function($resource) {
             params: {
                 month_id: '@month'
             }
+        },
+        get_by_internship_and_id: {
+            method: 'get',
+            url: '/api/internship_months/:internship_id/:month_id'
         }
     });
 }]);
 
 plannerModule.factory("Internship", ["$resource", function($resource) {
-    return $resource('/api/internships/:id', {id: '@id'});
+    return $resource('/api/internships/:id', {id: '@id'}, {
+        with_unreviewed_requests: {
+            method: 'get',
+            url: '/api/internships/with_unreviewed_requests/',
+            isArray: true
+        }
+    });
 }]);
 
 plannerModule.factory("Rotation", ["$resource", function($resource) {
@@ -54,9 +120,19 @@ plannerModule.factory("RequestedDepartment", ["$resource", function($resource) {
 
 plannerModule.factory("RotationRequest", ["$resource", function($resource) {
     return $resource('/api/rotation_requests/:id', {id: '@id'}, {
-        submit: {
+        respond: {
             method: "post",
-            url: '/api/rotation_requests/submit/'
+            url: '/api/rotation_requests/:id/respond/',
+            params: {
+                id: '@id'
+            }
+        },
+        forward: {
+            method: "post",
+            url: '/api/rotation_requests/:id/forward/',
+            params: {
+                id: '@id'
+            }
         }
     });
 }]);

@@ -2,6 +2,8 @@ from __future__ import unicode_literals
 
 from copy import copy
 
+from datetime import timedelta
+
 from accounts.models import Intern
 from django.core import validators
 from django.core.exceptions import ObjectDoesNotExist, ValidationError, MultipleObjectsReturned
@@ -95,8 +97,8 @@ class Department(models.Model):
         Return the number of available seats for a specific month.
         """
         try:
-            return self.seats.get(month=month).available_seat_count
-        except SeatAvailability.DoesNotExist:
+            return self.seats.get(month=month).total_seats
+        except DepartmentMonthSettings.DoesNotExist:
             return None
 
     def get_contact_details(self):
@@ -118,25 +120,127 @@ class Department(models.Model):
         return "%s (%s)" % (self.name, self.hospital.abbreviation)
 
 
-class SeatAvailability(models.Model):
+FCFS_ACCEPTANCE = "FCFS"
+GPA_ACCEPTANCE = "GPA"
+
+ACCEPTANCE_CRITERION_CHOICES = (
+    (FCFS_ACCEPTANCE, "First-come, First-serve"),
+    (GPA_ACCEPTANCE, "GPA"),
+)
+
+
+class NonMonthSettingsMixin(object):
+    """
+    A mixin containing a `save` method common to `GlobalSettings` and `DepartmentSettings`
+    """
+    def save(self, *args, **kwargs):
+        # If saving for the first time, make sure either start date interval or end date interval
+        # is specified, based on selected criterion
+        if not self.id:
+            if self.acceptance_criterion == FCFS_ACCEPTANCE and self.acceptance_start_date_interval is None:
+                self.acceptance_start_date_interval = 30
+            elif self.acceptance_criterion == GPA_ACCEPTANCE and self.acceptance_end_date_interval is None:
+                self.acceptance_end_date_interval = 30
+
+        # Validate consistency
+        if (self.acceptance_criterion == FCFS_ACCEPTANCE and self.acceptance_start_date_interval is None) \
+           or (self.acceptance_criterion == GPA_ACCEPTANCE and self.acceptance_end_date_interval is None):
+            raise ValidationError("Either a start or an end date interval should be specified.")
+
+        super(NonMonthSettingsMixin, self).save(*args, **kwargs)
+
+
+class MonthSettingsMixin(object):
+    """
+    A mixin containing a `save` method common to `MonthSettings` and `DepartmentMonthSettings`
+    """
+    def save(self, *args, **kwargs):
+        # If saving for the first time, make sure either start date or end date is specified
+        # based on selected criterion
+        if not self.id:
+            if self.acceptance_criterion == FCFS_ACCEPTANCE and self.acceptance_start_date is None:
+                self.acceptance_start_date = self.month.first_day() - timedelta(days=30)
+            elif self.acceptance_criterion == GPA_ACCEPTANCE and self.acceptance_end_date is None:
+                self.acceptance_end_date = self.month.first_day() - timedelta(days=30)
+
+        # Validate consistency
+        if (self.acceptance_criterion == FCFS_ACCEPTANCE and self.acceptance_start_date is None) \
+           or (self.acceptance_criterion == GPA_ACCEPTANCE and self.acceptance_end_date is None):
+            raise ValidationError("Either a start or an end date should be specified.")
+
+        super(MonthSettingsMixin, self).save(*args, **kwargs)
+
+
+class GlobalSettings(NonMonthSettingsMixin, models.Model):
+    """
+    A model that saves global acceptance settings.
+    Only ONE instance of this model should be saved to the database.
+    """
+    acceptance_criterion = models.CharField(
+        max_length=4,
+        choices=ACCEPTANCE_CRITERION_CHOICES,
+        default=FCFS_ACCEPTANCE
+    )
+    acceptance_start_date_interval = models.PositiveIntegerField(blank=True, null=True)
+    acceptance_end_date_interval = models.PositiveIntegerField(blank=True, null=True)
+
+
+class MonthSettings(MonthSettingsMixin, models.Model):
+    """
+    Acceptance settings for a particular month.
+    """
+    month = MonthField(unique=True)
+    acceptance_criterion = models.CharField(
+        max_length=4,
+        choices=ACCEPTANCE_CRITERION_CHOICES,
+        default=FCFS_ACCEPTANCE
+    )
+    acceptance_start_date = models.DateTimeField(blank=True, null=True)
+    acceptance_end_date = models.DateTimeField(blank=True, null=True)
+
+
+class DepartmentSettings(NonMonthSettingsMixin, models.Model):
+    """
+    Acceptance settings for a particular department.
+    """
+    department = models.OneToOneField(Department, related_name="acceptance_settings")
+    acceptance_criterion = models.CharField(
+        max_length=4,
+        choices=ACCEPTANCE_CRITERION_CHOICES,
+        default=FCFS_ACCEPTANCE
+    )
+    acceptance_start_date_interval = models.PositiveIntegerField(blank=True, null=True)
+    acceptance_end_date_interval = models.PositiveIntegerField(blank=True, null=True)
+
+
+class DepartmentMonthSettings(MonthSettingsMixin, models.Model):
+    """
+    Acceptance settings for a particular department during a particular month
+    """
     month = MonthField()
-    specialty = models.ForeignKey(Specialty, related_name="seats")  # FIXME: This field is unnecessary
-    department = models.ForeignKey(Department, related_name="seats")
-    available_seat_count = models.PositiveIntegerField()
+    department = models.ForeignKey(Department, related_name="monthly_settings")
+    total_seats = models.PositiveIntegerField()
+    acceptance_criterion = models.CharField(
+        max_length=4,
+        choices=ACCEPTANCE_CRITERION_CHOICES,
+        blank=True, null=True
+    )
+    acceptance_start_date = models.DateTimeField(blank=True, null=True)
+    acceptance_end_date = models.DateTimeField(blank=True, null=True)
 
     def __unicode__(self):
-        return "Seat availability for %s in %s during %s" % (self.specialty.name,
-                                                             self.department.__unicode__(),
-                                                             self.month)
+        return "Acceptance settings in %s during %s" % (self.department.__unicode__(),
+                                                        self.month)
 
-    # class Meta:
-    #     unique_together = ("month", "specialty", "department")
+    class Meta:
+        unique_together = ("month", "department")
 
 
 class InternshipMonth(object):
     def __init__(self, month, current_rotation, current_request, request_history):
         self.month = month
         self.label = month.first_day().strftime("%B %Y")
+        self.label_short = month.first_day().strftime("%b. %Y")
         self.current_rotation = current_rotation
         self.current_request = current_request
         self.request_history = request_history
@@ -364,9 +468,22 @@ class RotationRequestQuerySet(models.QuerySet):
         """
         return self.filter(month=month)
 
+    def unreviewed(self):
+        """
+        Return rotation requests that don't have a response nor forward.
+        """
+        return self.filter(response__isnull=True, forward__isnull=True)
+
+    def forwarded_unreviewed(self):
+        """
+        Return rotation requests that have been forwarded but are awaiting response.
+        """
+        return self.filter(forward__isnull=False, forward__response__isnull=True)
+
     def open(self):
         """
         Return rotation requests that don't yet have a response nor a forward response.
+        Equivalent to `unreviewed` + `forwarded_unreviewed`.
         """
         return self.filter(response__isnull=True, forward__response__isnull=True)
 

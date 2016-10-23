@@ -15,6 +15,14 @@
 <!-- django-angular form styles -->
 <link rel="stylesheet" href="{% static 'djng/css/styles.css' %}" />
 <link rel="stylesheet" href="{% static 'djng/css/bootstrap3.css' %}" />
+<!-- Datatables -->
+<link rel="stylesheet" href="{% static 'js/lib/datatables/dataTables.responsive.css' %}" />
+<!-- Angular datatables -->
+<link rel="stylesheet" href="{% static 'angular/angular-datatables/datatables.bootstrap.min.css' %}" />
+<!-- Handsontable -->
+<link rel="stylesheet" href="{% static 'angular/ngHandsontable/handsontable.full.css' %}" />
+<!-- ng-scrollbars -->
+<link rel="stylesheet" href="{% static 'angular/ng-scrollbars/jquery.mCustomScrollbar.min.css' %}" />
 
 <!-- Styles for modals -->
 <style type="text/css">
@@ -29,6 +37,17 @@
   }
   .example-modal .modal {
     background: transparent !important;
+  }
+
+  @media (min-width: 992px) {
+    #internship-plan-grid {
+      margin-right: -60px;
+      margin-left: -60px;
+    }
+    .internship-plan-box {
+      padding-left: 4px;
+      padding-right: 4px;
+    }
   }
 </style>
 

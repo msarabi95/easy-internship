@@ -1,0 +1,52 @@
+{% verbatim %}
+<!-- Content Header (Page header) -->
+<section class="content-header">
+  <h1>
+    Internship Planner
+  </h1>
+</section>
+
+<!-- Main content -->
+<section class="content">
+  <div class="row">
+    <div class="col-md-offset-3 col-md-6">
+
+      <div class="panel panel-default">
+        <div class="panel-heading with-border">
+          <h3 class="panel-title">Unreviewed requests</h3>
+        </div>
+        <div class="panel-body">
+          Below is a list of interns whose requests await your review.
+        </div>
+
+        <ul class="list-group">
+          <li class="list-group-item" ng-repeat="internship in internships">
+            <div class="row">
+              <div class="col-xs-3">
+                <img style="max-width: 100%;" class="img-circle img-bordered-sm" ng-src="{{ internship.intern.profile.mugshot }}" alt="{{ internship.intern.profile.en_full_name }}" />
+              </div>
+
+              <div class="col-xs-6">
+                <h4>{{ internship.intern.profile.en_full_name }}</h4>
+                <h6><span class="text-bold">Number of unreviewed requests:</span> {{ internship.unreviewed_request_count }}</h6>
+                <h6><span class="text-bold">Date and time of last request:</span> {{ internship.latest_request_datetime }}</h6>
+              </div>
+
+              <div class="col-xs-3">
+                <a class="btn btn-app" href="#/planner/{{ internship.id }}">
+                  <i class="fa fa-angle-double-right"></i>
+                  View details
+                </a>
+              </div>
+            </div>
+
+          </li>
+        </ul>
+      </div><!-- /.panel -->
+
+      <a class="btn btn-block btn-default btn-flat btn-lg" href="#/planner/all/">See a list of all interns</a>
+
+    </div>
+  </div>
+</section><!-- /.content -->
+{% endverbatim %}
