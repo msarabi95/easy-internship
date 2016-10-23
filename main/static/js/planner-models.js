@@ -24,13 +24,59 @@ plannerModule.factory("Department", ["$resource", function($resource) {
     });
 }]);
 
-plannerModule.factory("SeatAvailability", ["$resource", function($resource) {
-    return $resource('/api/seat_availabilities/:id/', {
+plannerModule.factory("GlobalSettings", ["$resource", function($resource) {
+    // The resource itself does nothing (nothing at the endpoint). But the resource methods are what matter.
+    return $resource('/api/global_settings/:id', {id: '@id'}, {
+        get_acceptance_criterion: {
+            method: 'get',
+            url: '/api/global_settings/acceptance_criterion/'
+        },
+        set_acceptance_criterion: {
+            method: 'post',
+            url: '/api/global_settings/acceptance_criterion/'
+        },
+        get_acceptance_start_date_interval: {
+            method: 'get',
+            url: '/api/global_settings/acceptance_start_date_interval/'
+        },
+        set_acceptance_start_date_interval: {
+            method: 'post',
+            url: '/api/global_settings/acceptance_start_date_interval/'
+        },
+        get_acceptance_end_date_interval: {
+            method: 'get',
+            url: '/api/global_settings/acceptance_end_date_interval/'
+        },
+        set_acceptance_end_date_interval: {
+            method: 'post',
+            url: '/api/global_settings/acceptance_end_date_interval/'
+        }
+    });
+}]);
+
+plannerModule.factory("MonthSettings", ["$resource", function($resource) {
+    return $resource('/api/month_settings/:id', {id: '@id'}, {
+        update: {
+            method: 'put'
+        }
+    });
+}]);
+
+plannerModule.factory("DepartmentSettings", ["$resource", function($resource) {
+    return $resource('/api/department_settings/:id', {id: '@id'}, {
+        update: {
+            method: 'put'
+        }
+    });
+}]);
+
+plannerModule.factory("DepartmentMonthSettings", ["$resource", function($resource) {
+    return $resource('/api/department_month_settings/:id/', {
         id: '@id'
     }, {
         get_display_starting_month: {
             method: 'get',
-            url: '/api/seat_availabilities/starting_month/'
+            url: '/api/department_month_settings/starting_month/'
         },
         update: {
             method: 'put'
