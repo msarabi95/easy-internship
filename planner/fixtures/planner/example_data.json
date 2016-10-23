@@ -1,0 +1,116 @@
+[
+{
+    "model": "planner.hospital",
+    "pk": 1,
+    "fields": {
+        "name": "King Abdulaziz Medical City",
+        "abbreviation": "KAMC",
+        "is_kamc": true
+    }
+},
+{
+    "model": "planner.hospital",
+    "pk": 2,
+    "fields": {
+        "name": "King Fahad Medical City",
+        "abbreviation": "KFMC",
+        "is_kamc": false
+    }
+},
+{
+    "model": "planner.department",
+    "pk": 1,
+    "fields": {
+        "hospital": 1,
+        "parent_department": null,
+        "name": "Department of Internal Medicine",
+        "specialty": 1,
+        "contact_name": "Somebody",
+        "email": "somebody@example.com",
+        "phone": "123",
+        "extension": "123"
+    }
+},
+{
+    "model": "planner.department",
+    "pk": 3,
+    "fields": {
+        "hospital": 1,
+        "parent_department": null,
+        "name": "Department of Surgery",
+        "specialty": 2,
+        "contact_name": "Somebody",
+        "email": "somebody@example.com",
+        "phone": "123",
+        "extension": "123"
+    }
+},
+{
+    "model": "planner.department",
+    "pk": 4,
+    "fields": {
+        "hospital": 1,
+        "parent_department": null,
+        "name": "Department of Pediatrics",
+        "specialty": 3,
+        "contact_name": "Saeed",
+        "email": "msarabi95@gmail.com",
+        "phone": "556928915",
+        "extension": "55"
+    }
+},
+{
+    "model": "planner.department",
+    "pk": 5,
+    "fields": {
+        "hospital": 1,
+        "parent_department": null,
+        "name": "Department of Obstetrics & Gynecology",
+        "specialty": 4,
+        "contact_name": "Saeed",
+        "email": "msarabi95@gmail.com",
+        "phone": "556928915",
+        "extension": "55"
+    }
+},
+{
+    "model": "planner.specialty",
+    "pk": 1,
+    "fields": {
+        "name": "Internal Medicine",
+        "abbreviation": "MED",
+        "required_months": 2,
+        "parent_specialty": null
+    }
+},
+{
+    "model": "planner.specialty",
+    "pk": 2,
+    "fields": {
+        "name": "Surgery",
+        "abbreviation": "SURG",
+        "required_months": 2,
+        "parent_specialty": null
+    }
+},
+{
+    "model": "planner.specialty",
+    "pk": 3,
+    "fields": {
+        "name": "Pediatrics",
+        "abbreviation": "PED",
+        "required_months": 2,
+        "parent_specialty": null
+    }
+},
+{
+    "model": "planner.specialty",
+    "pk": 4,
+    "fields": {
+        "name": "Obstetrics & Gynecology",
+        "abbreviation": "OBGY",
+        "required_months": 2,
+        "parent_specialty": null
+    }
+}
+]
