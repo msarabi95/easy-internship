@@ -24,6 +24,13 @@ plannerModule.factory("Department", ["$resource", function($resource) {
     });
 }]);
 
+plannerModule.factory("AcceptanceSettings", ["$resource", function($resource) {
+    return $resource('/api/acceptance_settings/:department_id/:month_id', {
+        month_id: '@month',
+        department_id: '@department'
+    });
+}]);
+
 plannerModule.factory("GlobalSettings", ["$resource", function($resource) {
     // The resource itself does nothing (nothing at the endpoint). But the resource methods are what matter.
     return $resource('/api/global_settings/:id', {id: '@id'}, {
