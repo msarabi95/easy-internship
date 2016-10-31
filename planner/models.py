@@ -349,19 +349,24 @@ class AcceptanceSetting(object):
             # If no seat count is specified, then requests can be submitted any time
             return True
         else:
-            # If a seat count is specified, check available seats
-            if self.get_available_seats() == 0:
-                # If available seats equal 0, then no requests can be submitted
-                return False
-            elif self.get_available_seats() > 0:
-                # If there are available seats, look at the acceptance criterion and start/end dates
-                if (self.criterion == FCFS_ACCEPTANCE and timezone.now() >= self.start_or_end_date) or \
-                        (self.criterion == GPA_ACCEPTANCE and timezone.now() < self.start_or_end_date):
-                    return True
+            # If a seat count is specified, check acceptance criterion
+            if self.criterion == GPA_ACCEPTANCE:
+                # When the criterion is GPA, the only factor to permit submissions is whether the end date has been
+                # reached or not (Available seat count isn't a factor)
+                return timezone.now() < self.start_or_end_date
+            elif self.criterion == FCFS_ACCEPTANCE:
+                # A sanity check
+                if self.get_available_seats() >= 0:
+                    if self.get_available_seats() > 0 and timezone.now() >= self.start_or_end_date:
+                        # Requests can be submitted when start date has passed, AND there is at least 1
+                        # available seat
+                        return True
+                    else:
+                        # If available seats equals 0, or start date hasn't passed yet,
+                        # then no requests can be submitted
+                        return False
                 else:
-                    return False
-            else:
-                raise ValueError("Unexpected value of available seats.")
+                    raise ValueError("Unexpected value of available seats.")
 
 
 class InternshipMonth(object):

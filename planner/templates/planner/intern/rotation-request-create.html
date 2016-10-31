@@ -39,7 +39,11 @@
                       Data on seat count and submission dates not available
                     </span>
                     <span ng-if="$settings.total_seats !== null">
-                       <span class="text-bold">Submission OPEN</span> | Total Seats: {{ $settings.total_seats }} | Available: {{ $settings.available_seats }}
+                      <span class="text-bold">Submission OPEN</span> | Acceptance Criterion: {{ $settings.criterion }} | Total Seats: {{ $settings.total_seats }}
+
+                      <span ng-if="$settings.criterion == 'FCFS'">
+                        | Available: {{ $settings.available_seats }}
+                      </span>
 
                       <span ng-if="$settings.criterion == 'GPA' && moment().isBefore(moment($settings.start_or_end_date))">
                         | Will close on {{ moment($settings.start_or_end_date).format('D MMMM YYYY hh:mm a') }}
@@ -47,14 +51,15 @@
                     </span>
                   </span>
                   <span ng-if="$settings.can_submit_requests == false">
-                    <span ng-if="$settings.available_seats == 0">
-                      No available seats
+                    Acceptance Criterion: {{ $settings.criterion }}
+                    <span ng-if="$settings.criterion == 'FCFS' && $settings.available_seats == 0">
+                      | No available seats
                     </span>
                     <span ng-if="$settings.criterion == 'FCFS' && moment().isBefore(moment($settings.start_or_end_date))">
-                      Submission will open on {{ moment($settings.start_or_end_date).format('D MMMM YYYY hh:mm a') }} | Total Seats: {{ $settings.total_seats }} | Available: {{ $settings.available_seats }}
+                      | Submission will open on {{ moment($settings.start_or_end_date).format('D MMMM YYYY hh:mm a') }} | Total Seats: {{ $settings.total_seats }}
                     </span>
                     <span ng-if="$settings.criterion == 'GPA' && moment().isSameOrAfter(moment($settings.start_or_end_date))">
-                      Submission was closed on {{ moment($settings.start_or_end_date).format('D MMMM YYYY hh:mm a') }}  | Total Seats: {{ $settings.total_seats }} | Available: {{ $settings.available_seats }}
+                      | Submission was closed on {{ moment($settings.start_or_end_date).format('D MMMM YYYY hh:mm a') }}  | Total Seats: {{ $settings.total_seats }}
                     </span>
                   </span>
                 </i></small>
