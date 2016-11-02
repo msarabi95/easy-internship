@@ -3,11 +3,11 @@
   <div class="col-md-offset-2 col-md-8">
     <div class="box box-solid box-success">
       <div class="box-header">
-        <h4 class="box-title">Requests to be accepted (based on {{ setting.criterionDescription }})</h4>
+        <h4 class="box-title">Requests to be approved (based on {{ setting.criterionDescription }})</h4>
       </div>
       <div class="box-body bg-gray-light">
 
-        <div class="box box-success" ng-repeat="request in requests_to_be_accepted | orderBy: ordering.option : ordering.reverse">
+        <div class="box box-success" ng-repeat="request in requests_to_be_approved | orderBy: ordering.option : ordering.reverse">
           <div class="box-header with-border">
             <h5 class="box-title">Request #{{ request.id }}</h5>
           </div>
@@ -43,6 +43,22 @@
                 {{ request.submission_datetime }}
               </dd>
             </dl>
+
+            <button class="btn btn-link" ng-if="!request.showComments" ng-click="addComment('approved', $index)">
+              <i class="fa fa-plus"></i> Add comment
+            </button>
+
+            <button class="btn btn-link" ng-if="!!request.showComments" ng-click="removeComment('approved', $index)">
+              <i class="fa fa-close"></i> Remove comment
+            </button>
+
+            <div class="row" ng-if="!!request.showComments">
+              <div class="col-xs-12">
+                <div class="form-group">
+                  <textarea class="form-control" rows="3" placeholder="Comment" ng-model="request.comments"></textarea>
+                </div>
+              </div>
+            </div>
 
           </div>
         </div>
@@ -107,7 +123,7 @@
       </div>
     </div>
 
-    <button class="btn btn-block btn-flat btn-success">Confirm</button>
+    <button class="btn btn-block btn-flat btn-success" ng-click="confirm()">Confirm</button>
 
   </div>
 </div>

@@ -61,7 +61,7 @@ app.config(["$httpProvider", "$routeProvider", "$resourceProvider",
             templateUrl: "partials/planner/staff/seat-availability-list.html",
             controller: "AcceptanceSettingsListCtrl"
         })
-        .when("/requests/:department_id?/:month_id?", {
+        .when("/requests/:department_id?/:month_id?/", {
             templateUrl: "partials/planner/staff/rotation-request-list.html",
             controller: "RotationRequestListCtrl"
         });
@@ -825,30 +825,59 @@ app.controller("MonthSettingModalCtrl", ["$scope", "$uibModalInstance", "momentM
         };
 }]);
 
-app.controller("RotationRequestListCtrl", ["$scope", "$filter", "$q", "Department", "AcceptanceSettings", "Internship", "InternshipMonth", "Intern", "Profile", "RotationRequest", "RequestedDepartment", "Specialty", "Hospital",
-    function ($scope, $filter, $q, Department, AcceptanceSettings, Internship, InternshipMonth, Intern, Profile, RotationRequest, RequestedDepartment, Specialty, Hospital) {
-    $scope.selected = {
-        year: 2016
-    };
-    $scope.months = Array.apply(null, Array(12)).map(function (_, i) {return ($scope.selected.year * 12) + i;});
-    $scope.monthLabels = {
-        0: "January",
-        1: "February",
-        2: "March",
-        3: "April",
-        4: "May",
-        5: "June",
-        6: "July",
-        7: "August",
-        8: "September",
-        9: "October",
-        10: "November",
-        11: "December"
-    };
-    $scope.departments = Department.query();
-    $scope.moment = moment;
+app.controller("RotationRequestListCtrl", ["$scope", "$filter", "$q", "$routeParams", "$location", "$timeout", "Department", "AcceptanceSettings", "Internship", "InternshipMonth", "Intern", "Profile", "RotationRequest", "RequestedDepartment", "Specialty", "Hospital",
+    function ($scope, $filter, $q, $routeParams, $location, $timeout, Department, AcceptanceSettings, Internship, InternshipMonth, Intern, Profile, RotationRequest, RequestedDepartment, Specialty, Hospital) {
+
+    $scope.$watch("selected.year", function (newValue, oldValue) {
+        if (newValue !== oldValue) {
+            $scope.months = Array.apply(null, Array(12)).map(function (_, i) {return (newValue * 12) + i;});
+        }
+    });
 
     $scope.$watchGroup(["selected.month", "selected.department"], function (newValue, oldValue) {
+        console.log(newValue);
+        console.log(oldValue);
+        console.log(newValue == oldValue);
+        if (newValue !== oldValue) {
+            if (!!$scope.selected.month && !!$scope.selected.department) {
+                $location.path("requests/" + $scope.selected.department.id + "/" + $scope.selected.month + "/")
+            }
+        }
+    });
+
+    $scope.departments = Department.query();
+    $scope.departments.$promise.then(function (departments) {
+        if (!!$routeParams.month_id && !!$routeParams.department_id) {
+            var month = parseInt($routeParams.month_id);
+            $scope.selected = {
+                year:  (month - (month % 12)) / 12,
+                month: month,
+                department: departments.find(function (department, index) {
+                    return department.id == parseInt($routeParams.department_id)
+                })
+            }
+        } else {
+            $scope.selected = {
+                year: 2016
+            };
+        }
+
+        $scope.monthLabels = {
+            0: "January",
+            1: "February",
+            2: "March",
+            3: "April",
+            4: "May",
+            5: "June",
+            6: "July",
+            7: "August",
+            8: "September",
+            9: "October",
+            10: "November",
+            11: "December"
+        };
+        $scope.moment = moment;
+
         if (!!$scope.selected && !!$scope.selected.month && !!$scope.selected.department) {
             $scope.setting = AcceptanceSettings.get({month_id: $scope.selected.month, department_id: $scope.selected.department.id});
             $scope.setting.$promise.then(function (setting) {
@@ -884,7 +913,34 @@ app.controller("RotationRequestListCtrl", ["$scope", "$filter", "$q", "Departmen
                         reverse: false
                     };
 
-                    // TODO: approval, declination, & forwarding
+                    $scope.flag = function (flagName) {
+                        $scope.flags = {};  // reset all flags
+                        $scope.flags[flagName] = true;
+
+                        $timeout(function () {try {$scope.flags[flagName] = false;} catch(e) {/* Do nothing */}},  5000);
+                    };
+
+                    $scope.respond = function (request, response, comments) {
+                        request.$respond({is_approved: response, comments: comments}, function (data) {
+                            // Move request to *closed* requests
+                            var index = $scope.requests.indexOf(request);  // WARNING: indexOf not supported in all browsers (IE7 & 8)
+                            $scope.requests.splice(index, 1);
+                        }, function (error) {
+                            toastr.error(error);
+                        });
+                    };
+
+                    $scope.forward = function (request) {
+                        request.$forward({}, function (data) {
+                            // Move request to *forwarded* requests
+                            var index = $scope.internship.unreviewed_rotation_requests.indexOf(request);  // WARNING: indexOf not supported in all browsers (IE7 & 8)
+                            $scope.internship.unreviewed_rotation_requests.splice(index, 1);
+
+                            $scope.internship.forwarded_unreviewed_rotation_requests.push(request);
+                        }, function (error) {
+                            toastr.error(error);
+                        });
+                    };
 
                 } else if ($setting.criterion == 'FCFS' && $setting.can_submit_requests == false && moment().isBefore(moment($setting.start_or_end_date))) {
 
@@ -931,6 +987,9 @@ app.controller("RotationRequestListCtrl", ["$scope", "$filter", "$q", "Departmen
 
                     // Controlled submission, either criterion is FCFS & submission has started but available seats aren't over
                     // Or criterion is GPA, and submission is done
+
+                    // TODO: ability to override automated recommendation
+
                     $scope.template = 'partials/planner/staff/rotation-request-list-components/recommended-request-list.html';
                     $scope.requests = RotationRequest.query_by_department_and_month({department_id: $department.id, month_id: $month});
                     $scope.requests.$promise.then(function (requests) {
@@ -957,15 +1016,46 @@ app.controller("RotationRequestListCtrl", ["$scope", "$filter", "$q", "Departmen
                             if ($setting.unoccupied_seats >= $scope.requests.length) {
                                 // if the number of unoccupied seats is more than or equal to the number of
                                 // requests, then everybody should be accepted
-                                $scope.requests_to_be_accepted = sortedRequests;
+                                $scope.requests_to_be_approved = sortedRequests;
                                 $scope.requests_to_be_declined = null;
                             } else {
                                 // if not, select the first 'x' requests, where x = # of unoccupied seats
                                 // these requests are the ones to be accepted
                                 // the remaining requests are the ones to be declined
-                                $scope.requests_to_be_accepted = sortedRequests.slice(0, $setting.unoccupied_seats);
+                                $scope.requests_to_be_approved = sortedRequests.slice(0, $setting.unoccupied_seats);
                                 $scope.requests_to_be_declined = sortedRequests.slice($setting.unoccupied_seats);
 
+                            }
+
+                            $scope.addComment = function (array, index) {
+                                $scope['requests_to_be_' + array][index].showComments = true;
+                            };
+
+                            $scope.removeComment = function (array, index) {
+                                $scope['requests_to_be_' + array][index].showComments = false;
+                                $scope['requests_to_be_' + array][index].comments = null;
+                            };
+
+                            $scope.confirm = function () {
+                                var promises = [];
+                                angular.forEach($scope.requests_to_be_approved, function (request, index) {
+                                    promises.push(RotationRequest.respond({is_approved: 1, comments: request.comments || "", suppress_message: true}, request));
+                                });
+                                angular.forEach($scope.requests_to_be_declined, function (request, index) {
+                                    promises.push(RotationRequest.respond({is_approved: 0, comments: request.comments || "", suppress_message: true}, request));
+                                });
+                                $q.all(promises).then(function () {
+                                    toastr.success("All responses recorded.");
+
+                                    $scope.setting = AcceptanceSettings.get({department_id: $scope.selected.department.id, month_id: $scope.selected.month});
+
+                                    $scope.requests_to_be_approved = null;
+                                    $scope.requests_to_be_declined = null;
+                                    $scope.requests = [];
+
+                                }, function (error) {
+                                    toastr.error(error);
+                                });
                             }
                         });
 
@@ -1003,5 +1093,6 @@ app.controller("RotationRequestListCtrl", ["$scope", "$filter", "$q", "Departmen
         } else {
             $scope.template = null;
         }
-    })
+    });
+
 }]);

@@ -263,7 +263,8 @@ class RotationRequestViewSet(viewsets.ModelViewSet):
         rr = RotationRequest.objects.get(pk=pk)
         rr.respond(bool(int(request.query_params.get("is_approved"))), request.query_params.get("comments", ""))
 
-        messages.success(request._request, "Your response has been recorded.")
+        if not request.query_params.get("suppress_message"):
+            messages.success(request._request, "Your response has been recorded.")
 
         return Response({"status": RotationRequest.REVIEWED_STATUS, "is_approved": request.data.get("is_approved")})
 

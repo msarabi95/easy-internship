@@ -7,6 +7,14 @@
 <!-- Main content -->
 <section class="content">
   <div class="box box-solid">
+    <div class="box-body">
+      <span class="text-bold">Welcome to the rotation request review page!</span><br>
+      Start by choosing a month and a department. A list of all requests related to your selection will appear, in addition to information about the numbers of seats and the acceptance criterion used (if any).
+      If an acceptance criterion is set up, the requests will automatically be sorted and a recommended response is suggested. If there are no such settings, each individual request is left to be handled manually.
+    </div>
+  </div>
+
+  <div class="box box-solid">
     <div class="box-header with-border">
       <h4 class="box-title">Choose month and department</h4>
     </div>
@@ -45,7 +53,7 @@
   </div>
 
   <div class="box box-primary" ng-if="setting">
-    <div class="box-header">
+    <div class="box-header with-border">
       <h4 class="box-title">{{ selected.department.name }} | {{ monthLabels[selected.month % 12] }} {{ selected.year }}</h4>
     </div>
     <div class="box-body">
@@ -90,8 +98,6 @@
 
     </div>
   </div>
-
-  <!-- {{ template }} -->
 
   <div class="well">
     <ng-include ng-if="template" src="template"></ng-include>
