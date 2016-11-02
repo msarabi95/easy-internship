@@ -22,10 +22,54 @@
               <option ng-repeat="specialty in specialties" value="{{ specialty.id }}">{{ specialty.name }}</option>
             </select><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.department_specialty.$dirty" ng-cloak><li ng-show="rotationRequestForm['department_specialty'].$valid" class="valid"></li></ul><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.department_specialty.$pristine" ng-cloak><li ng-show="rotationRequestForm.department_specialty.$message" class="invalid" ng-bind="rotationRequestForm.department_specialty.$message"></li></ul></div>
 
-            <div class="has-feedback form-group"><label class="control-label" for="id_department_hospital">Hospital</label><select class="form-control" id="id_department_hospital" name="department_hospital" ng-model="rotationRequestData[&#39;department_hospital&#39;]">
+            <div class="has-feedback form-group"><label class="control-label" for="id_department_hospital">Hospital</label>
+
+            <!--<select ng-disabled="disableHospitalMenu" class="form-control" id="id_department_hospital" name="department_hospital" ng-model="rotationRequestData[&#39;department_hospital&#39;]">
               <option value="" selected="selected">---------</option>
               <option ng-repeat="hospital in hospitals" value="{{ hospital.id }}">{{ hospital.name }}</option>
-            </select><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.department_hospital.$dirty" ng-cloak><li ng-show="rotationRequestForm['department_hospital'].$valid" class="valid"></li></ul><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.department_hospital.$pristine" ng-cloak><li ng-show="rotationRequestForm.department_hospital.$message" class="invalid" ng-bind="rotationRequestForm.department_hospital.$message"></li></ul></div>
+            </select>-->
+
+            <ui-select id="id_department_hospital" name="department_hospital" ng-model="rotationRequestData.department_hospital" theme="bootstrap" ng-disabled="disableHospitalMenu"><!-- FIXME: Enable searching -->
+              <ui-select-match placeholder="Select or search for a hospital in the list...">{{ $select.selected.name }}</ui-select-match>
+              <ui-select-choices repeat="hospital.id as hospital in hospitals" ui-disable-choice="hospital.department.acceptance_settings.can_submit_requests == false">
+                <div ng-bind-html="hospital.name"></div>
+                <small ng-if="hospital.department.id" ng-init="$settings = hospital.department.acceptance_settings"><i class="text-gray">
+                  <span ng-if="$settings.can_submit_requests == true">
+                    <span ng-if="$settings.total_seats == null">
+                      Data on seat count and submission dates not available
+                    </span>
+                    <span ng-if="$settings.total_seats !== null">
+                      <span class="text-bold">Submission OPEN</span> | Acceptance Criterion: {{ $settings.criterion }} | Total Seats: {{ $settings.total_seats }}
+
+                      <span ng-if="$settings.criterion == 'FCFS'">
+                        | Available: {{ $settings.available_seats }}
+                      </span>
+
+                      <span ng-if="$settings.criterion == 'GPA' && moment().isBefore(moment($settings.start_or_end_date))">
+                        | Will close on {{ moment($settings.start_or_end_date).format('D MMMM YYYY hh:mm a') }}
+                      </span>
+                    </span>
+                  </span>
+                  <span ng-if="$settings.can_submit_requests == false">
+                    Acceptance Criterion: {{ $settings.criterion }}
+                    <span ng-if="$settings.criterion == 'FCFS' && $settings.available_seats == 0">
+                      | No available seats
+                    </span>
+                    <span ng-if="$settings.criterion == 'FCFS' && moment().isBefore(moment($settings.start_or_end_date))">
+                      | Submission will open on {{ moment($settings.start_or_end_date).format('D MMMM YYYY hh:mm a') }} | Total Seats: {{ $settings.total_seats }}
+                    </span>
+                    <span ng-if="$settings.criterion == 'GPA' && moment().isSameOrAfter(moment($settings.start_or_end_date))">
+                      | Submission was closed on {{ moment($settings.start_or_end_date).format('D MMMM YYYY hh:mm a') }}  | Total Seats: {{ $settings.total_seats }}
+                    </span>
+                  </span>
+                </i></small>
+                <small ng-if="!hospital.department.id">
+                  <i class="text-gray">Data on seat count and submission dates not available</i>
+                </small>
+              </ui-select-choices>
+            </ui-select>
+
+            <ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.department_hospital.$dirty" ng-cloak><li ng-show="rotationRequestForm['department_hospital'].$valid" class="valid"></li></ul><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.department_hospital.$pristine" ng-cloak><li ng-show="rotationRequestForm.department_hospital.$message" class="invalid" ng-bind="rotationRequestForm.department_hospital.$message"></li></ul></div>
             {% endverbatim %}
 
             <div class="has-feedback form-group"><label class="checkbox-inline"><input id="id_is_elective" name="is_elective" ng-model="rotationRequestData[&#39;is_elective&#39;]" type="checkbox" /> <span class="text-bold">This is an elective.</span> (Check this box if this is an elective rotation.)</label><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.is_elective.$dirty" ng-cloak><li ng-show="rotationRequestForm['is_elective'].$valid" class="valid"></li></ul><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.is_elective.$pristine" ng-cloak><li ng-show="rotationRequestForm.is_elective.$message" class="invalid" ng-bind="rotationRequestForm.is_elective.$message"></li></ul>

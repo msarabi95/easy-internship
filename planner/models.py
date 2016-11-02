@@ -2,12 +2,13 @@ from __future__ import unicode_literals
 
 from copy import copy
 
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from accounts.models import Intern
 from django.core import validators
 from django.core.exceptions import ObjectDoesNotExist, ValidationError, MultipleObjectsReturned
 from django.db import models
+from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django_nyt.utils import notify
 from month.models import MonthField
@@ -149,6 +150,29 @@ class NonMonthSettingsMixin(object):
 
         super(NonMonthSettingsMixin, self).save(*args, **kwargs)
 
+    def get_acceptance_start_or_end_date(self, month):
+        """
+
+        Args:
+            month: `Month` instance.
+
+        Returns: Depending on the acceptance criterion, the start or end date is calculated and returned.
+
+        """
+        month_as_date = month.first_day()  # this returns an instance of datetime.date
+        month_first_day = timezone.make_aware(datetime(
+            year=month_as_date.year,
+            month=month_as_date.month,
+            day=month_as_date.day,
+            hour=0, minute=0, second=0, microsecond=0
+        ))
+        if self.acceptance_criterion == FCFS_ACCEPTANCE:
+            start_date = month_first_day - timedelta(days=self.acceptance_start_date_interval)
+            return start_date
+        elif self.acceptance_criterion == GPA_ACCEPTANCE:
+            end_date = month_first_day - timedelta(days=self.acceptance_end_date_interval)
+            return end_date
+
 
 class MonthSettingsMixin(object):
     """
@@ -169,6 +193,20 @@ class MonthSettingsMixin(object):
             raise ValidationError("Either a start or an end date should be specified.")
 
         super(MonthSettingsMixin, self).save(*args, **kwargs)
+
+    def get_acceptance_start_or_end_date(self, month=None):
+        """
+
+        Args:
+            month: `Month` instance. Optional.
+
+        Returns: Depending on the acceptance criterion, either the start date or end date is returned.
+
+        """
+        if self.acceptance_criterion == FCFS_ACCEPTANCE:
+            return self.acceptance_start_date
+        elif self.acceptance_criterion == GPA_ACCEPTANCE:
+            return self.acceptance_end_date
 
 
 class GlobalSettings(NonMonthSettingsMixin, models.Model):
@@ -234,6 +272,101 @@ class DepartmentMonthSettings(MonthSettingsMixin, models.Model):
 
     class Meta:
         unique_together = ("month", "department")
+
+
+class AcceptanceSetting(object):
+    """
+    Acceptance setting for a particular department in a particular month.
+    """
+    def __init__(self, department, month):
+        """
+
+        Get settings for a month-department pair using the following sequence:
+        (1) If there's a DepartmentMonthSetting, use it.
+        (2) If not, look for a DepartmentSetting.
+        (3) If there isn't one, look for a MonthSetting.
+        (4) If there isn't one, use global settings.
+
+        Args:
+            department: A `Department` instance.
+            month: A `Month` instance.
+
+        """
+        total_seats = None
+        try:
+            settings_object = DepartmentMonthSettings.objects.get(department=department, month=month)
+            total_seats = settings_object.total_seats
+            if not settings_object.acceptance_criterion:
+                raise ObjectDoesNotExist
+            setting_type = 'DM'
+        except ObjectDoesNotExist:
+            try:
+                settings_object = DepartmentSettings.objects.get(department=department)
+                setting_type = 'D'
+            except ObjectDoesNotExist:
+                try:
+                    settings_object = MonthSettings.objects.get(month=month)
+                    setting_type = 'M'
+                except ObjectDoesNotExist:
+                    # Import is local to avoid cyclic import issues
+                    from planner.utils import get_global_settings
+
+                    settings_object = get_global_settings()
+                    setting_type = 'G'
+
+        self.month = month
+        self.department = department
+
+        self.type = setting_type
+        self.criterion = settings_object.acceptance_criterion
+        self.start_or_end_date = settings_object.get_acceptance_start_or_end_date(month)
+        self.total_seats = total_seats
+
+    # TODO: Implement as properties
+    def get_booked_seats(self):
+        if self.total_seats is None:
+            return None
+        return RotationRequest.objects.open().month(self.month).\
+            filter(requested_department__department=self.department).count()  # FIXME: what about departments not in db?
+
+    def get_occupied_seats(self):
+        if self.total_seats is None:
+            return None
+        return Rotation.objects.filter(department=self.department, month=self.month).count()
+
+    def get_available_seats(self):
+        if self.total_seats is None:
+            return None
+        return self.total_seats - (self.get_booked_seats() + self.get_occupied_seats())
+
+    def can_submit_requests(self):
+        """
+
+        Returns: True or False, depending on whether it's possible to submit requests for this department-month pair.
+
+        """
+        if self.total_seats is None:
+            # If no seat count is specified, then requests can be submitted any time
+            return True
+        else:
+            # If a seat count is specified, check acceptance criterion
+            if self.criterion == GPA_ACCEPTANCE:
+                # When the criterion is GPA, the only factor to permit submissions is whether the end date has been
+                # reached or not (Available seat count isn't a factor)
+                return timezone.now() < self.start_or_end_date
+            elif self.criterion == FCFS_ACCEPTANCE:
+                # A sanity check
+                if self.get_available_seats() >= 0:
+                    if self.get_available_seats() > 0 and timezone.now() >= self.start_or_end_date:
+                        # Requests can be submitted when start date has passed, AND there is at least 1
+                        # available seat
+                        return True
+                    else:
+                        # If available seats equals 0, or start date hasn't passed yet,
+                        # then no requests can be submitted
+                        return False
+                else:
+                    raise ValueError("Unexpected value of available seats.")
 
 
 class InternshipMonth(object):
