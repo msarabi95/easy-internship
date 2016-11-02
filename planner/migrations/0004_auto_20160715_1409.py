@@ -20,14 +20,14 @@ class Migration(migrations.Migration):
             name='specialty',
             options={'verbose_name_plural': 'Specialties'},
         ),
-        migrations.RemoveField(
-            model_name='rotationrequestforward',
-            name='id',
-        ),
         migrations.AddField(
             model_name='rotationrequestforward',
             name='key',
             field=models.CharField(default='', max_length=20, primary_key=True, serialize=False),
             preserve_default=False,
+        ),
+        migrations.RemoveField(
+            model_name='rotationrequestforward',
+            name='id',
         ),
     ]
