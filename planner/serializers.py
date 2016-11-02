@@ -96,6 +96,7 @@ class AcceptanceSettingSerializer(serializers.Serializer):
     total_seats = serializers.IntegerField(allow_null=True)
     booked_seats = serializers.IntegerField(allow_null=True, source='get_booked_seats')
     occupied_seats = serializers.IntegerField(allow_null=True, source='get_occupied_seats')
+    unoccupied_seats = serializers.IntegerField(allow_null=True, source='get_unoccupied_seats')
     available_seats = serializers.IntegerField(allow_null=True, source='get_available_seats')
     can_submit_requests = serializers.BooleanField()
 

@@ -1,0 +1,135 @@
+{% verbatim %}
+<div class="row" ng-if="requests.length > 0">
+  <div class="col-md-offset-2 col-md-8">
+    <div class="box box-solid box-success">
+      <div class="box-header">
+        <h4 class="box-title">Requests to be approved (based on {{ setting.criterionDescription }})</h4>
+      </div>
+      <div class="box-body bg-gray-light">
+
+        <div class="box box-success" ng-repeat="request in requests_to_be_approved | orderBy: ordering.option : ordering.reverse">
+          <div class="box-header with-border">
+            <h5 class="box-title">Request #{{ request.id }}</h5>
+          </div>
+          <div class="box-body">
+            <dl class="dl-horizontal">
+
+              <dt>Intern</dt>
+              <dd>
+                {{ request.internship.intern.profile.en_full_name }}
+                <a class="btn btn-xs btn-primary pull-right" href="#/planner/{{ request.internship.id }}"><i class="fa fa-info-circle"></i> View full intern details</a>
+              </dd>
+
+              <dt>GPA</dt>
+              <dd ng-class="{'text-bold text-green': setting.criterion == 'GPA'}">
+                {{ request.internship.intern.gpa }}
+              </dd>
+
+              <div ng-if="!request.delete">
+                <dt>Elective?</dt>
+                <dd>
+                  <span ng-if="request.is_elective == true" class="text-yellow text-bold">Yes</span>
+                  <span ng-if="request.is_elective == false">No</span>
+                </dd>
+              </div>
+
+              <div ng-if="request.delete">
+                <dt>Description</dt>
+                <dd>{{ internship.intern.profile.en_full_name}} requested <span class="text-red text-bold">cancellation of the rotation</span> during this month.</dd>
+              </div>
+
+              <dt style="width: inherit;">Submission date and time</dt>
+              <dd ng-class="{'text-bold text-green': setting.criterion == 'FCFS'}">
+                {{ request.submission_datetime }}
+              </dd>
+            </dl>
+
+            <button class="btn btn-link" ng-if="!request.showComments" ng-click="addComment('approved', $index)">
+              <i class="fa fa-plus"></i> Add comment
+            </button>
+
+            <button class="btn btn-link" ng-if="!!request.showComments" ng-click="removeComment('approved', $index)">
+              <i class="fa fa-close"></i> Remove comment
+            </button>
+
+            <div class="row" ng-if="!!request.showComments">
+              <div class="col-xs-12">
+                <div class="form-group">
+                  <textarea class="form-control" rows="3" placeholder="Comment" ng-model="request.comments"></textarea>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="box box-solid box-default" ng-if="requests_to_be_declined.length > 0">
+      <div class="box-header">
+        <h4 class="box-title">Requests to be declined (based on {{ setting.criterionDescription }})</h4>
+      </div>
+      <div class="box-body bg-gray-light">
+
+        <div class="box box-default" ng-repeat="request in requests_to_be_declined | orderBy: ordering.option : ordering.reverse">
+          <div class="box-header with-border">
+            <h5 class="box-title">Request #{{ request.id }}</h5>
+          </div>
+          <div class="box-body">
+            <dl class="dl-horizontal">
+
+              <dt>Intern</dt>
+              <dd>
+                {{ request.internship.intern.profile.en_full_name }}
+                <a class="btn btn-xs btn-primary pull-right" href="#/planner/{{ request.internship.id }}"><i class="fa fa-info-circle"></i> View full intern details</a>
+              </dd>
+
+              <dt>GPA</dt>
+              <dd ng-class="{'text-bold text-gray': setting.criterion == 'GPA'}">
+                {{ request.internship.intern.gpa }}
+              </dd>
+
+              <div ng-if="!request.delete">
+                <dt>Elective?</dt>
+                <dd>
+                  <span ng-if="request.is_elective == true" class="text-yellow text-bold">Yes</span>
+                  <span ng-if="request.is_elective == false">No</span>
+                </dd>
+              </div>
+
+              <div ng-if="request.delete">
+                <dt>Description</dt>
+                <dd>{{ internship.intern.profile.en_full_name}} requested <span class="text-red text-bold">cancellation of the rotation</span> during this month.</dd>
+              </div>
+
+              <dt style="width: inherit;">Submission date and time</dt>
+              <dd ng-class="{'text-bold text-gray': setting.criterion == 'FCFS'}">
+                {{ request.submission_datetime }}
+              </dd>
+            </dl>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="box box-solid box-default" ng-if="!requests_to_be_declined">
+      <div class="box-body">
+        <p class="text-center">
+          All the applicants can be accommodated within the available seats. No requests need to be declined.
+        </p>
+      </div>
+    </div>
+
+    <button class="btn btn-block btn-flat btn-success" ng-click="confirm()">Confirm</button>
+
+  </div>
+</div>
+<div ng-if="requests.length == 0">
+  <p class="text-center" style="font-size: 1.5em;">
+    There are no requests to review.
+  </p>
+</div>
+{% endverbatim %}

@@ -6,7 +6,7 @@ from accounts.models import Profile
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist, ValidationError, NON_FIELD_ERRORS
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from django.views import generic as django_generics
@@ -263,7 +263,8 @@ class RotationRequestViewSet(viewsets.ModelViewSet):
         rr = RotationRequest.objects.get(pk=pk)
         rr.respond(bool(int(request.query_params.get("is_approved"))), request.query_params.get("comments", ""))
 
-        messages.success(request._request, "Your response has been recorded.")
+        if not request.query_params.get("suppress_message"):
+            messages.success(request._request, "Your response has been recorded.")
 
         return Response({"status": RotationRequest.REVIEWED_STATUS, "is_approved": request.data.get("is_approved")})
 
@@ -272,6 +273,21 @@ class RotationRequestViewSet(viewsets.ModelViewSet):
         rr = RotationRequest.objects.get(pk=pk)
         rr.forward_request()
         return Response({"status": RotationRequest.FORWARDED_STATUS})
+
+
+class RotationRequestByDepartmentAndMonth(generics.ListAPIView):
+    serializer_class = RotationRequestSerializer
+
+    def list(self, request, *args, **kwargs):
+        try:
+            return super(RotationRequestByDepartmentAndMonth, self).list(request, *args, **kwargs)
+        except ObjectDoesNotExist:
+            raise Http404
+
+    def get_queryset(self):
+        department = Department.objects.get(id=self.kwargs['department_id'])
+        month = Month.from_int(int(self.kwargs['month_id']))
+        return RotationRequest.objects.unreviewed().filter(month=month, requested_department__department=department)
 
 
 class RotationRequestFormView(django_generics.FormView):
