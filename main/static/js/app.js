@@ -1,7 +1,7 @@
 /**
  * Created by MSArabi on 6/16/16.
  */
-var app = angular.module("easyInternship", ["djng.forms", "ngResource", "ngRoute", "easy.planner"]);
+var app = angular.module("easyInternship", ["djng.forms", "ngResource", "ngRoute", "ngSanitize", "easy.planner", "ui.select"]);
 
 app.config(["$httpProvider", "$routeProvider", "$resourceProvider",
     function ($httpProvider, $routeProvider, $resourceProvider) {
@@ -253,16 +253,79 @@ app.controller("MonthDetailCtrl", ["$scope", "$routeParams", "InternshipMonth", 
 }]);
 
 app.controller("RotationRequestCreateCtrl", ["$scope", "$routeParams", "$location", "Specialty", "Hospital", "Department",
-    "RequestedDepartment", "RotationRequest", "InternshipMonth", "djangoForm", "$http", "$compile",
-    function ($scope, $routeParams, $location, Specialty, Hospital, Department, RequestedDepartment, RotationRequest, InternshipMonth, djangoForm, $http, $compile) {
+    "RequestedDepartment", "RotationRequest", "InternshipMonth", "djangoForm", "$http", "$compile", "AcceptanceSettings",
+    function ($scope, $routeParams, $location, Specialty, Hospital, Department, RequestedDepartment, RotationRequest, InternshipMonth, djangoForm, $http, $compile, AcceptanceSettings) {
         $scope.internshipMonth = InternshipMonth.get({month_id: $routeParams.month_id});
 
+        $scope.disableHospitalMenu = true;
         $scope.specialties = Specialty.query();
-        $scope.hospitals = Hospital.query();
 
-        $scope.$watchGroup(['rotationRequestData.department_specialty','rotationRequestData.department_hospital'],
-            function () {
-                $scope.getDepartment();
+        $scope.$watch('rotationRequestData.department_specialty', function (newValue, oldValue) {
+            if (newValue !== oldValue) {
+                $scope.disableHospitalMenu = true;
+                console.log($scope.rotationRequestForm);
+                if (newValue !== undefined && newValue !== "") {
+                    $scope.getDepartments();
+                } else {
+                    $scope.rotationRequestData = {};  // reset form when specialty selection is changed
+                }
+            }
+        });
+
+        $scope.getDepartments = function () {
+            // Load hospital data, each with the department corresponding to the selected specialty
+
+            $scope.hospitals = Hospital.query(function (hospitals) {
+                angular.forEach(hospitals, function (hospital, index) {
+                    $scope.hospitals[index].department = Department.get_by_specialty_and_hospital({
+                        specialty: $scope.rotationRequestData.department_specialty,
+                        hospital: $scope.hospitals[index].id
+                    });
+
+                    $scope.hospitals[index].department.$promise.then(function (department) {
+                        // Get acceptance settings
+                        $scope.hospitals[index].department.acceptance_settings = AcceptanceSettings.get({}, {
+                            department: department.id,
+                            month: $scope.internshipMonth.month
+                        });
+                        $scope.hospitals[index].department.acceptance_settings.$promise.then(
+                            function (settings) {
+                                /*console.log(settings);*/
+                            },
+                            function (error) {
+                                if (error.status !== 404) {
+                                    toastr.error(error.statusText);
+                                    console.error(error.statusText);
+                                }
+                            });
+                    }, function (error) {
+                        if (error.status !== 404) {
+                            toastr.error(error.statusText);
+                            console.error(error.statusText);
+                        }
+                    });
+
+                });
+
+                $scope.disableHospitalMenu = false;
+            });
+        };
+
+        $scope.$watch('rotationRequestData.department_hospital', function (newValue, oldValue) {
+            // Show or hide department detail fields based on whether department info is present in db or not
+            if (newValue !== undefined && newValue !== oldValue) {
+                var hospital = $scope.hospitals.find(function (obj, index) {
+                    return obj.id == newValue;
+                });
+
+                if (!!hospital.department.id) {
+                    var department = hospital.department;
+                    $scope.rotationRequestData.department = department.id;
+                    $scope.rotationRequestData.is_in_database = true;
+                } else {
+                    $scope.rotationRequestData.is_in_database = false;
+                }
+            }
         });
 
         $scope.$watch('rotationRequestForm.$message', function (newValue, oldValue) {
@@ -271,27 +334,6 @@ app.controller("RotationRequestCreateCtrl", ["$scope", "$routeParams", "$locatio
                 $scope.rotationRequestForm.$message = undefined;
             }
         });
-
-        $scope.getDepartment = function () {
-            // This function is called whenever the hospital or specialty fields are updated
-            if (!!$scope.rotationRequestData.department_specialty && !!$scope.rotationRequestData.department_hospital) {
-
-                $scope.department = Department.get_by_specialty_and_hospital({
-                    specialty: $scope.rotationRequestData.department_specialty,
-                    hospital: $scope.rotationRequestData.department_hospital
-                }, function (department) {
-                    $scope.rotationRequestData.department = department.id;
-                    $scope.rotationRequestData.is_in_database = true;
-                }, function (error) {
-                    if (error.status == 404) {
-                        $scope.rotationRequestData.is_in_database = false;
-                    } else {
-                        toastr.error(error.statusText);
-                        console.log(error);
-                    }
-                });
-            }
-        };
 
         $scope.submit = function () {
             if ($scope.rotationRequestData) {
@@ -305,13 +347,16 @@ app.controller("RotationRequestCreateCtrl", ["$scope", "$routeParams", "$locatio
                     if (!djangoForm.setErrors($scope.rotationRequestForm, out_data.errors)) {
                         $location.path("/planner");
                     }
-                }).error(function (out_data) {
-                    toastr.error(out_data);
+                }).error(function (error) {
+                    console.log(error);
+                    toastr.error(error);
                 })
             }
 
             return false;
-        }
+        };
+
+        $scope.moment = moment;
 
 }]);
 

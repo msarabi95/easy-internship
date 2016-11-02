@@ -26,6 +26,12 @@ custom_departments_view_url = url(r'^api/departments/(?P<specialty>\d+)/(?P<hosp
 custom_internship_months_view_url = url(r'^api/internship_months/(?P<internship_id>\d+)/(?P<month_id>\d+)/$',
                                         views.InternshipMonthByInternshipAndId.as_view())
 
+acceptance_settings_by_department_and_month_id = url(r'^api/acceptance_settings/(?P<department_id>\d+)/(?P<month_id>\d+)/$',
+                                                        views.AcceptanceSettingsByDepartmentAndMonth.as_view())
+
+rotation_request_list_by_department_and_month = url(r'api/rotation_requests/(?P<department_id>\d+)/(?P<month_id>\d+)/$',
+                                                    views.RotationRequestByDepartmentAndMonth.as_view())
+
 urlpatterns = [
     url(r'^rotation-request-form/$', RotationRequestFormView.as_view()),
 ]

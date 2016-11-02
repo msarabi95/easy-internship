@@ -6,7 +6,7 @@ from accounts.models import Profile
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist, ValidationError, NON_FIELD_ERRORS
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from django.views import generic as django_generics
@@ -15,15 +15,15 @@ from planner.serializers import RotationRequestSerializer, RotationRequestForwar
     InternshipMonthSerializer, HospitalSerializer, SpecialtySerializer, DepartmentSerializer, DepartmentMonthSettingsSerializer, \
     InternshipSerializer, RotationSerializer, RequestedDepartmentSerializer, RotationRequestResponseSerializer, \
     RotationRequestForwardResponseSerializer, MonthSettingsSerializer, \
-    DepartmentSettingsSerializer
+    DepartmentSettingsSerializer, AcceptanceSettingSerializer
 from planner.utils import set_global_acceptance_criterion, get_global_acceptance_criterion, \
     get_global_acceptance_start_date_interval, set_global_acceptance_start_date_interval, \
-    get_global_acceptance_end_date_interval, set_global_acceptance_end_date_interval
+    get_global_acceptance_end_date_interval, set_global_acceptance_end_date_interval, get_global_settings
 from rest_framework import viewsets, generics
 from month import Month
 from planner.models import Hospital, RequestedDepartment, Department, Specialty, \
     RotationRequest, RotationRequestForward, DepartmentMonthSettings, Internship, Rotation, RotationRequestResponse, \
-    RotationRequestForwardResponse, MonthSettings, DepartmentSettings
+    RotationRequestForwardResponse, MonthSettings, DepartmentSettings, AcceptanceSetting
 from rest_framework.decorators import list_route, detail_route
 from rest_framework.response import Response
 
@@ -167,6 +167,15 @@ class DepartmentMonthSettingsViewSet(SettingsMessagesMixin, viewsets.ModelViewSe
         return Response({'id': int(Month.from_date(datetime(timezone.now().year, 1, 1)))})
 
 
+class AcceptanceSettingsByDepartmentAndMonth(generics.RetrieveAPIView):
+    serializer_class = AcceptanceSettingSerializer
+
+    def get_object(self):
+        department = get_object_or_404(Department, id=self.kwargs['department_id'])
+        month = Month.from_int(int(self.kwargs['month_id']))
+        return AcceptanceSetting(department, month)
+
+
 class InternshipMonthViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = InternshipMonthSerializer
     lookup_field = 'month'
@@ -254,7 +263,8 @@ class RotationRequestViewSet(viewsets.ModelViewSet):
         rr = RotationRequest.objects.get(pk=pk)
         rr.respond(bool(int(request.query_params.get("is_approved"))), request.query_params.get("comments", ""))
 
-        messages.success(request._request, "Your response has been recorded.")
+        if not request.query_params.get("suppress_message"):
+            messages.success(request._request, "Your response has been recorded.")
 
         return Response({"status": RotationRequest.REVIEWED_STATUS, "is_approved": request.data.get("is_approved")})
 
@@ -263,6 +273,21 @@ class RotationRequestViewSet(viewsets.ModelViewSet):
         rr = RotationRequest.objects.get(pk=pk)
         rr.forward_request()
         return Response({"status": RotationRequest.FORWARDED_STATUS})
+
+
+class RotationRequestByDepartmentAndMonth(generics.ListAPIView):
+    serializer_class = RotationRequestSerializer
+
+    def list(self, request, *args, **kwargs):
+        try:
+            return super(RotationRequestByDepartmentAndMonth, self).list(request, *args, **kwargs)
+        except ObjectDoesNotExist:
+            raise Http404
+
+    def get_queryset(self):
+        department = Department.objects.get(id=self.kwargs['department_id'])
+        month = Month.from_int(int(self.kwargs['month_id']))
+        return RotationRequest.objects.unreviewed().filter(month=month, requested_department__department=department)
 
 
 class RotationRequestFormView(django_generics.FormView):
@@ -284,6 +309,15 @@ class RotationRequestFormView(django_generics.FormView):
 
         form = self.form_class(data=data)
         if form.is_valid():
+
+            if form.cleaned_data['is_in_database']:
+                department = form.cleaned_data['department']
+                settings = AcceptanceSetting(department, month)
+                if not settings.can_submit_requests():
+                    form.add_error(None, "Submission is closed for %s during %s." % (department.name, month.first_day().strftime("%B %Y")))
+                    response_data = {'errors': form.errors}
+                    return HttpResponse(json.dumps(response_data), content_type="application/json")
+
             requested_department = form.save()
             try:
                 internship.rotation_requests.create(
