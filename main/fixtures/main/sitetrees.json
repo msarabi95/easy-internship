@@ -1,138 +1,162 @@
 [
 {
-    "model": "sitetree.tree",
-    "pk": 1,
-    "fields": {
-        "title": "Intern Site",
-        "alias": "interntree"
-    }
+  "model": "sitetree.tree",
+  "pk": 1,
+  "fields": {
+    "title": "Intern Site",
+    "alias": "interntree"
+  }
 },
 {
-    "model": "sitetree.tree",
-    "pk": 2,
-    "fields": {
-        "title": "Staff Site",
-        "alias": "stafftree"
-    }
+  "model": "sitetree.tree",
+  "pk": 2,
+  "fields": {
+    "title": "Staff Site",
+    "alias": "stafftree"
+  }
 },
 {
-    "model": "sitetree.treeitem",
-    "pk": 1,
-    "fields": {
-        "title": "Home",
-        "hint": "",
-        "url": "#/",
-        "urlaspattern": false,
-        "tree": 1,
-        "hidden": false,
-        "alias": null,
-        "description": "",
-        "inmenu": true,
-        "inbreadcrumbs": true,
-        "insitetree": true,
-        "access_loggedin": false,
-        "access_guest": false,
-        "access_restricted": false,
-        "access_perm_type": 1,
-        "parent": null,
-        "sort_order": 1,
-        "access_permissions": []
-    }
+  "model": "sitetree.treeitem",
+  "pk": 1,
+  "fields": {
+    "title": "Home",
+    "hint": "",
+    "url": "#/",
+    "urlaspattern": false,
+    "tree": 1,
+    "hidden": false,
+    "alias": null,
+    "description": "",
+    "inmenu": true,
+    "inbreadcrumbs": true,
+    "insitetree": true,
+    "access_loggedin": false,
+    "access_guest": false,
+    "access_restricted": false,
+    "access_perm_type": 1,
+    "parent": null,
+    "sort_order": 1,
+    "access_permissions": []
+  }
 },
 {
-    "model": "sitetree.treeitem",
-    "pk": 2,
-    "fields": {
-        "title": "Planner",
-        "hint": "",
-        "url": "#/planner/",
-        "urlaspattern": false,
-        "tree": 1,
-        "hidden": false,
-        "alias": null,
-        "description": "",
-        "inmenu": true,
-        "inbreadcrumbs": true,
-        "insitetree": true,
-        "access_loggedin": false,
-        "access_guest": false,
-        "access_restricted": false,
-        "access_perm_type": 1,
-        "parent": null,
-        "sort_order": 2,
-        "access_permissions": []
-    }
+  "model": "sitetree.treeitem",
+  "pk": 2,
+  "fields": {
+    "title": "Planner",
+    "hint": "",
+    "url": "#/planner/",
+    "urlaspattern": false,
+    "tree": 1,
+    "hidden": false,
+    "alias": null,
+    "description": "",
+    "inmenu": true,
+    "inbreadcrumbs": true,
+    "insitetree": true,
+    "access_loggedin": false,
+    "access_guest": false,
+    "access_restricted": false,
+    "access_perm_type": 1,
+    "parent": null,
+    "sort_order": 2,
+    "access_permissions": []
+  }
 },
 {
-    "model": "sitetree.treeitem",
-    "pk": 5,
-    "fields": {
-        "title": "{{ \"<i class='fa fa-clock-o'></i> Recent requests\" }}",
-        "hint": "",
-        "url": "#/planner/recent/",
-        "urlaspattern": false,
-        "tree": 2,
-        "hidden": false,
-        "alias": null,
-        "description": "",
-        "inmenu": true,
-        "inbreadcrumbs": true,
-        "insitetree": true,
-        "access_loggedin": false,
-        "access_guest": false,
-        "access_restricted": false,
-        "access_perm_type": 1,
-        "parent": null,
-        "sort_order": 5,
-        "access_permissions": []
-    }
+  "model": "sitetree.treeitem",
+  "pk": 5,
+  "fields": {
+    "title": "{{ \"<i class='fa fa-clock-o'></i> Recent requests\" }}",
+    "hint": "",
+    "url": "#/planner/recent/",
+    "urlaspattern": false,
+    "tree": 2,
+    "hidden": false,
+    "alias": null,
+    "description": "",
+    "inmenu": true,
+    "inbreadcrumbs": true,
+    "insitetree": true,
+    "access_loggedin": false,
+    "access_guest": false,
+    "access_restricted": false,
+    "access_perm_type": 1,
+    "parent": null,
+    "sort_order": 5,
+    "access_permissions": []
+  }
 },
 {
-    "model": "sitetree.treeitem",
-    "pk": 6,
-    "fields": {
-        "title": "{{ \"<i class='fa fa-users'></i> Interns\" }}",
-        "hint": "",
-        "url": "#/planner/all/",
-        "urlaspattern": false,
-        "tree": 2,
-        "hidden": false,
-        "alias": null,
-        "description": "",
-        "inmenu": true,
-        "inbreadcrumbs": true,
-        "insitetree": true,
-        "access_loggedin": false,
-        "access_guest": false,
-        "access_restricted": false,
-        "access_perm_type": 1,
-        "parent": null,
-        "sort_order": 6,
-        "access_permissions": []
-    }
+  "model": "sitetree.treeitem",
+  "pk": 6,
+  "fields": {
+    "title": "{{ \"<i class='fa fa-users'></i> Interns\" }}",
+    "hint": "",
+    "url": "#/planner/all/",
+    "urlaspattern": false,
+    "tree": 2,
+    "hidden": false,
+    "alias": null,
+    "description": "",
+    "inmenu": true,
+    "inbreadcrumbs": true,
+    "insitetree": true,
+    "access_loggedin": false,
+    "access_guest": false,
+    "access_restricted": false,
+    "access_perm_type": 1,
+    "parent": null,
+    "sort_order": 6,
+    "access_permissions": []
+  }
 },
 {
-    "model": "sitetree.treeitem",
-    "pk": 7,
-    "fields": {
-        "title": "{{ \"<i class='fa fa-balance-scale'></i> Seats & Acceptance Settings\" }}",
-        "hint": "",
-        "url": "#/seats/",
-        "urlaspattern": false,
-        "tree": 2,
-        "hidden": false,
-        "alias": null,
-        "description": "",
-        "inmenu": true,
-        "inbreadcrumbs": true,
-        "insitetree": true,
-        "access_loggedin": false,
-        "access_guest": false,
-        "access_restricted": false,
-        "access_perm_type": 1,
-        "parent": null,
-        "sort_order": 7,
-        "access_permissions": []
-    }
+  "model": "sitetree.treeitem",
+  "pk": 7,
+  "fields": {
+    "title": "{{ \"<i class='fa fa-balance-scale'></i> Seats & acceptance settings\" }}",
+    "hint": "",
+    "url": "#/seats/",
+    "urlaspattern": false,
+    "tree": 2,
+    "hidden": false,
+    "alias": null,
+    "description": "",
+    "inmenu": true,
+    "inbreadcrumbs": true,
+    "insitetree": true,
+    "access_loggedin": false,
+    "access_guest": false,
+    "access_restricted": false,
+    "access_perm_type": 1,
+    "parent": null,
+    "sort_order": 10,
+    "access_permissions": []
+  }
+},
+{
+  "model": "sitetree.treeitem",
+  "pk": 10,
+  "fields": {
+    "title": "{{ \"<i class='fa fa-inbox'></i> Rotation requests\" }}",
+    "hint": "",
+    "url": "#/requests/",
+    "urlaspattern": false,
+    "tree": 2,
+    "hidden": false,
+    "alias": null,
+    "description": "",
+    "inmenu": true,
+    "inbreadcrumbs": true,
+    "insitetree": true,
+    "access_loggedin": false,
+    "access_guest": false,
+    "access_restricted": false,
+    "access_perm_type": 1,
+    "parent": null,
+    "sort_order": 7,
+    "access_permissions": []
+  }
 }
 ]
