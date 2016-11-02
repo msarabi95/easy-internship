@@ -327,12 +327,20 @@ class AcceptanceSetting(object):
         if self.total_seats is None:
             return None
         return RotationRequest.objects.open().month(self.month).\
-            filter(requested_department__department=self.department).count()  # FIXME: what about departments not in db?
+            filter(requested_department__department=self.department).count()
+        # FIXME: what about departments not in db?
+        # FIXME: Exclude declined requests
+        # FIXME: Exclude cancellation requests
 
     def get_occupied_seats(self):
         if self.total_seats is None:
             return None
         return Rotation.objects.filter(department=self.department, month=self.month).count()
+
+    def get_unoccupied_seats(self):
+        if self.total_seats is None:
+            return None
+        return self.total_seats - self.get_occupied_seats()
 
     def get_available_seats(self):
         if self.total_seats is None:

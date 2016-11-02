@@ -127,6 +127,11 @@ plannerModule.factory("RequestedDepartment", ["$resource", function($resource) {
 
 plannerModule.factory("RotationRequest", ["$resource", function($resource) {
     return $resource('/api/rotation_requests/:id', {id: '@id'}, {
+        query_by_department_and_month: {
+            method: "get",
+            url: '/api/rotation_requests/:department_id/:month_id',
+            isArray: true
+        },
         respond: {
             method: "post",
             url: '/api/rotation_requests/:id/respond/',

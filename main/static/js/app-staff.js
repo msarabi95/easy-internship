@@ -3,7 +3,8 @@
  */
 var app = angular.module("easyInternship",
                          ["ngRoute", "ngResource", "easy.planner", "easy.accounts", "ui.bootstrap",
-                             "datatables", "datatables.bootstrap", "ngHandsontable", "ngScrollbars"]);
+                             "datatables", "datatables.bootstrap", "ngHandsontable", "ngScrollbars",
+                             "ui.select"]);
 
 app.config(["$httpProvider", "$routeProvider", "$resourceProvider",
     function ($httpProvider, $routeProvider, $resourceProvider) {
@@ -58,7 +59,11 @@ app.config(["$httpProvider", "$routeProvider", "$resourceProvider",
         })
         .when("/seats/", {
             templateUrl: "partials/planner/staff/seat-availability-list.html",
-            controller: "AcceptanceSettingsList"
+            controller: "AcceptanceSettingsListCtrl"
+        })
+        .when("/requests/:department_id?/:month_id?", {
+            templateUrl: "partials/planner/staff/rotation-request-list.html",
+            controller: "RotationRequestListCtrl"
         });
 
     $resourceProvider.defaults.stripTrailingSlashes = false;
@@ -315,7 +320,7 @@ app.controller("InternDetailCtrl", ["$scope", "$routeParams", "$timeout", "Inter
         }
 }]);
 
-app.controller("AcceptanceSettingsList", ["$scope", "hotRegisterer", "$uibModal", "Department", "GlobalSettings", "MonthSettings", "DepartmentSettings", "DepartmentMonthSettings",
+app.controller("AcceptanceSettingsListCtrl", ["$scope", "hotRegisterer", "$uibModal", "Department", "GlobalSettings", "MonthSettings", "DepartmentSettings", "DepartmentMonthSettings",
     function ($scope, hotRegisterer, $uibModal, Department, GlobalSettings, MonthSettings, DepartmentSettings, DepartmentMonthSettings) {
 
     $scope.scrollbarsConfig = {
@@ -818,4 +823,185 @@ app.controller("MonthSettingModalCtrl", ["$scope", "$uibModalInstance", "momentM
         $scope.cancel = function () {
             $uibModalInstance.dismiss('cancel');
         };
+}]);
+
+app.controller("RotationRequestListCtrl", ["$scope", "$filter", "$q", "Department", "AcceptanceSettings", "Internship", "InternshipMonth", "Intern", "Profile", "RotationRequest", "RequestedDepartment", "Specialty", "Hospital",
+    function ($scope, $filter, $q, Department, AcceptanceSettings, Internship, InternshipMonth, Intern, Profile, RotationRequest, RequestedDepartment, Specialty, Hospital) {
+    $scope.selected = {
+        year: 2016
+    };
+    $scope.months = Array.apply(null, Array(12)).map(function (_, i) {return ($scope.selected.year * 12) + i;});
+    $scope.monthLabels = {
+        0: "January",
+        1: "February",
+        2: "March",
+        3: "April",
+        4: "May",
+        5: "June",
+        6: "July",
+        7: "August",
+        8: "September",
+        9: "October",
+        10: "November",
+        11: "December"
+    };
+    $scope.departments = Department.query();
+    $scope.moment = moment;
+
+    $scope.$watchGroup(["selected.month", "selected.department"], function (newValue, oldValue) {
+        if (!!$scope.selected && !!$scope.selected.month && !!$scope.selected.department) {
+            $scope.setting = AcceptanceSettings.get({month_id: $scope.selected.month, department_id: $scope.selected.department.id});
+            $scope.setting.$promise.then(function (setting) {
+                $scope.setting.criterionDescription = {FCFS: "submission date and time", GPA: "GPA"}[setting.criterion];
+
+                var $setting = setting,
+                    $department = $scope.selected.department,
+                    $month = $scope.selected.month;
+
+                if ($setting.total_seats == null) {
+
+                    // Uncontrolled submission
+                    $scope.template = 'partials/planner/staff/rotation-request-list-components/uncontrolled-request-list.html';
+                    $scope.requests = RotationRequest.query_by_department_and_month({department_id: $department.id, month_id: $month});
+                    $scope.requests.$promise.then(function (requests) {
+                        angular.forEach(requests, function (request, index) {
+                            getFullRequestInfo(request, index);
+                        });
+                    });
+
+                    $scope.reverseOptions = [
+                        {label: "Ascending", value: false},
+                        {label: "Descending", value: true}
+                    ];
+
+                    $scope.orderingOptions = [
+                        {label: "Submission date and time", value: function (request) {return moment(request.submission_datetime).toDate();}},
+                        {label: "GPA", value: function (request) {return parseFloat(request.internship.intern.gpa)}},
+                        {label: "Name", value: function (request) {return request.internship.intern.profile.en_full_name;}}
+                    ];
+                    $scope.ordering = {
+                        option: $scope.orderingOptions[0].value,
+                        reverse: false
+                    };
+
+                    // TODO: approval, declination, & forwarding
+
+                } else if ($setting.criterion == 'FCFS' && $setting.can_submit_requests == false && moment().isBefore(moment($setting.start_or_end_date))) {
+
+                    // Controlled submission, criterion is FCFS, and no requests have been received yet (start date is yet to come)
+                    $scope.template = 'partials/planner/staff/rotation-request-list-components/empty-request-list.html';
+
+                    $scope.message = "Request submission for this department during this month will open on " + moment($setting.start_or_end_date).format("d MMM YYYY, hh:mm a") + "." ;
+
+                } else if ( ($setting.criterion == 'FCFS' && $setting.can_submit_requests == false && $setting.unoccupied_seats == 0)
+                    || ($setting.criterion == 'GPA' && $setting.can_submit_requests == true)) {
+
+                    // Controlled submission, either criterion is FCFS & seats are all done, or criterion is GPA & submission isn't over yet
+                    // In both cases show a list of "disabled" requests
+                    $scope.template = 'partials/planner/staff/rotation-request-list-components/disabled-request-list.html';
+                    $scope.requests = RotationRequest.query_by_department_and_month({department_id: $department.id, month_id: $month});
+                    $scope.requests.$promise.then(function (requests) {
+                        angular.forEach(requests, function (request, index) {
+                            getFullRequestInfo(request, index);
+                        });
+                    });
+
+                    $scope.reverseOptions = [
+                        {label: "Ascending", value: false},
+                        {label: "Descending", value: true}
+                    ];
+
+                    $scope.orderingOptions = [
+                        {label: "Submission date and time", value: function (request) {return moment(request.submission_datetime).toDate();}},
+                        {label: "GPA", value: function (request) {return parseFloat(request.internship.intern.gpa)}},
+                        {label: "Name", value: function (request) {return request.internship.intern.profile.en_full_name;}}
+                    ];
+                    $scope.ordering = {
+                        option: $scope.orderingOptions[0].value,
+                        reverse: false
+                    };
+
+                    if ($setting.criterion == 'GPA') {
+                        $scope.message = "Request submission is still ongoing. You'll be able to review submitted requests starting on " + moment($setting.start_or_end_date).format("d MMM YYYY, hh:mm a") + "." ;
+                    } else if ($setting.criterion == 'FCFS') {
+                        $scope.message = "No more requests can be reviewed, as there are no longer any unoccupied seats.";
+                    }
+
+                } else {
+
+                    // Controlled submission, either criterion is FCFS & submission has started but available seats aren't over
+                    // Or criterion is GPA, and submission is done
+                    $scope.template = 'partials/planner/staff/rotation-request-list-components/recommended-request-list.html';
+                    $scope.requests = RotationRequest.query_by_department_and_month({department_id: $department.id, month_id: $month});
+                    $scope.requests.$promise.then(function (requests) {
+                        var promises = [];
+                        angular.forEach(requests, function (request, index) {
+                            promises.push(getFullRequestInfo(request, index));
+                        });
+
+                        $q.all(promises).then(function (p) {
+                            // Make recommendation for accepted and declined requests
+
+                            // First, sort requests based on the acceptance criterion
+                            var ordering = {};
+                            if ($setting.criterion == 'GPA') {
+                                ordering.option = function (request) {return parseFloat(request.internship.intern.gpa);};
+                                ordering.reverse = true;
+                            } else if ($setting.criterion == 'FCFS') {
+                                ordering.option = function (request) {return moment(request.submission_datetime).toDate();};
+                                ordering.reverse = false;
+                            }
+                            var sortedRequests = $filter('orderBy')($scope.requests, ordering.option, ordering.reverse);
+
+                            // Second,
+                            if ($setting.unoccupied_seats >= $scope.requests.length) {
+                                // if the number of unoccupied seats is more than or equal to the number of
+                                // requests, then everybody should be accepted
+                                $scope.requests_to_be_accepted = sortedRequests;
+                                $scope.requests_to_be_declined = null;
+                            } else {
+                                // if not, select the first 'x' requests, where x = # of unoccupied seats
+                                // these requests are the ones to be accepted
+                                // the remaining requests are the ones to be declined
+                                $scope.requests_to_be_accepted = sortedRequests.slice(0, $setting.unoccupied_seats);
+                                $scope.requests_to_be_declined = sortedRequests.slice($setting.unoccupied_seats);
+
+                            }
+                        });
+
+                    });
+
+                }
+
+                function getFullRequestInfo(request, index) {
+                    $scope.requests[index].month = InternshipMonth.get_by_internship_and_id({internship_id: request.internship, month_id: request.month});
+                    $scope.requests[index].specialty = Specialty.get({id: request.specialty});
+
+                    $scope.requests[index].internship = Internship.get({id: request.internship});
+                    $scope.requests[index].internship.$promise.then(function (internship) {
+                        $scope.requests[index].internship.intern = Intern.get({id: internship.intern});
+                        $scope.requests[index].internship.intern.$promise.then(function (intern) {
+                            $scope.requests[index].internship.intern.profile = Profile.get({id: intern.profile})
+                        });
+                    });
+                    $scope.requests[index].requested_department = RequestedDepartment.get({id: request.requested_department});
+                    $scope.requests[index].requested_department.$promise.then(function (requested_department) {
+                        $scope.requests[index].requested_department.department = Department.get({id: requested_department.department});
+                        $scope.requests[index].requested_department.department.$promise.then(function (department) {
+                            $scope.requests[index].requested_department.department.specialty = Specialty.get({id: department.specialty});
+                            $scope.requests[index].requested_department.department.hospital = Hospital.get({id: department.hospital});
+                        })
+                    });
+                    return $q.all([
+                        $scope.requests[index].month.$promise,
+                        $scope.requests[index].specialty.$promise,
+                        $scope.requests[index].internship.$promise,
+                        $scope.requests[index].requested_department.$promise
+                    ])
+                }
+            });
+        } else {
+            $scope.template = null;
+        }
+    })
 }]);
