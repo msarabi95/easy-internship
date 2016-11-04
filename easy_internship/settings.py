@@ -177,3 +177,4 @@ USERENA_PROFILE_DETAIL_TEMPLATE = "userena/profile_detail_custom.html"
 # Django NYT
 
 NYT_ENABLE_ADMIN = True
+NYT_EMAIL_SENDER = secrets.NYT_EMAIL_SENDER
