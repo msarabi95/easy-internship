@@ -1,6 +1,6 @@
 from accounts.models import Intern, Profile
 from django import forms
-from django.core.validators import MaxValueValidator, MinValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator, MinLengthValidator
 from month import Month
 from planner.models import Internship
 from userena.forms import SignupFormOnlyEmail
@@ -21,24 +21,77 @@ class InternSignupForm(SignupFormOnlyEmail):
     en_middle_name = forms.CharField(label="Middle name (English)", max_length=32)
     en_last_name = forms.CharField(label="Last name (English)", max_length=32)
 
-    student_number = forms.CharField(max_length=9)
-    badge_number = forms.CharField(max_length=9)
-    phone_number = forms.CharField(max_length=16)
-    mobile_number = forms.CharField(max_length=16)
-    address = forms.CharField(max_length=128, widget=forms.Textarea)
+    student_number = forms.CharField(
+        max_length=9,
+        validators=[RegexValidator(r'^\d+$', message="Enter numbers only."), MinLengthValidator(9)]
+    )
+    badge_number = forms.CharField(
+        max_length=9,
+        validators=[RegexValidator(r'^\d+$', message="Enter numbers only."), MinLengthValidator(5)]
+    )
+    phone_number = forms.CharField(
+        max_length=16,
+        validators=[RegexValidator(r'^\+966\d{9}$', message="Phone number should follow the format +966XXXXXXXXX.")],
+        required=False,
+    )
+    mobile_number = forms.CharField(
+        max_length=16,
+        validators=[RegexValidator(r'^\+9665\d{8}$', message="Mobile number should follow the format +9665XXXXXXXX.")]
+    )
+    address = forms.CharField(
+        max_length=128,
+        widget=forms.Textarea
+    )
 
-    saudi_id_number = forms.CharField(label="Saudi ID number", max_length=10)
-    saudi_id = forms.ImageField(label="Saudi ID image")
-    passport_number = forms.CharField(max_length=32)
-    passport = forms.ImageField(label="Passport image")
-    medical_record_number = forms.CharField(max_length=10)
+    saudi_id_number = forms.CharField(
+        label="Saudi ID number",
+        max_length=10,
+        validators=[RegexValidator(r'^\d{10}$', message="Saudi ID should consist of 10 numbers only.")]
+    )
+    saudi_id = forms.ImageField(
+        label="Saudi ID image",
+        help_text="Note that this will be visible to all medical internship unit staff members."
+    )
+    passport_number = forms.CharField(
+        max_length=32,
+        validators=[RegexValidator(
+            r'^\w{1}\d{6}$',
+            message="Passport number should consist of a letter followed by 6 numbers."
+        )]
+    )
+    passport = forms.ImageField(
+        label="Passport image",
+        help_text="Note that this will be visible to all medical internship unit staff members."
+    )
+    medical_record_number = forms.CharField(
+        max_length=10,
+        validators=[RegexValidator(r'^\d+$', message="Enter numbers only.")]
+    )
 
-    contact_person_name = forms.CharField(max_length=64)
-    contact_person_relation = forms.CharField(max_length=32)
-    contact_person_mobile = forms.CharField(max_length=16)
-    contact_person_email = forms.EmailField(max_length=64)
+    contact_person_name = forms.CharField(
+        max_length=64
+    )
+    contact_person_relation = forms.CharField(
+        max_length=32
+    )
+    contact_person_mobile = forms.CharField(
+        max_length=16,
+        validators=[RegexValidator(r'^\+9665\d{8}$', message="Mobile number should follow the format +9665XXXXXXXX.")],
+    )
+    contact_person_email = forms.EmailField(
+        max_length=64
+    )
 
-    gpa = forms.FloatField(label="GPA", validators=[MaxValueValidator(5.0), MinValueValidator(0.0)])
+    gpa = forms.FloatField(
+        label="GPA",
+        validators=[MaxValueValidator(5.0), MinValueValidator(0.0)]
+    )
+
+    starting_year = forms.IntegerField(
+        label="Starting year",
+        validators=[MinValueValidator(2017)],
+        help_text="The year in which your internship will start (e.g. 2017)",
+    )
 
     def __init__(self, *args, **kw):
         """
@@ -62,6 +115,9 @@ class InternSignupForm(SignupFormOnlyEmail):
         """
         # Use the first part of the user's email as a username
         self.cleaned_data['username'] = self.cleaned_data['email'].split("@")[0].lower()
+        # FIXME: An error is thrown when a user registers with a duplicate first part of the email
+        # (e.g. a@example1.com and a@example2.com)
+        # This is because username uniqueness is not checked (only the full email uniqueness)
 
         # Save the parent form and get the user.
         # Notice we're calling the super of `SignupFormOnlyEmail` (not InternSignupForm), essentially
@@ -110,7 +166,10 @@ class InternSignupForm(SignupFormOnlyEmail):
         intern_profile.save()
 
         # Create an Internship object for the new intern
-        internship = Internship(intern=intern_profile, start_month=Month(2016, 7))  # FIXME: This should be set to something dynamic
+        internship = Internship(
+            intern=intern_profile,
+            start_month=Month(self.cleaned_data['starting_year'], 7)  # July of the year selected by the user
+        )
         internship.save()
 
         # Userena expects to get the new user from this form, so return the new
@@ -127,24 +186,71 @@ class EditInternProfileForm(forms.ModelForm):
     en_middle_name = forms.CharField(label="Middle name (English)", max_length=32)
     en_last_name = forms.CharField(label="Last name (English)", max_length=32)
 
-    student_number = forms.CharField(max_length=9)
-    badge_number = forms.CharField(max_length=9)
-    phone_number = forms.CharField(max_length=16)
-    mobile_number = forms.CharField(max_length=16)
-    address = forms.CharField(max_length=128, widget=forms.Textarea)
+    student_number = forms.CharField(
+        max_length=9,
+        validators=[RegexValidator(r'^\d+$', message="Enter numbers only."), MinLengthValidator(9)]
+    )
+    badge_number = forms.CharField(
+        max_length=9,
+        validators=[RegexValidator(r'^\d+$', message="Enter numbers only."), MinLengthValidator(5)]
+    )
+    phone_number = forms.CharField(
+        max_length=16,
+        validators=[RegexValidator(r'^\+966\d{9}$', message="Phone number should follow the format +966XXXXXXXXX.")],
+        required=False,
+    )
+    mobile_number = forms.CharField(
+        max_length=16,
+        validators=[RegexValidator(r'^\+9665\d{8}$', message="Mobile number should follow the format +9665XXXXXXXX.")]
+    )
+    address = forms.CharField(
+        max_length=128,
+        widget=forms.Textarea
+    )
 
-    saudi_id_number = forms.CharField(label="Saudi ID number", max_length=10)
-    saudi_id = forms.ImageField(label="Saudi ID Image")
-    passport_number = forms.CharField(max_length=32)
-    passport = forms.ImageField(label="Passport Image")
-    medical_record_number = forms.CharField(max_length=10)
+    saudi_id_number = forms.CharField(
+        label="Saudi ID number",
+        max_length=10,
+        validators=[RegexValidator(r'^\d{10}$', message="Saudi ID should consist of 10 numbers only.")]
+    )
+    saudi_id = forms.ImageField(
+        label="Saudi ID image",
+        help_text="Note that this will be visible to all medical internship unit staff members."
+    )
+    passport_number = forms.CharField(
+        max_length=32,
+        validators=[RegexValidator(
+            r'^\w{1}\d{6}$',
+            message="Passport number should consist of a letter followed by 6 numbers."
+        )]
+    )
+    passport = forms.ImageField(
+        label="Passport image",
+        help_text="Note that this will be visible to all medical internship unit staff members."
+    )
+    medical_record_number = forms.CharField(
+        max_length=10,
+        validators=[RegexValidator(r'^\d+$', message="Enter numbers only.")]
+    )
 
-    contact_person_name = forms.CharField(max_length=64)
-    contact_person_relation = forms.CharField(max_length=32)
-    contact_person_mobile = forms.CharField(max_length=16)
-    contact_person_email = forms.EmailField(max_length=64)
+    contact_person_name = forms.CharField(
+        max_length=64
+    )
+    contact_person_relation = forms.CharField(
+        max_length=32
+    )
+    contact_person_mobile = forms.CharField(
+        max_length=16,
+        validators=[RegexValidator(r'^\+9665\d{8}$', message="Mobile number should follow the format +9665XXXXXXXX.")],
+    )
+    contact_person_email = forms.EmailField(
+        max_length=64
+    )
 
-    gpa = forms.FloatField(label="GPA", validators=[MaxValueValidator(5.0), MinValueValidator(0.0)])
+    gpa = forms.FloatField(
+        label="GPA",
+        validators=[MaxValueValidator(5.0), MinValueValidator(0.0)]
+    )
 
     class Meta:
         model = get_profile_model()
