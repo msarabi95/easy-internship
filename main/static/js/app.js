@@ -1,7 +1,7 @@
 /**
  * Created by MSArabi on 6/16/16.
  */
-var app = angular.module("easyInternship", ["djng.forms", "ngResource", "ngRoute", "ngSanitize", "easy.planner", "ui.select"]);
+var app = angular.module("easyInternship", ["ei.planner.models", "ei.utils", "djng.forms", "ngResource", "ngRoute", "ngSanitize", "ui.select"]);
 
 app.config(["$httpProvider", "$routeProvider", "$resourceProvider",
     function ($httpProvider, $routeProvider, $resourceProvider) {

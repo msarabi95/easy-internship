@@ -10,6 +10,7 @@ from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from django.views import generic as django_generics
+from django_nyt.utils import subscribe, notify
 from planner.forms import RotationRequestForm
 from planner.serializers import RotationRequestSerializer, RotationRequestForwardSerializer, \
     InternshipMonthSerializer, HospitalSerializer, SpecialtySerializer, DepartmentSerializer, DepartmentMonthSettingsSerializer, \
@@ -209,16 +210,27 @@ class InternshipMonthViewSet(viewsets.ReadOnlyModelViewSet):
         requested_department.id = None
         requested_department.save()
 
-        internship.rotation_requests.create(
+        rr = internship.rotation_requests.create(
             month=month,
             specialty=requested_department.department_specialty,
             requested_department=requested_department,
             delete=True,
         )
 
-        messages.success(request._request, "Your cancellation request has been submitted successfully.")
+        # --notifications--
 
-        # TODO: Notify internship unit
+        # Subscribe user to receive update notifications on the request
+        subscribe(request.user.settings_set.first(), "rotation_request_approved", object_id=rr.id)
+        subscribe(request.user.settings_set.first(), "rotation_request_declined", object_id=rr.id)
+
+        # Notify medical internship unit of the request
+        notify(
+            "A cancellation request has been submitted by %s" % (request.user.profile.get_en_full_name()),
+            "rotation_request_submitted",
+            url="/planner/%d/" % rr.internship.id,
+            )  # FIXME: avoid sending a lot of simultaneous notifications
+
+        messages.success(request._request, "Your cancellation request has been submitted successfully.")
 
         return Response(status=HTTP_201_CREATED)
 
@@ -320,7 +332,7 @@ class RotationRequestFormView(django_generics.FormView):
 
             requested_department = form.save()
             try:
-                internship.rotation_requests.create(
+                rr = internship.rotation_requests.create(
                     month=month,
                     specialty=requested_department.department_specialty,
                     requested_department=requested_department,
@@ -331,8 +343,20 @@ class RotationRequestFormView(django_generics.FormView):
                     form.add_error(None, error)
 
             else:
+                # --notifications--
 
-                # TODO: Notify internship unit (take care not to send a lot of simultaneous notifications though!)
+                # Subscribe user to receive update notifications on the request
+                subscribe(request.user.settings_set.first(), "rotation_request_approved", object_id=rr.id)
+                subscribe(request.user.settings_set.first(), "rotation_request_declined", object_id=rr.id)
+
+                # Notify medical internship unit of the request
+                notify(
+                    "A new rotation request has been submitted by %s" % (request.user.profile.get_en_full_name()),
+                    "rotation_request_submitted",
+                    url="/planner/%d/" % rr.internship.id,
+                )  # FIXME: avoid sending a lot of simultaneous notifications
+
+                # Display success message to user
                 messages.success(request, "Your request has been submitted successfully.")
 
         response_data = {'errors': form.errors}

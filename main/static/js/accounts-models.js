@@ -1,7 +1,7 @@
 /**
  * Created by MSArabi on 9/22/16.
  */
-var accountsModule = angular.module('easy.accounts', ["ngResource"]);
+var accountsModule = angular.module('ei.accounts.models', ["ngResource"]);
 
 accountsModule.factory("User", ["$resource", function ($resource) {
     return $resource('/api/users/:id', {id: '@id'});

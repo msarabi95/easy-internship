@@ -3,23 +3,13 @@
 <div class="navbar-custom-menu">
   <ul class="nav navbar-nav">
 
-{#    <h2>Notifications:</h2>#}
-{#    <ul>#}
-{#      <li class="notification-before-list">Notifications (<span class="badge notification-cnt">0</span>):</li>#}
-{#      <li class="notifications-empty"><a href="#"><em>{% trans "No notifications" %}</em></a></li>#}
-{#    </ul>#}
-{##}
-{#    <a href="#" onclick="nyt_mark_read()">#}
-{#      <i class="icon-check"></i>#}
-{#      {% trans "Clear notifications list" %}#}
-{#    </a>#}
-
+    {% verbatim %}
     <!-- Notifications Menu -->
-    <li class="dropdown notifications-menu">
+    <li class="dropdown notifications-menu" ng-controller="NotificationCtrl">
       <!-- Menu toggle button -->
       <a href="" class="dropdown-toggle" data-toggle="dropdown">
         <i class="fa fa-bell-o"></i>
-        <span class="label label-danger notification-cnt">0</span>
+        <span ng-show="total_count > 0" class="label label-danger notification-cnt">{{ total_count }}</span>
       </a>
       <ul class="dropdown-menu">
         <li class="header">Notifications</li>
@@ -27,28 +17,29 @@
           <!-- Inner Menu: contains the notifications -->
           <ul class="menu">
             <li class="notification-before-list"></li>
-            <li class="notifications-empty">
-              <a href="#">
+            <li ng-if="!notifications || notifications.length == 0" class="notifications-empty">
+              <a>
                 <em>No notifications</em>
               </a>
             </li>
-
-{#            <li><!-- start notification -->#}
-{#              <a href="#">#}
-{#                <i class="fa fa-users text-aqua"></i> 5 new members joined today#}
-{#              </a>#}
-{#            </li><!-- end notification -->#}
+            <li ng-repeat="n in notifications">
+              <a href="" style="white-space: normal;" ng-click="nyt_read_notification(n)">
+                <div>{{ n.message }}</div>
+                <div class="since">{{ n.occurrences_msg }} - {{ n.since }}</div>
+              </a>
+            </li>
           </ul>
         </li>
         <li class="footer">
-          <a href="" onclick="nyt_mark_read()">
+          <a href="" ng-click="nyt_mark_all_read()">
             <i class="fa fa-check"></i>
             Clear notifications list
           </a>
-{#          <a href="#">View all</a>#}
+          <!--<a href="#">View all</a>-->
         </li>
       </ul>
     </li>
+    {% endverbatim %}
 
     <!-- User Account Menu -->
     <li class="dropdown user user-menu">

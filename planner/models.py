@@ -12,6 +12,7 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django_nyt.utils import notify
 from month.models import MonthField
+from post_office import mail
 
 
 class Hospital(models.Model):
@@ -811,22 +812,24 @@ class RotationRequest(models.Model):
 
             # Notify intern
             if is_approved:
+
+                # --notifications--
+
                 notify(
-                    "Rotation request for %s in %s has been approved." % (self.month.first_day().strftime("%B %Y"),
-                                                                          self.requested_department.get_department().name),
+                    "Rotation request %d for %s has been approved." % (self.id, self.month.first_day().strftime("%B %Y")),
                     "rotation_request_approved",
-                    target_object=self.internship,
-                    url="/#/planner",
+                    target_object=self,
+                    url="/planner/%d/" % int(self.month),
                 )
             else:
-                notify(
-                    "Rotation request for %s in %s has been declined." % (self.month.first_day().strftime("%B %Y"),
-                                                                          self.requested_department.get_department().name),
-                    "rotation_request_declined",
-                    target_object=self.internship,
-                    url="/#/planner",
-                )
 
+                # --notifications--
+                notify(
+                    "Rotation request %d for %s has been declined." % (self.id, self.month.first_day().strftime("%B %Y")),
+                    "rotation_request_declined",
+                    target_object=self,
+                    url="/planner/%d/history/" % int(self.month),
+                )
         else:
             raise Exception("This rotation request has already been responded to.")
 
@@ -844,6 +847,7 @@ class RotationRequest(models.Model):
             )
 
             # TODO: Notify
+            # --notifications--
         else:
             raise Exception("This rotation request has already been forwarded.")
 
@@ -916,20 +920,20 @@ class RotationRequestForward(models.Model):
 
             # Notify intern
             if is_approved:
+                # --notifications--
                 notify(
-                    "Rotation request for %s in %s has been approved." % (self.rotation_request.month.first_day().strftime("%B %Y"),
-                                                                          self.rotation_request.requested_department.get_department().name),
+                    "Rotation request %d for %s has been approved." % (self.id, self.month.first_day().strftime("%B %Y")),
                     "rotation_request_approved",
-                    target_object=self.rotation_request.internship,
-                    url="/#/planner",
+                    target_object=self.rotation_request,
+                    url="/planner/%d/" % int(self.month),
                 )
             else:
+                # --notifications--
                 notify(
-                    "Rotation request for %s in %s has been declined." % (self.rotation_request.month.first_day().strftime("%B %Y"),
-                                                                          self.rotation_request.requested_department.get_department().name),
+                    "Rotation request %d for %s has been declined." % (self.id, self.month.first_day().strftime("%B %Y")),
                     "rotation_request_declined",
-                    target_object=self.rotation_request.internship,
-                    url="/#/planner",
+                    target_object=self.rotation_request,
+                    url="/planner/%d/history/" % int(self.month),
                 )
 
         else:

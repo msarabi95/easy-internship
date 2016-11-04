@@ -24,9 +24,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = secrets.SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = secrets.DEBUG
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = secrets.ALLOWED_HOSTS
 
 
 # Application definition
@@ -51,6 +51,7 @@ INSTALLED_APPS = (
     'userena',  # Userena should be kept at the end in order to overwrite the 'base.html' template it has
     'guardian',
     'easy_thumbnails',
+    'post_office',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -133,7 +134,13 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Email
 
-EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
+EMAIL_BACKEND = 'post_office.EmailBackend'
+
+POST_OFFICE = {
+    'BACKENDS': {
+        'default': secrets.POST_OFFICE_BACKEND,
+    }
+}
 
 # Sites
 

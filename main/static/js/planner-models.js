@@ -1,7 +1,7 @@
 /**
  * Created by MSArabi on 8/31/16.
  */
-var plannerModule = angular.module("easy.planner", ["ngResource"]);
+var plannerModule = angular.module("ei.planner.models", ["ngResource"]);
 
 plannerModule.factory("Hospital", ["$resource", function($resource) {
     return $resource('/api/hospitals/:id', {id: '@id'});
