@@ -36,7 +36,8 @@ app.config(["$httpProvider", "$routeProvider", "$resourceProvider",
 
     $routeProvider
         .when("/", {
-            templateUrl: "partials/main/outsider-index.html"
+            templateUrl: "partials/main/outsider-index.html",
+            controller: "IndexCtrl"
         })
         .when("/forward/:key/", {
             templateUrl: "partials/planner/outsider/forward-details.html",
@@ -69,6 +70,16 @@ app.factory("Forward", ["$resource", function($resource) {
     return $resource('/api/rotation_request_forwards/:key', {key: '@key'}, {
         respond: {method:'POST', url: '/api/rotation_request_forwards/respond/'}
     });
+}]);
+
+app.controller("IndexCtrl", ["$scope", function ($scope) {
+    $scope.slides = [
+        {
+            id: 1,
+            image: "/static/img/ksauhs-admin-tower.jpg",
+            text: "KSAUHS"
+        }
+    ]
 }]);
 
 app.controller("MyCtrl", ["$scope", "$routeParams", "Forward", "Upload", function ($scope, $routeParams, Forward, Upload) {
