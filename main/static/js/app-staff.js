@@ -832,7 +832,7 @@ app.controller("RotationRequestListCtrl", ["$scope", "$filter", "$q", "$routePar
         // return a filter predicate function that filters months using the typed search value
         return function (value, index, array) {
             var monthLabel = $scope.monthLabels[value % $scope.selected.year];
-            return monthLabel.indexOf(selection) !== -1;
+            return monthLabel.toLowerCase().indexOf(selection.toLowerCase()) !== -1;
         }
     };
 
