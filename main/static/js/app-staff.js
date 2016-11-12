@@ -2,9 +2,9 @@
  * Created by MSArabi on 7/14/16.
  */
 var app = angular.module("easyInternship",
-                         ["ei.planner.models", "ei.accounts.models", "ei.utils", "ngRoute", "ngResource", "ui.bootstrap",
+                         ["ei.planner.models", "ei.accounts.models", "ei.utils", "ngRoute", "ngResource", "ngSanitize",
                              "datatables", "datatables.bootstrap", "ngHandsontable", "ngScrollbars",
-                             "ui.select"]);
+                             "ui.bootstrap", "ui.select"]);
 
 app.config(["$httpProvider", "$routeProvider", "$resourceProvider",
     function ($httpProvider, $routeProvider, $resourceProvider) {
@@ -828,6 +828,14 @@ app.controller("MonthSettingModalCtrl", ["$scope", "$uibModalInstance", "momentM
 app.controller("RotationRequestListCtrl", ["$scope", "$filter", "$q", "$routeParams", "$location", "$timeout", "Department", "AcceptanceSettings", "Internship", "InternshipMonth", "Intern", "Profile", "RotationRequest", "RequestedDepartment", "Specialty", "Hospital",
     function ($scope, $filter, $q, $routeParams, $location, $timeout, Department, AcceptanceSettings, Internship, InternshipMonth, Intern, Profile, RotationRequest, RequestedDepartment, Specialty, Hospital) {
 
+    $scope.monthFilter = function (selection) {
+        // return a filter predicate function that filters months using the typed search value
+        return function (value, index, array) {
+            var monthLabel = $scope.monthLabels[value % $scope.selected.year];
+            return monthLabel.indexOf(selection) !== -1;
+        }
+    };
+
     $scope.$watch("selected.year", function (newValue, oldValue) {
         if (newValue !== oldValue) {
             $scope.months = Array.apply(null, Array(12)).map(function (_, i) {return (newValue * 12) + i;});
@@ -835,9 +843,6 @@ app.controller("RotationRequestListCtrl", ["$scope", "$filter", "$q", "$routePar
     });
 
     $scope.$watchGroup(["selected.month", "selected.department"], function (newValue, oldValue) {
-        console.log(newValue);
-        console.log(oldValue);
-        console.log(newValue == oldValue);
         if (newValue !== oldValue) {
             if (!!$scope.selected.month && !!$scope.selected.department) {
                 $location.path("requests/" + $scope.selected.department.id + "/" + $scope.selected.month + "/")

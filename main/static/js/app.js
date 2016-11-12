@@ -258,12 +258,12 @@ app.controller("RotationRequestCreateCtrl", ["$scope", "$routeParams", "$locatio
         $scope.internshipMonth = InternshipMonth.get({month_id: $routeParams.month_id});
 
         $scope.disableHospitalMenu = true;
+        $scope.rotationRequestData = {};
         $scope.specialties = Specialty.query();
 
         $scope.$watch('rotationRequestData.department_specialty', function (newValue, oldValue) {
             if (newValue !== oldValue) {
                 $scope.disableHospitalMenu = true;
-                console.log($scope.rotationRequestForm);
                 if (newValue !== undefined && newValue !== "") {
                     $scope.getDepartments();
                 } else {
