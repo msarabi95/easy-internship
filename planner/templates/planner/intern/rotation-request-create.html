@@ -17,16 +17,22 @@
             {# FIXME: This is not a DRY solution. There is no need ideally for the fields to be redefined again here. #}
 
             {% verbatim %}
-            <div class="has-feedback form-group"><label class="control-label" for="id_department_specialty">Specialty</label><select class="form-control" id="id_department_specialty" name="department_specialty" ng-model="rotationRequestData[&#39;department_specialty&#39;]">
-              <option value="" selected="selected">---------</option>
-              <option ng-repeat="specialty in specialties" value="{{ specialty.id }}">{{ specialty.name }}</option>
-            </select><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.department_specialty.$dirty" ng-cloak><li ng-show="rotationRequestForm['department_specialty'].$valid" class="valid"></li></ul><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.department_specialty.$pristine" ng-cloak><li ng-show="rotationRequestForm.department_specialty.$message" class="invalid" ng-bind="rotationRequestForm.department_specialty.$message"></li></ul></div>
+            <div class="has-feedback form-group"><label class="control-label" for="id_department_specialty">Specialty</label>
+
+              <ui-select id="id_department_specialty" name="department_specialty" ng-model="rotationRequestData.department_specialty" theme="bootstrap">
+                <ui-select-match placeholder="Select or search for a specialty in the list...">{{ $select.selected.name }}</ui-select-match>
+                <ui-select-choices repeat="specialty.id as specialty in specialties | filter: {name: $select.search}">
+                  <div ng-bind-html="specialty.name | highlight: $select.search"></div>
+                </ui-select-choices>
+              </ui-select>
+              <ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.department_specialty.$dirty" ng-cloak><li ng-show="rotationRequestForm['department_specialty'].$valid" class="valid"></li></ul><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.department_specialty.$pristine" ng-cloak><li ng-show="rotationRequestForm.department_specialty.$message" class="invalid" ng-bind="rotationRequestForm.department_specialty.$message"></li></ul>
+            </div>
 
             <div class="has-feedback form-group"><label class="control-label" for="id_department_hospital">Hospital</label>
-              <ui-select id="id_department_hospital" name="department_hospital" ng-model="rotationRequestData.department_hospital" theme="bootstrap" ng-disabled="disableHospitalMenu"><!-- FIXME: Enable searching -->
+              <ui-select id="id_department_hospital" name="department_hospital" ng-model="rotationRequestData.department_hospital" theme="bootstrap" ng-disabled="disableHospitalMenu">
                 <ui-select-match placeholder="Select or search for a hospital in the list...">{{ $select.selected.name }}</ui-select-match>
-                <ui-select-choices repeat="hospital.id as hospital in hospitals" ui-disable-choice="hospital.department.acceptance_settings.can_submit_requests == false">
-                  <div ng-bind-html="hospital.name"></div>
+                <ui-select-choices repeat="hospital.id as hospital in hospitals | filter: {name: $select.search}" ui-disable-choice="hospital.department.acceptance_settings.can_submit_requests == false">
+                  <div ng-bind-html="hospital.name | highlight: $select.search"></div>
                   <small ng-if="hospital.department.id" ng-init="$settings = hospital.department.acceptance_settings"><i class="text-gray">
                     <span ng-if="$settings.can_submit_requests == true">
                       <span ng-if="$settings.total_seats == null">
@@ -63,7 +69,8 @@
                 </ui-select-choices>
               </ui-select>
 
-            <ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.department_hospital.$dirty" ng-cloak><li ng-show="rotationRequestForm['department_hospital'].$valid" class="valid"></li></ul><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.department_hospital.$pristine" ng-cloak><li ng-show="rotationRequestForm.department_hospital.$message" class="invalid" ng-bind="rotationRequestForm.department_hospital.$message"></li></ul></div>
+              <ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.department_hospital.$dirty" ng-cloak><li ng-show="rotationRequestForm['department_hospital'].$valid" class="valid"></li></ul><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.department_hospital.$pristine" ng-cloak><li ng-show="rotationRequestForm.department_hospital.$message" class="invalid" ng-bind="rotationRequestForm.department_hospital.$message"></li></ul>
+            </div>
             {% endverbatim %}
 
             <div class="has-feedback form-group"><label class="checkbox-inline"><input id="id_is_elective" name="is_elective" ng-model="rotationRequestData[&#39;is_elective&#39;]" type="checkbox" /> <span class="text-bold">This is an elective.</span> (Check this box if this is an elective rotation.)</label><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.is_elective.$dirty" ng-cloak><li ng-show="rotationRequestForm['is_elective'].$valid" class="valid"></li></ul><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.is_elective.$pristine" ng-cloak><li ng-show="rotationRequestForm.is_elective.$message" class="invalid" ng-bind="rotationRequestForm.is_elective.$message"></li></ul>
