@@ -7,5 +7,5 @@ urls = (
     (r'leave_request_responses', views.LeaveRequestResponseViewSet),
     (r'leaves', views.LeaveViewSet),
     (r'leave_cancel_requests', views.LeaveCancelRequestViewSet),
-    (r'leave_cancel_request_response', views.LeaveCancelRequestResponseViewSet),
+    (r'leave_cancel_request_responses', views.LeaveCancelRequestResponseViewSet),
 )

@@ -22,7 +22,7 @@ class LeaveRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = LeaveRequest
         fields = ('id', 'intern', 'month', 'type', 'rotation_request', 'start_date',
-                  'end_date', 'submission_datetime')
+                  'end_date', 'submission_datetime', 'cancel_requests')
 
 
 class LeaveRequestResponseSerializer(serializers.ModelSerializer):
