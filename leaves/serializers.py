@@ -1,5 +1,6 @@
 from leaves.models import LeaveType, LeaveSetting, LeaveRequest, LeaveRequestResponse, Leave, LeaveCancelRequest, \
     LeaveCancelRequestResponse
+from planner.serializers import MonthField
 from rest_framework import serializers
 
 
@@ -18,11 +19,12 @@ class LeaveSettingSerializer(serializers.ModelSerializer):
 
 
 class LeaveRequestSerializer(serializers.ModelSerializer):
+    month = MonthField()
 
     class Meta:
         model = LeaveRequest
         fields = ('id', 'intern', 'month', 'type', 'rotation_request', 'start_date',
-                  'end_date', 'submission_datetime', 'cancel_requests')
+                  'end_date', 'submission_datetime', 'cancel_requests', 'response')
 
 
 class LeaveRequestResponseSerializer(serializers.ModelSerializer):
@@ -33,6 +35,7 @@ class LeaveRequestResponseSerializer(serializers.ModelSerializer):
 
 
 class LeaveSerializer(serializers.ModelSerializer):
+    month = MonthField()
 
     class Meta:
         model = Leave
@@ -40,10 +43,11 @@ class LeaveSerializer(serializers.ModelSerializer):
 
 
 class LeaveCancelRequestSerializer(serializers.ModelSerializer):
+    month = MonthField()
 
     class Meta:
         model = LeaveCancelRequest
-        fields = ('id', 'original_request', 'submission_datetime', 'rotation_request')
+        fields = ('id', 'intern', 'month', 'leave_request', 'submission_datetime', 'rotation_request')
 
 
 class LeaveCancelRequestResponseSerializer(serializers.ModelSerializer):

@@ -1,7 +1,67 @@
 /**
  * Created by MSArabi on 11/4/16.
  */
-angular.module("ei.utils", [])
+angular.module("ei.utils", ["ngRoute", "ngResource"])
+
+
+.config(["$httpProvider", "$routeProvider", "$resourceProvider",
+    function ($httpProvider, $routeProvider, $resourceProvider) {
+
+    // These settings enable Django to receive Angular requests properly.
+    // Check:
+    // http://django-angular.readthedocs.io/en/latest/integration.html#xmlhttprequest
+    // http://django-angular.readthedocs.io/en/latest/csrf-protection.html#cross-site-request-forgery-protection
+    $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+    $httpProvider.defaults.xsrfCookieName = 'csrftoken';
+    $httpProvider.defaults.xsrfHeaderName = 'X-CSRFToken';
+
+    // Check for messages with each response
+    $httpProvider.interceptors.push(function ($q, $rootScope) {
+       return {
+           'response': function (response) {
+               if ( $rootScope.fetchingMessages != true ) {
+                   $rootScope.fetchingMessages = true;
+                   $rootScope.$broadcast("fetchMessages");
+               }
+               return response;
+           },
+           'responseError': function (rejection) {
+               if ( $rootScope.fetchingMessages != true ) {
+                   $rootScope.fetchingMessages = true;
+                   $rootScope.$broadcast("fetchMessages");
+               }
+               return $q.reject(rejection);
+           }
+       };
+    });
+
+    $resourceProvider.defaults.stripTrailingSlashes = false;
+}])
+
+.run(function ($rootScope, $resource) {
+    toastr.options.positionClass = "toast-top-center";
+    $rootScope.$on("fetchMessages", getMessages);
+
+    function getMessages(event, eventData) {
+        var messages = $resource("messages").query(function (messages) {
+            $rootScope.fetchingMessages = false;
+            for (var i = 0; i < messages.length; i++) {
+                toastr[messages[i].level_tag](messages[i].message);
+            }
+        });
+    }
+
+    $rootScope.fetchingMessages = true;
+    getMessages("", {});
+})
+
+.controller("MenuCtrl", ["$scope", "$route", "$location", function ($scope, $route, $location) {
+    //$scope.currentTab = $route.current.currentTab;
+
+    $scope.isActive = function (viewLocation) {
+        return viewLocation == "#" + $location.path();
+    }
+}])
 
 .controller("NotificationCtrl", ["$scope", "$http", "$filter", "$timeout", "$location", function ($scope, $http, $filter, $timeout, $location) {
     // An angularized version of http://django-nyt.readthedocs.io/en/latest/javascript.html#example-ui-js

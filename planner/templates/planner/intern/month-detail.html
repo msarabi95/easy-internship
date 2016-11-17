@@ -34,6 +34,7 @@
             <span ng-if="!month.occupied && !month.requested">
               You don't have any active rotation or pending request for this month.
             </span>
+            <!-- TODO: add leaves & leave requests summary -->
           </p>
 
           <div ng-if="month.occupied">
@@ -63,7 +64,6 @@
                 </dl>
               </div>
             </div>
-
           </div>
 
           <div ng-if="month.requested">
@@ -137,8 +137,58 @@
 
               </div>
             </div>
-
           </div>
+
+          <!-- Leaves -->
+          <div ng-if="month.current_leaves.length > 0 || month.current_leave_requests.length > 0">
+            <hr>
+            <h4 class="text-bold">Details of your leaves</h4>
+
+            <div ng-if="month.current_leaves.length > 0">
+              <h4 class="text-light-blue"><i class="fa fa-check-circle-o"></i> Active leaves ({{ month.current_leaves.length }})</h4>
+
+              <div class="box box-solid" ng-repeat="leave in month.current_leaves">
+                <div class="box-body bg-info" style="margin-bottom: 0;">
+                  <dl class="dl-horizontal">
+                    <dt>Type</dt>
+                    <dd class="text-light-blue text-bold">{{ leave.type.name }}</dd>
+
+                    <dt>Start date</dt>
+                    <dd>{{ moment(leave.start_date).format('Do of MMMM') }}</dd>
+
+                    <dt>End date</dt>
+                    <dd>{{ moment(leave.end_date).format('Do of MMMM') }}</dd>
+
+                    <dt>Request date and time</dt>
+                    <dd>{{ moment(leave.request.submission_datetime).format('dddd, d MMMM YYYY, hh:mm a') }}</dd>
+
+                    <dt>Approval date and time</dt>
+                    <dd>{{ moment(leave.request.response.response_datetime).format('dddd, d MMMM YYYY, hh:mm a') }}</dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+
+            <h4 class="text-yellow"><i class="fa fa-clock-o"></i> Pending leaves ({{ month.current_leave_requests.length }})</h4>
+
+            <div class="box box-solid" ng-repeat="leave_request in month.current_leave_requests">
+                <div class="box-body bg-warning" style="margin-bottom: 0;">
+                  <dl class="dl-horizontal">
+                    <dt>Type</dt>
+                    <dd class="text-yellow text-bold">{{ leave_request.type.name }}</dd>
+
+                    <dt>Start date</dt>
+                    <dd>{{ moment(leave_request.start_date).format('Do of MMMM') }}</dd>
+
+                    <dt>End date</dt>
+                    <dd>{{ moment(leave_request.end_date).format('Do of MMMM') }}</dd>
+
+                    <dt>Request date and time</dt>
+                    <dd>{{ moment(leave_request.submission_datetime).format('dddd, d MMMM YYYY, hh:mm a') }}</dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
 
         </div><!-- /.modal-body -->
 
