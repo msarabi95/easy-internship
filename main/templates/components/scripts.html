@@ -30,15 +30,15 @@
 <!-- Moment.js -->
 <script src="{% static 'js/lib/moment/moment.min.js' %}"></script>
 <!-- Angular App -->
-<script src="{% static 'js/planner-models.js' %}"></script>
-<script src="{% static 'js/accounts-models.js' %}"></script>
+<script src="{% static 'js/ei.planner.models.js' %}"></script>
+<script src="{% static 'js/ei.accounts.models.js' %}"></script>
 <script src="{% static 'js/ei.utils.js' %}"></script>
 {% if role == 'intern' %}
-<script src="{% static 'js/app.js' %}"></script>
+<script src="{% static 'js/ei.intern.js' %}"></script>
 {% elif role == 'staff' %}
-<script src="{% static 'js/app-staff.js' %}"></script>
+<script src="{% static 'js/ei.staff.js' %}"></script>
 {% elif role == 'outsider' %}
-<script src="{% static 'js/app-outsider.js' %}"></script>
+<script src="{% static 'js/ei.outsider.js' %}"></script>
 {% endif %}
 <!-- Bootstrap 3.3.6 -->
 <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
