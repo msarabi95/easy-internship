@@ -4,6 +4,7 @@ from accounts.models import Profile
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
+from django_nyt.utils import notify
 from month.models import MonthField
 from planner.models import RotationRequest
 
@@ -63,12 +64,55 @@ class LeaveRequest(models.Model):
     intern = models.ForeignKey(User, limit_choices_to={'profile__role': Profile.INTERN}, related_name='leave_requests')
     month = MonthField()
     type = models.ForeignKey(LeaveType, related_name='leave_requests')
-    rotation_request = models.ForeignKey(RotationRequest, related_name='leave_requests')
+    rotation_request = models.ForeignKey(RotationRequest, related_name='leave_requests', blank=True, null=True)
     start_date = models.DateField()
     end_date = models.DateField()
     submission_datetime = models.DateTimeField(auto_now_add=True)
 
     objects = LeaveRequestQuerySet.as_manager()
+
+    def respond(self, is_approved, comments=""):
+        """
+        Respond to the leave request; raise an error if it's already responded to.
+        """
+        try:
+            self.response
+        except ObjectDoesNotExist:
+            LeaveRequestResponse.objects.create(
+                request=self,
+                is_approved=is_approved,
+                comments=comments,
+            )
+
+            # TODO: Test
+            if is_approved:
+                self.intern.leaves.create(
+                    month=self.month,
+                    type=self.type,
+                    start_date=self.start_date,
+                    end_date=self.end_date,
+                    request=self,
+                )
+
+            # Notify intern
+            if is_approved:
+                # --notifications--
+                notify(
+                    "%s request #%d for %s has been approved." % (self.type.name, self.id, self.month.first_day().strftime("%B %Y")),
+                    "leave_request_approved",
+                    target_object=self,
+                    url="/planner/%d/" % int(self.month),
+                )
+            else:
+                # --notifications--
+                notify(
+                    "%s request #%d for %s has been declined." % (self.type.name, self.id, self.month.first_day().strftime("%B %Y")),
+                    "leave_request_declined",
+                    target_object=self,
+                    url="/planner/%d/leaves/history/" % int(self.month),
+                )
+        else:
+            raise Exception("This leave request has already been responded to.")
 
     def __unicode__(self):
         return "%s request during %s" % (self.type.name, self.month.first_day().strftime("%B %Y"))
@@ -118,6 +162,43 @@ class LeaveCancelRequest(models.Model):
     submission_datetime = models.DateTimeField(auto_now_add=True)
 
     objects = LeaveRequestQuerySet.as_manager()
+
+    def respond(self, is_approved, comments=""):
+        """
+        Respond to the leave cancel request; raise an error if it's already responded to.
+        """
+        try:
+            self.response
+        except ObjectDoesNotExist:
+            LeaveRequestResponse.objects.create(
+                request=self,
+                is_approved=is_approved,
+                comments=comments,
+            )
+
+            # TODO: Test
+            if is_approved:
+                self.leave_request.leave.delete()
+
+            # Notify intern
+            if is_approved:
+                # --notifications--
+                notify(
+                    "Your %s during %s has been cancelled." % (self.type.name, self.month.first_day().strftime("%B %Y")),
+                    "leave_cancel_request_approved",
+                    target_object=self,
+                    url="/planner/%d/" % int(self.month),
+                )
+            else:
+                # --notifications--
+                notify(
+                    "Your request to cancel your %s during %s has been declined." % (self.type.name, self.month.first_day().strftime("%B %Y")),
+                    "leave_cancel_request_declined",
+                    target_object=self,
+                    url="/planner/%d/leaves/history/" % int(self.month),
+                )
+        else:
+            raise Exception("This leave cancel request has already been responded to.")
 
     def __unicode__(self):
         return "Cancellation request for %s during %s" % (
