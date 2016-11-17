@@ -69,9 +69,29 @@ class DepartmentViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Department.objects.all()
 
 
-class DepartmentBySpecialtyAndHospital(generics.RetrieveAPIView):
+class DepartmentBySpecialtyAndHospital(viewsets.ViewSet):
     serializer_class = DepartmentSerializer
     queryset = Department.objects.all()
+
+    def list(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    def get_serializer(self, *args, **kwargs):
+        serializer_class = self.get_serializer_class()
+        kwargs['context'] = self.get_serializer_context()
+        return serializer_class(*args, **kwargs)
+
+    def get_serializer_class(self):
+        return self.serializer_class
+
+    def get_serializer_context(self):
+        return {
+            'request': self.request,
+            'format': self.format_kwarg,
+            'view': self
+        }
 
     def get_object(self):
         specialty = Specialty.objects.get(id=self.kwargs['specialty'])
@@ -168,8 +188,28 @@ class DepartmentMonthSettingsViewSet(SettingsMessagesMixin, viewsets.ModelViewSe
         return Response({'id': int(Month.from_date(datetime(timezone.now().year, 1, 1)))})
 
 
-class AcceptanceSettingsByDepartmentAndMonth(generics.RetrieveAPIView):
+class AcceptanceSettingsByDepartmentAndMonth(viewsets.ViewSet):
     serializer_class = AcceptanceSettingSerializer
+
+    def list(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    def get_serializer(self, *args, **kwargs):
+        serializer_class = self.get_serializer_class()
+        kwargs['context'] = self.get_serializer_context()
+        return serializer_class(*args, **kwargs)
+
+    def get_serializer_class(self):
+        return self.serializer_class
+
+    def get_serializer_context(self):
+        return {
+            'request': self.request,
+            'format': self.format_kwarg,
+            'view': self
+        }
 
     def get_object(self):
         department = get_object_or_404(Department, id=self.kwargs['department_id'])
@@ -235,8 +275,28 @@ class InternshipMonthViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(status=HTTP_201_CREATED)
 
 
-class InternshipMonthByInternshipAndId(generics.RetrieveAPIView):
+class InternshipMonthByInternshipAndId(viewsets.ViewSet):
     serializer_class = InternshipMonthSerializer
+
+    def list(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    def get_serializer(self, *args, **kwargs):
+        serializer_class = self.get_serializer_class()
+        kwargs['context'] = self.get_serializer_context()
+        return serializer_class(*args, **kwargs)
+
+    def get_serializer_class(self):
+        return self.serializer_class
+
+    def get_serializer_context(self):
+        return {
+            'request': self.request,
+            'format': self.format_kwarg,
+            'view': self
+        }
 
     def get_object(self):
         internship = get_object_or_404(Internship, pk=int(self.kwargs['internship_id']))
@@ -287,14 +347,31 @@ class RotationRequestViewSet(viewsets.ModelViewSet):
         return Response({"status": RotationRequest.FORWARDED_STATUS})
 
 
-class RotationRequestByDepartmentAndMonth(generics.ListAPIView):
+class RotationRequestByDepartmentAndMonth(viewsets.ViewSet):
     serializer_class = RotationRequestSerializer
 
     def list(self, request, *args, **kwargs):
         try:
-            return super(RotationRequestByDepartmentAndMonth, self).list(request, *args, **kwargs)
+            queryset = self.get_queryset()
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data)
         except ObjectDoesNotExist:
             raise Http404
+
+    def get_serializer(self, *args, **kwargs):
+        serializer_class = self.get_serializer_class()
+        kwargs['context'] = self.get_serializer_context()
+        return serializer_class(*args, **kwargs)
+
+    def get_serializer_class(self):
+        return self.serializer_class
+
+    def get_serializer_context(self):
+        return {
+            'request': self.request,
+            'format': self.format_kwarg,
+            'view': self
+        }
 
     def get_queryset(self):
         department = Department.objects.get(id=self.kwargs['department_id'])

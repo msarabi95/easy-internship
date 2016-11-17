@@ -18,23 +18,32 @@ from django.conf.urls import include, url
 from django.contrib import admin
 from django_nyt.urls import get_pattern as get_nyt_pattern
 
+from rest_framework import routers
+
 from accounts.forms import InternSignupForm, EditInternProfileForm
 from main import views as main_views
 from planner import views
-from planner.urls import router as planner_router, custom_departments_view_url, custom_internship_months_view_url, \
-    acceptance_settings_by_department_and_month_id, rotation_request_list_by_department_and_month
-from accounts.urls import router as accounts_router
+from planner.urls import urls as planner_urls
+from accounts.urls import urls as accounts_urls
+from leaves.urls import urls as leaves_urls
+
+api_urls = (
+    planner_urls,
+    accounts_urls,
+    leaves_urls,
+)
+
+router = routers.DefaultRouter()
+for app in api_urls:
+    for urlconf in app:
+        router.register(*urlconf)
+
 
 urlpatterns = [
     url(r'^forwards/$', views.list_forwards, name="list_forwards"),  # Temporary, for testing only!
     url(r'^rotation_request_responses/$', views.rotation_request_responses, name="rotation_request_responses"),
 
-    custom_departments_view_url,
-    custom_internship_months_view_url,
-    acceptance_settings_by_department_and_month_id,
-    rotation_request_list_by_department_and_month,
-    url(r'^api/', include(planner_router.urls)),
-    url(r'^api/', include(accounts_router.urls)),
+    url(r'^api/', include(router.urls)),
 
     url(r'^partials/(?P<template_name>.*\.html)$', "main.views.load_partial", name="load_partial"),
 

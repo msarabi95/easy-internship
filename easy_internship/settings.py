@@ -47,6 +47,7 @@ INSTALLED_APPS = (
     'rules.apps.AutodiscoverRulesConfig',
     'main.apps.MainConfig',
     'planner.apps.PlannerConfig',
+    'leaves.apps.LeavesConfig',
     'accounts.apps.AccountsConfig',
     'userena',  # Userena should be kept at the end in order to overwrite the 'base.html' template it has
     'guardian',
