@@ -23,3 +23,5 @@ def set_up_staff_notification_subscriptions(sender, instance, **kwargs):
         settings = instance.user.settings_set.first()
 
         subscribe(settings, "rotation_request_submitted")
+        subscribe(settings, "leave_request_submitted")
+        subscribe(settings, "leave_cancel_request_submitted")

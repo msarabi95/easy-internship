@@ -165,6 +165,7 @@
                     <dt>Approval date and time</dt>
                     <dd>{{ moment(leave.request.response.response_datetime).format('dddd, d MMMM YYYY, hh:mm a') }}</dd>
                   </dl>
+                  <a class="btn btn-xs btn-flat btn-danger pull-right" href="#/planner/{{ month.month }}/leaves/{{ leave.id }}/cancel/">Cancel this leave</a>
                 </div>
               </div>
             </div>
@@ -207,10 +208,17 @@
             </button>
             <ul class="dropdown-menu dropdown-menu-right">
               <li><a href="#/planner/{{ month.month }}/new/">
-                <span class="text-yellow text-bold">Request a different rotation</span>
+                <span class="text-yellow">Request a different rotation</span>
               </a></li>
               <li><a href="#/planner/{{ month.month }}/cancel/">
-                <span class="text-red text-bold">Cancel this rotation</span>
+                <span class="text-red">Cancel this rotation</span>
+              </a></li>
+              <li class="divider"></li>
+              <li><a href="#/planner/{{ month.month }}/leaves/new/">
+                <span class="">Request a leave</span>
+              </a></li>
+              <li><a href="#/planner/{{ month.month }}/leaves/history/">
+                <span class="">See previous leave requests for this month</span>
               </a></li>
             </ul>
           </div>
