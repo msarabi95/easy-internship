@@ -52,4 +52,105 @@ angular.module("ei.utils", [])
 
     update_timeout();
     nyt_update();
-}]);
+}])
+
+.factory("loadWithRelated", function ($q) {
+    return function loadWithRelated(id, resourceFactory, relatedFields, wait) {
+        /*
+            id: the identifier by which to fetch the object; could be a single ID, or an array of ID's
+            resourceFactory: the ngResource factory to be used
+            relatedFields: an optional argument. Is an array of fields. Each field definition takes one of 2 formats:
+                - {fieldName: resourceFactory} -> just load the field
+                - [{fieldName: resourceFactory}, relatedFields] -> load the field with additional extra fields
+            wait: a boolean specifying whether to wait for the loading all of the subFields before resolving the
+                  returned promise. Defaults to `false`.
+         */
+
+        // Default `wait` to false if not specified or no related fields are specified
+        if (typeof wait == 'undefined' || typeof relatedFields == 'undefined') {
+            wait = false;
+        }
+
+        // *********************************
+        // **1** Load the resource object(s)
+        // *********************************
+
+        var isArray = Array.isArray(id),
+            hasRelatedFields = (typeof relatedFields !== 'undefined'),
+            loaded;
+
+        if (isArray) {
+            // **********************************************************************************************
+            // *a* Array is passed: load the resource objects and then load related objects (if any) for each
+            // **********************************************************************************************
+            loaded = new Array(id.length);
+            var promises = [];
+            angular.forEach(id, function (id, index) {
+                loaded[index] = resourceFactory.get({id: id});
+
+                var promise = loaded[index].$promise.then(function (object) {
+                    if (hasRelatedFields) {
+                        return loadRelatedFields(object); // loadRelatedFields returns a promise
+                    }
+                });
+
+                // If wait is true, then replace the promise of `loaded` with the promise returned from `then` (which
+                // essentially returns the promise from `loadRelatedFields`)
+                if (wait) {
+                    promises.push(promise);
+                } else {
+                    promises.push(loaded[index].$promise);
+                }
+            });
+
+            // Add a promise to the array, which resolves when all of the objects are loaded
+            loaded.$promise = $q.all(promises);
+
+        } else {
+            // *************************************************************************************************
+            // *b* Single integer is passed: load the resource object and then load its related objects (if any)
+            // *************************************************************************************************
+            loaded = resourceFactory.get({id: id});
+
+            var promise = loaded.$promise.then(function (object) {
+                if (hasRelatedFields) {
+                    return loadRelatedFields(object); // loadRelatedFields returns a promise
+                }
+            });
+
+            // If wait is true, then replace the promise of `loaded` with the promise returned from `then` (which
+            // essentially returns the promise from `loadRelatedFields`)
+            if (wait) {
+                loaded.$promise = promise;
+            }
+        }
+
+        /*
+         * ****************************************
+         *  Helper function to load related objects
+         * ****************************************
+         */
+        function loadRelatedFields(object) {
+            var promises = [];
+            angular.forEach(relatedFields, function (fieldDefinition) {
+                var relatedRelatedFields;
+                if (Array.isArray(fieldDefinition)) {
+                    relatedRelatedFields = fieldDefinition[1];
+                    fieldDefinition = fieldDefinition[0];
+                }
+                //
+                //console.log(relatedRelatedFields);
+                //console.log(fieldDefinition);
+
+                var fieldName = Object.keys(fieldDefinition)[0],
+                    fieldResource = fieldDefinition[fieldName];
+
+                object[fieldName] = loadWithRelated(object[fieldName], fieldResource, relatedRelatedFields, wait);
+                promises.push(object[fieldName].$promise);
+            });
+            return $q.all(promises);
+        }
+
+        return loaded;
+    }
+});
