@@ -111,9 +111,16 @@ class InternshipMonthSerializer(serializers.Serializer):
     month = serializers.IntegerField()
     label = serializers.CharField()
     label_short = serializers.CharField()
+
     current_rotation = serializers.PrimaryKeyRelatedField(read_only=True)
     current_request = serializers.PrimaryKeyRelatedField(read_only=True)
     request_history = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
+
+    current_leaves = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
+    current_leave_requests = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
+    current_leave_cancel_requests = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
+    leave_request_history = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
+    leave_cancel_request_history = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
 
     def create(self, validated_data):
         pass

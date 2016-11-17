@@ -379,13 +379,22 @@ class AcceptanceSetting(object):
 
 
 class InternshipMonth(object):
-    def __init__(self, month, current_rotation, current_request, request_history):
+    def __init__(self, month, current_rotation, current_request, request_history,
+                 current_leaves, current_leave_requests, current_leave_cancel_requests, leave_request_history,
+                 leave_cancel_request_history):
         self.month = month
         self.label = month.first_day().strftime("%B %Y")
         self.label_short = month.first_day().strftime("%b. %Y")
+
         self.current_rotation = current_rotation
         self.current_request = current_request
         self.request_history = request_history
+
+        self.current_leaves = current_leaves
+        self.current_leave_requests = current_leave_requests
+        self.current_leave_cancel_requests = current_leave_cancel_requests
+        self.leave_request_history = leave_request_history
+        self.leave_cancel_request_history = leave_cancel_request_history
 
 
 class Internship(models.Model):
@@ -401,11 +410,22 @@ class Internship(models.Model):
             current_request = self.rotation_requests.current_for_month(month)
             request_history = self.rotation_requests.month(month).closed()
 
+            current_leaves = self.intern.profile.user.leaves.current_for_month(month)
+            current_leave_requests = self.intern.profile.user.leave_requests.current_for_month(month)
+            current_leave_cancel_requests = self.intern.profile.user.leave_cancel_requests.current_for_month(month)
+            leave_request_history = self.intern.profile.user.leave_requests.month(month).closed()
+            leave_cancel_request_history = self.intern.profile.user.leave_cancel_requests.month(month).closed()
+
             months.append(InternshipMonth(
                 month,
                 current_rotation,
                 current_request,
                 request_history,
+                current_leaves,
+                current_leave_requests,
+                current_leave_cancel_requests,
+                leave_request_history,
+                leave_cancel_request_history,
             ))
         return months
 
