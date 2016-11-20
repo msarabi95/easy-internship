@@ -22,7 +22,6 @@ from rest_framework import routers
 
 from accounts.forms import InternSignupForm, EditInternProfileForm
 from main import views as main_views
-from planner import views
 from planner.urls import urls as planner_urls
 from accounts.urls import urls as accounts_urls
 from leaves.urls import urls as leaves_urls
@@ -40,12 +39,11 @@ for app in api_urls:
 
 
 urlpatterns = [
-    url(r'^forwards/$', views.list_forwards, name="list_forwards"),  # Temporary, for testing only!
-    url(r'^rotation_request_responses/$', views.rotation_request_responses, name="rotation_request_responses"),
+    url(r'^$', "main.views.index", name="index"),
 
     url(r'^api/', include(router.urls)),
-
-    url(r'^partials/(?P<template_name>.*\.html)$', "main.views.load_partial", name="load_partial"),
+    url(r'^messages/$', main_views.GetMessages.as_view()),
+    url(r'^notifications/', get_nyt_pattern()),
 
     url(r'^planner/', include("planner.urls")),
     url(r'^leaves/', include("leaves.urls")),
@@ -54,12 +52,7 @@ urlpatterns = [
     url(r'^accounts/signup/$', 'userena.views.signup', {'signup_form': InternSignupForm}),
     url(r'^accounts/', include('userena.urls')),
 
-    url(r'^messages/$', main_views.GetMessages.as_view()),
-    url(r'^notifications/', get_nyt_pattern()),
-
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^$', "main.views.index", name="index"),
-    # url(r'^(?P<url>.*)', "main.views.redirect_to_index", name="redirect_to_index")
 ]
 
 if settings.DEBUG:

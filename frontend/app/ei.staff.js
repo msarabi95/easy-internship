@@ -895,7 +895,7 @@ app.controller("RotationRequestListCtrl", ["$scope", "$filter", "$q", "$routePar
                 if ($setting.total_seats == null) {
 
                     // Uncontrolled submission
-                    $scope.template = 'partials/planner/staff/rotation-request-list-components/uncontrolled-request-list.html';
+                    $scope.template = 'static/partials/staff/planner/rotation-request-list-components/uncontrolled-request-list.html';
                     $scope.requests = RotationRequest.query_by_department_and_month({department_id: $department.id, month_id: $month});
                     $scope.requests.$promise.then(function (requests) {
                         angular.forEach(requests, function (request, index) {
@@ -950,7 +950,7 @@ app.controller("RotationRequestListCtrl", ["$scope", "$filter", "$q", "$routePar
                 } else if ($setting.criterion == 'FCFS' && $setting.can_submit_requests == false && moment().isBefore(moment($setting.start_or_end_date))) {
 
                     // Controlled submission, criterion is FCFS, and no requests have been received yet (start date is yet to come)
-                    $scope.template = 'partials/planner/staff/rotation-request-list-components/empty-request-list.html';
+                    $scope.template = 'static/partials/staff/planner/rotation-request-list-components/empty-request-list.html';
 
                     $scope.message = "Request submission for this department during this month will open on " + moment($setting.start_or_end_date).format("d MMM YYYY, hh:mm a") + "." ;
 
@@ -959,7 +959,7 @@ app.controller("RotationRequestListCtrl", ["$scope", "$filter", "$q", "$routePar
 
                     // Controlled submission, either criterion is FCFS & seats are all done, or criterion is GPA & submission isn't over yet
                     // In both cases show a list of "disabled" requests
-                    $scope.template = 'partials/planner/staff/rotation-request-list-components/disabled-request-list.html';
+                    $scope.template = 'static/partials/staff/planner/rotation-request-list-components/disabled-request-list.html';
                     $scope.requests = RotationRequest.query_by_department_and_month({department_id: $department.id, month_id: $month});
                     $scope.requests.$promise.then(function (requests) {
                         angular.forEach(requests, function (request, index) {
@@ -995,7 +995,7 @@ app.controller("RotationRequestListCtrl", ["$scope", "$filter", "$q", "$routePar
 
                     // TODO: ability to override automated recommendation
 
-                    $scope.template = 'partials/planner/staff/rotation-request-list-components/recommended-request-list.html';
+                    $scope.template = 'static/partials/staff/planner/rotation-request-list-components/recommended-request-list.html';
                     $scope.requests = RotationRequest.query_by_department_and_month({department_id: $department.id, month_id: $month});
                     $scope.requests.$promise.then(function (requests) {
                         var promises = [];
