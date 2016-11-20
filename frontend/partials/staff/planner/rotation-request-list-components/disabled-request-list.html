@@ -1,0 +1,77 @@
+<div class="row">
+  <div class="col-md-12">
+    <p class="text-center" style="font-size: 1.5em;">
+      {{ message }}
+    </p>
+  </div>
+</div>
+<hr>
+<div ng-if="requests.length > 0">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="pull-right">
+        Sort by:
+        <select ng-model="ordering.option" ng-options="option.value as option.label for option in orderingOptions"></select>
+        <select ng-model="ordering.reverse" ng-options="option.value as option.label for option in reverseOptions"></select>
+      </div>
+    </div>
+  </div>
+  <hr>
+  <div class="row">
+    <div class="col-md-offset-2 col-md-8">
+      <div class="box box-solid box-default" ng-repeat="request in requests | orderBy: ordering.option : ordering.reverse">
+        <div class="box-header">
+          <h5 class="box-title">Request #{{ request.id }}</h5>
+        </div>
+        <div class="box-body">
+          <dl class="dl-horizontal">
+
+            <dt>Intern</dt>
+            <dd>{{ request.internship.intern.profile.en_full_name }}</dd>
+
+            <dt>GPA</dt>
+            <dd>{{ request.internship.intern.gpa }}</dd>
+
+            <dt></dt>
+            <dd><a class="btn btn-xs btn-primary" href="#/planner/{{ request.internship.id }}"><i class="fa fa-info-circle"></i> View full details</a></dd>
+
+            <hr>
+
+            <dt>Month</dt>
+            <dd>{{ request.month.label }}</dd>
+
+            <hr>
+
+            <div ng-if="!request.delete">
+              <dt>Specialty</dt>
+              <dd class="text-yellow text-bold">{{ request.specialty.name }}</dd>
+
+              <dt>Hospital</dt>
+              <dd class="text-yellow text-bold">{{ request.requested_department.department.hospital.name }}</dd>
+
+              <dt>Elective?</dt>
+              <dd>
+                <span ng-if="request.is_elective == true" class="text-yellow text-bold">Yes</span>
+                <span ng-if="request.is_elective == false">No</span>
+              </dd>
+            </div>
+
+            <div ng-if="request.delete">
+              <dt>Description</dt>
+              <dd>{{ internship.intern.profile.en_full_name}} requested <span class="text-red text-bold">cancellation of the rotation</span> during this month.</dd>
+            </div>
+
+            <dt style="width: inherit;">Submission date and time</dt>
+            <dd>{{ request.submission_datetime }}</dd>
+          </dl>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div ng-if="requests.length == 0">
+  <p class="text-center" style="font-size: 1.5em;">
+    No requests to view
+  </p>
+</div>

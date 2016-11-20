@@ -1,0 +1,121 @@
+<div class="example-modal">
+  <div class="modal">
+    <div class="modal-dialog" style="width: 800px;">
+      <div class="modal-content">
+
+        <div class="modal-header">
+          <h3 class="modal-title">Previous requests for {{ month.label }}</h3>
+        </div>
+
+        <div class="modal-body">
+
+          <p ng-if="month.request_history.length !== 0">Below is a breakdown of your previous requests for this month. The oldest requests are at the bottom and the newest ones at the top.</p>
+
+          <div style="background-color: #ecf0f5; padding-top: 10px; padding-bottom: 10px;">
+            <p ng-if="month.request_history.length == 0" style="text-align: center;"><i>There are no previous requests for this month.</i></p>
+
+            <ul ng-if="month.request_history.length !== 0" class="timeline">
+                <!-- timeline item --><!-- TODO: Delete requests -->
+                <li ng-repeat="rotation_request in month.request_history.slice().reverse()">
+                    <!-- timeline icon -->
+                    <i ng-class="{'fa fa-check bg-green': rotation_request.response.is_approved, 'fa fa-close bg-red': rotation_request.response.is_approved == false}"></i>
+                    <div class="timeline-item">
+                        <span class="time"><i class="fa fa-clock-o"></i> {{ rotation_request.submission_datetime }}</span>
+
+                        <h3 class="timeline-header">
+                          Requested
+                          <span ng-if="!rotation_request.delete">
+                            <span ng-class="{'text-green': rotation_request.response.is_approved, 'text-red': rotation_request.response.is_approved == false}">
+                              {{ rotation_request.specialty.name }}
+                              <span ng-if="rotation_request.is_elective">(elective)</span>
+                            </span>  @
+                            {{ rotation_request.requested_department.department.hospital.abbreviation }}
+                          </span>
+                          <span ng-if="rotation_request.delete" class="text-red">
+                            cancellation of rotation
+                          </span>
+                        </h3>
+
+                        <div class="timeline-body">
+                          <dl class="dl-horizontal">
+                            <div ng-if="!rotation_request.delete">
+                              <dt>Specialty</dt>
+                              <dd class="text-bold" ng-class="{'text-green': rotation_request.response.is_approved, 'text-red': rotation_request.response.is_approved == false}">{{ rotation_request.specialty.name }}</dd>
+
+                              <dt>Hospital</dt>
+                              <dd class="text-bold" ng-class="{'text-green': rotation_request.response.is_approved, 'text-red': rotation_request.response.is_approved == false}">{{ rotation_request.requested_department.department.hospital.name }}</dd>
+
+                              <dt>Elective?</dt>
+                              <dd>
+                                <span ng-if="rotation_request.is_elective == true" class="text-bold" ng-class="{'text-green': rotation_request.response.is_approved, 'text-red': rotation_request.response.is_approved == false}">
+                                  Yes
+                                </span>
+                                <span ng-if="rotation_request.is_elective == false">No</span>
+                              </dd>
+                            </div>
+                            <div ng-if="rotation_request.delete">
+                              <dt>Description</dt>
+                              <dd class="text-bold text-red">Cancellation of rotation</dd>
+                            </div>
+
+                            <dt style="width: inherit;">Submission date and time</dt>
+                            <dd>{{ rotation_request.submission_datetime }}</dd>
+                          </dl>
+
+                          <div class="box box-solid" style="margin-bottom: 0;">
+                            <div class="box-body" ng-class="{'bg-success': rotation_request.response.is_approved, 'bg-danger': rotation_request.response.is_approved == false}">
+
+                              <dl class="dl-horizontal" style="margin-bottom: 0;">
+                                <dt>Response</dt>
+                                <dd>
+                                  <span class="text-bold" ng-class="{'text-green': rotation_request.response.is_approved, 'text-red': rotation_request.response.is_approved == false}">
+                                    <span ng-if="rotation_request.response.is_approved">Approved</span>
+                                    <span ng-if="rotation_request.response.is_approved == false">Declined</span>
+                                  </span>
+                                </dd>
+
+                                <dt>Response date and time</dt>
+                                <dd>{{ rotation_request.response.response_datetime }}</dd>
+
+                                <dt>Comments</dt>
+                                <dd>
+                                  <div class="box box-solid box-default" style="margin-bottom: 0;"
+                                       ng-if="rotation_request.response.comments">
+                                    <div class="box-body bg-gray-light">
+                                      <p style="white-space: pre;">{{ rotation_request.response.comments }}</p>
+                                    </div>
+                                  </div>
+                                  <span ng-if="!rotation_request.response.comments">No comment was provided.</span>
+                                </dd>
+                              </dl>
+
+                            </div>
+                          </div>
+
+                        </div>
+
+                    </div>
+                </li>
+                <!-- END timeline item -->
+
+                <!-- timeline item -->
+                <li>
+                    <i class="fa fa-clock-o bg-gray"></i>
+                </li>
+                <!-- END timeline item -->
+            </ul><!-- /.timeline -->
+
+          </div>
+
+        </div><!-- /.modal-body -->
+
+        <div class="modal-footer">
+          <a class="btn btn-default pull-left" href="javascript:history.back()">
+            Back
+          </a>
+        </div>
+
+      </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+  </div>
+</div>
