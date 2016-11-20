@@ -17,14 +17,14 @@ from django.conf import settings
 from django.conf.urls import include, url
 from django.contrib import admin
 from django_nyt.urls import get_pattern as get_nyt_pattern
-
 from rest_framework import routers
 
 from accounts.forms import InternSignupForm, EditInternProfileForm
-from main import views as main_views
-from planner.urls import urls as planner_urls
 from accounts.urls import urls as accounts_urls
 from leaves.urls import urls as leaves_urls
+from planner.urls import urls as planner_urls
+
+from . import views
 
 api_urls = (
     planner_urls,
@@ -39,10 +39,10 @@ for app in api_urls:
 
 
 urlpatterns = [
-    url(r'^$', "main.views.index", name="index"),
+    url(r'^$', views.index, name="index"),
 
     url(r'^api/', include(router.urls)),
-    url(r'^messages/$', main_views.GetMessages.as_view()),
+    url(r'^messages/$', views.GetMessages.as_view()),
     url(r'^notifications/', get_nyt_pattern()),
 
     url(r'^planner/', include("planner.urls")),

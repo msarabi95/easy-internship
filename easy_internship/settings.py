@@ -45,7 +45,6 @@ INSTALLED_APPS = (
     'bootstrap3',
     'django_nyt',
     'rules.apps.AutodiscoverRulesConfig',
-    'main.apps.MainConfig',
     'planner.apps.PlannerConfig',
     'leaves.apps.LeavesConfig',
     'accounts.apps.AccountsConfig',
@@ -72,7 +71,9 @@ ROOT_URLCONF = 'easy_internship.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'templates'),
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -130,6 +131,12 @@ STATIC_ROOT = secrets.STATIC_ROOT
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Fixtures
+
+FIXTURE_DIRS = [
+    os.path.join(BASE_DIR, 'fixtures'),
+]
 
 # Messages
 #

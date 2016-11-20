@@ -1,9 +1,10 @@
-from accounts.models import Profile
 from django.contrib.messages.api import get_messages
 from django.shortcuts import render
-from main.serializers import MessageSerializer
 from rest_framework import views
 from rest_framework.response import Response
+
+from accounts.models import Profile
+from easy_internship.serializers import MessageSerializer
 
 
 def index(request):
