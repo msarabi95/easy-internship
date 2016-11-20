@@ -2,7 +2,7 @@ from django.conf.urls import url
 from leaves import views
 from leaves.views import LeaveRequestFormView
 
-urls = (
+api_urls = (
     (r'leave_types', views.LeaveTypeViewSet),
     (r'leave_settings', views.LeaveSettingViewSet),
     (r'leave_requests', views.LeaveRequestViewSet),

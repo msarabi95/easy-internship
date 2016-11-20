@@ -46,6 +46,9 @@ INSTALLED_APPS = (
     'django_nyt',
     'rules.apps.AutodiscoverRulesConfig',
     'planner.apps.PlannerConfig',
+    'hospitals.apps.HospitalsConfig',
+    'months.apps.MonthsConfig',
+    'rotations.apps.RotationsConfig',
     'leaves.apps.LeavesConfig',
     'accounts.apps.AccountsConfig',
     'userena',  # Userena should be kept at the end in order to overwrite the 'base.html' template it has

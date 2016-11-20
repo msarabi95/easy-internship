@@ -1,6 +1,6 @@
 from accounts import views
 
-urls = (
+api_urls = (
     (r'users', views.UserViewSet),
     (r'profiles', views.ProfileViewSet),
     (r'interns', views.InternViewSet),

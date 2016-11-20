@@ -20,14 +20,18 @@ from django_nyt.urls import get_pattern as get_nyt_pattern
 from rest_framework import routers
 
 from accounts.forms import InternSignupForm, EditInternProfileForm
-from accounts.urls import urls as accounts_urls
-from leaves.urls import urls as leaves_urls
-from planner.urls import urls as planner_urls
+from accounts.urls import api_urls as accounts_urls
+from leaves.urls import api_urls as leaves_urls
+from rotations.urls import api_urls as rotations_urls
+from hospitals.urls import api_urls as hospitals_urls
+from months.urls import api_urls as months_urls
 
 from . import views
 
 api_urls = (
-    planner_urls,
+    hospitals_urls,
+    months_urls,
+    rotations_urls,
     accounts_urls,
     leaves_urls,
 )
@@ -45,7 +49,7 @@ urlpatterns = [
     url(r'^messages/$', views.GetMessages.as_view()),
     url(r'^notifications/', get_nyt_pattern()),
 
-    url(r'^planner/', include("planner.urls")),
+    url(r'^planner/', include("rotations.urls")),  # FIXME: update url in front-end
     url(r'^leaves/', include("leaves.urls")),
 
     url(r'^accounts/(?P<username>[\@\.\w-]+)/edit/$', 'userena.views.profile_edit', {'edit_profile_form': EditInternProfileForm}),

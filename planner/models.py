@@ -1,10 +1,8 @@
 from __future__ import unicode_literals
 
 from copy import copy
-
 from datetime import timedelta, datetime
 
-from accounts.models import Intern
 from django.core import validators
 from django.core.exceptions import ObjectDoesNotExist, ValidationError, MultipleObjectsReturned
 from django.db import models
@@ -12,7 +10,8 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django_nyt.utils import notify
 from month.models import MonthField
-from post_office import mail
+
+from accounts.models import Intern
 
 
 class Hospital(models.Model):
@@ -310,7 +309,7 @@ class AcceptanceSetting(object):
                     setting_type = 'M'
                 except ObjectDoesNotExist:
                     # Import is local to avoid cyclic import issues
-                    from planner.utils import get_global_settings
+                    from hospitals.utils import get_global_settings
 
                     settings_object = get_global_settings()
                     setting_type = 'G'
