@@ -69,7 +69,7 @@
   "fields": {
     "title": "{{ \"<i class='fa fa-clock-o'></i> Recent requests\" }}",
     "hint": "",
-    "url": "#/planner/recent/",
+    "url": "#/recent/",
     "urlaspattern": false,
     "tree": 2,
     "hidden": false,
@@ -93,7 +93,7 @@
   "fields": {
     "title": "{{ \"<i class='fa fa-users'></i> Interns\" }}",
     "hint": "",
-    "url": "#/planner/all/",
+    "url": "#/interns/",
     "urlaspattern": false,
     "tree": 2,
     "hidden": false,

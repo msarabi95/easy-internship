@@ -11,12 +11,9 @@ app.config(["$routeProvider", function ($routeProvider) {
     $routeProvider
         .when("/", {
             // This redirects users from / to /#/
-            redirectTo: "/planner/"
+            redirectTo: "/recent/"
         })
-        .when("/planner/", {
-            redirectTo: "/planner/recent/"
-        })
-        .when("/planner/recent/", {
+        .when("/recent/", {
             templateUrl: "static/partials/staff/index.html",
             controller: "ListRecentRequestsCtrl"
         })
@@ -24,11 +21,11 @@ app.config(["$routeProvider", function ($routeProvider) {
             templateUrl: "static/partials/staff/rotations/rotation-request-list.html",
             controller: "RotationRequestListCtrl"
         })
-        .when("/planner/all/", {
+        .when("/interns/", {
             templateUrl: "static/partials/staff/interns/intern-list.html",
             controller: "InternListCtrl"
         })
-        .when("/planner/:id/", {
+        .when("/interns/:id/", {
             templateUrl: "static/partials/staff/interns/intern-detail.html",
             controller: "InternDetailCtrl"
         })
@@ -37,12 +34,6 @@ app.config(["$routeProvider", function ($routeProvider) {
             controller: "AcceptanceSettingsListCtrl"
         });
 
-}]);
-
-app.controller("MenuCtrl", ["$scope", "$route", "$location", function ($scope, $route, $location) {
-    $scope.isActive = function (viewLocation) {
-        return viewLocation == "#" + $location.path();
-    }
 }]);
 
 app.controller("ListRecentRequestsCtrl", ["$scope", "Internship", "RotationRequest", "Intern", "Profile",
