@@ -8,11 +8,11 @@ angular.module("ei.planner", ["ei.planner.models", "ei.leaves.models", "ei.utils
 
     $routeProvider
         .when("/planner/", {
-            templateUrl: "static/partials/intern/planner/month-list.html",
+            templateUrl: "static/partials/intern/months/month-list.html",
             controller: "MonthListCtrl"
         })
         .when("/planner/:month_id/", {
-            templateUrl: "static/partials/intern/planner/month-detail.html",
+            templateUrl: "static/partials/intern/months/month-detail.html",
             controller: "MonthDetailCtrl"
         })
         .when("/planner/:month_id/new/", {
@@ -20,11 +20,11 @@ angular.module("ei.planner", ["ei.planner.models", "ei.leaves.models", "ei.utils
             controller: "RotationRequestCreateCtrl"
         })
         .when("/planner/:month_id/history/", {
-            templateUrl: "static/partials/intern/planner/rotation-request-history.html",
+            templateUrl: "static/partials/intern/rotations/rotation-request-history.html",
             controller: "RotationRequestHistoryCtrl"
         })
         .when("/planner/:month_id/cancel/", {
-            templateUrl: "static/partials/intern/planner/deletion-request.html",
+            templateUrl: "static/partials/intern/rotations/rotation-cancel-request-create.html",
             controller: "DeletionRequestCtrl"
         })
 

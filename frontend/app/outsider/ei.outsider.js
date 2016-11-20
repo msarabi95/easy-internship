@@ -40,9 +40,9 @@ app.config(["$httpProvider", "$routeProvider", "$resourceProvider",
             controller: "IndexCtrl"
         })
         .when("/forward/:key/", {
-            templateUrl: "static/partials/outsider/planner/forward-details.html",
+            templateUrl: "static/partials/outsider/rotations/rotation-request-forward-detail.html",
             controller: "MyCtrl"
-        })
+        });
 
     $resourceProvider.defaults.stripTrailingSlashes = false;
 

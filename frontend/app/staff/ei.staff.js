@@ -6,86 +6,38 @@ var app = angular.module("easyInternship",
                              "datatables", "datatables.bootstrap", "ngHandsontable", "ngScrollbars",
                              "ui.bootstrap", "ui.select"]);
 
-app.config(["$httpProvider", "$routeProvider", "$resourceProvider",
-    function ($httpProvider, $routeProvider, $resourceProvider) {
-
-    // These settings enable Django to receive Angular requests properly.
-    // Check:
-    // http://django-angular.readthedocs.io/en/latest/integration.html#xmlhttprequest
-    // http://django-angular.readthedocs.io/en/latest/csrf-protection.html#cross-site-request-forgery-protection
-    $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
-    $httpProvider.defaults.xsrfCookieName = 'csrftoken';
-    $httpProvider.defaults.xsrfHeaderName = 'X-CSRFToken';
-
-    // Check for messages with each response
-    $httpProvider.interceptors.push(function ($q, $rootScope) {
-       return {
-           'response': function (response) {
-               if ( $rootScope.fetchingMessages != true ) {
-                   $rootScope.fetchingMessages = true;
-                   $rootScope.$broadcast("fetchMessages");
-               }
-               return response;
-           },
-           'responseError': function (rejection) {
-               if ( $rootScope.fetchingMessages != true ) {
-                   $rootScope.fetchingMessages = true;
-                   $rootScope.$broadcast("fetchMessages");
-               }
-               return $q.reject(rejection);
-           }
-       };
-    });
+app.config(["$routeProvider", function ($routeProvider) {
 
     $routeProvider
         .when("/", {
             // This redirects users from / to /#/
-            redirectTo: "/"
+            redirectTo: "/planner/"
         })
         .when("/planner/", {
             redirectTo: "/planner/recent/"
         })
         .when("/planner/recent/", {
-            templateUrl: "static/partials/staff/planner/list-recent-requests.html",
+            templateUrl: "static/partials/staff/index.html",
             controller: "ListRecentRequestsCtrl"
         })
+        .when("/requests/:department_id?/:month_id?/", {
+            templateUrl: "static/partials/staff/rotations/rotation-request-list.html",
+            controller: "RotationRequestListCtrl"
+        })
         .when("/planner/all/", {
-            templateUrl: "static/partials/staff/planner/intern-list.html",
+            templateUrl: "static/partials/staff/interns/intern-list.html",
             controller: "InternListCtrl"
         })
         .when("/planner/:id/", {
-            templateUrl: "static/partials/staff/planner/intern-detail.html",
+            templateUrl: "static/partials/staff/interns/intern-detail.html",
             controller: "InternDetailCtrl"
         })
         .when("/seats/", {
-            templateUrl: "static/partials/staff/planner/seat-availability-list.html",
+            templateUrl: "static/partials/staff/hospitals/acceptance-setting-list.html",
             controller: "AcceptanceSettingsListCtrl"
-        })
-        .when("/requests/:department_id?/:month_id?/", {
-            templateUrl: "static/partials/staff/planner/rotation-request-list.html",
-            controller: "RotationRequestListCtrl"
         });
-
-    $resourceProvider.defaults.stripTrailingSlashes = false;
 
 }]);
-
-app.run(function ($rootScope, $resource) {
-    toastr.options.positionClass = "toast-top-center";
-    $rootScope.$on("fetchMessages", getMessages);
-
-    function getMessages(event, eventData) {
-        var messages = $resource("messages").query(function (messages) {
-            $rootScope.fetchingMessages = false;
-            for (var i = 0; i < messages.length; i++) {
-                toastr[messages[i].level_tag](messages[i].message);
-            }
-        });
-    }
-
-    $rootScope.fetchingMessages = true;
-    getMessages("", {});
-});
 
 app.controller("MenuCtrl", ["$scope", "$route", "$location", function ($scope, $route, $location) {
     $scope.isActive = function (viewLocation) {
@@ -895,7 +847,7 @@ app.controller("RotationRequestListCtrl", ["$scope", "$filter", "$q", "$routePar
                 if ($setting.total_seats == null) {
 
                     // Uncontrolled submission
-                    $scope.template = 'static/partials/staff/planner/rotation-request-list-components/uncontrolled-request-list.html';
+                    $scope.template = 'static/partials/staff/rotations/rotation-request-list-components/uncontrolled-request-list.html';
                     $scope.requests = RotationRequest.query_by_department_and_month({department_id: $department.id, month_id: $month});
                     $scope.requests.$promise.then(function (requests) {
                         angular.forEach(requests, function (request, index) {
@@ -950,7 +902,7 @@ app.controller("RotationRequestListCtrl", ["$scope", "$filter", "$q", "$routePar
                 } else if ($setting.criterion == 'FCFS' && $setting.can_submit_requests == false && moment().isBefore(moment($setting.start_or_end_date))) {
 
                     // Controlled submission, criterion is FCFS, and no requests have been received yet (start date is yet to come)
-                    $scope.template = 'static/partials/staff/planner/rotation-request-list-components/empty-request-list.html';
+                    $scope.template = 'static/partials/staff/rotations/rotation-request-list-components/empty-request-list.html';
 
                     $scope.message = "Request submission for this department during this month will open on " + moment($setting.start_or_end_date).format("d MMM YYYY, hh:mm a") + "." ;
 
@@ -959,7 +911,7 @@ app.controller("RotationRequestListCtrl", ["$scope", "$filter", "$q", "$routePar
 
                     // Controlled submission, either criterion is FCFS & seats are all done, or criterion is GPA & submission isn't over yet
                     // In both cases show a list of "disabled" requests
-                    $scope.template = 'static/partials/staff/planner/rotation-request-list-components/disabled-request-list.html';
+                    $scope.template = 'static/partials/staff/rotations/rotation-request-list-components/disabled-request-list.html';
                     $scope.requests = RotationRequest.query_by_department_and_month({department_id: $department.id, month_id: $month});
                     $scope.requests.$promise.then(function (requests) {
                         angular.forEach(requests, function (request, index) {
@@ -995,7 +947,7 @@ app.controller("RotationRequestListCtrl", ["$scope", "$filter", "$q", "$routePar
 
                     // TODO: ability to override automated recommendation
 
-                    $scope.template = 'static/partials/staff/planner/rotation-request-list-components/recommended-request-list.html';
+                    $scope.template = 'static/partials/staff/rotations/rotation-request-list-components/recommended-request-list.html';
                     $scope.requests = RotationRequest.query_by_department_and_month({department_id: $department.id, month_id: $month});
                     $scope.requests.$promise.then(function (requests) {
                         var promises = [];

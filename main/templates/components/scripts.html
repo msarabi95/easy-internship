@@ -41,16 +41,16 @@
 </script>
 
 <!-- Angular App -->
-<script src="{% static 'app/ei.planner.models.js' %}"></script>
-<script src="{% static 'app/ei.accounts.models.js' %}"></script>
-<script src="{% static 'app/ei.leaves.models.js' %}"></script>
-<script src="{% static 'app/ei.planner.js' %}"></script>
-<script src="{% static 'app/ei.leaves.js' %}"></script>
-<script src="{% static 'app/ei.utils.js' %}"></script>
+<script src="{% static 'app/resources/ei.planner.models.js' %}"></script>
+<script src="{% static 'app/resources/ei.accounts.models.js' %}"></script>
+<script src="{% static 'app/resources/ei.leaves.models.js' %}"></script>
+<script src="{% static 'app/resources/ei.utils.js' %}"></script>
 {% if role == 'intern' %}
-<script src="{% static 'app/ei.intern.js' %}"></script>
+<script src="{% static 'app/intern/ei.intern.planner.js' %}"></script>
+<script src="{% static 'app/intern/ei.intern.leaves.js' %}"></script>
+<script src="{% static 'app/intern/ei.intern.js' %}"></script>
 {% elif role == 'staff' %}
-<script src="{% static 'app/ei.staff.js' %}"></script>
+<script src="{% static 'app/staff/ei.staff.js' %}"></script>
 {% elif role == 'outsider' %}
-<script src="{% static 'app/ei.outsider.js' %}"></script>
+<script src="{% static 'app/outsider/ei.outsider.js' %}"></script>
 {% endif %}
