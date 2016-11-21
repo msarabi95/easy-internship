@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from planner.models import Rotation, RequestedDepartment, RotationRequest, RotationRequestResponse, \
+from rotations.models import Rotation, RequestedDepartment, RotationRequest, RotationRequestResponse, \
     RotationRequestForward, RotationRequestForwardResponse
 
 

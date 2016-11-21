@@ -6,7 +6,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django_nyt.utils import notify
 from month.models import MonthField
-from planner.models import RotationRequest
+from rotations.models import RotationRequest
 
 
 class LeaveType(models.Model):

@@ -9,7 +9,7 @@ from django.db import models
 from django.utils import timezone
 from month.models import MonthField
 
-from planner.models import RotationRequest, Rotation
+from rotations.models import Rotation, RotationRequest
 
 
 class Hospital(models.Model):

@@ -13,8 +13,8 @@ from rest_framework.decorators import detail_route, list_route
 from rest_framework.response import Response
 
 from rotations.forms import RotationRequestForm
-from planner.models import Rotation, RequestedDepartment, RotationRequest, \
-    RotationRequestResponse, RotationRequestForward, RotationRequestForwardResponse
+from rotations.models import Rotation, RequestedDepartment, RotationRequest, RotationRequestResponse, \
+    RotationRequestForward, RotationRequestForwardResponse
 from hospitals.models import Department, AcceptanceSetting
 from rotations.serializers import RotationSerializer, RequestedDepartmentSerializer, RotationRequestSerializer, \
     RotationRequestResponseSerializer, RotationRequestForwardSerializer, RotationRequestForwardResponseSerializer

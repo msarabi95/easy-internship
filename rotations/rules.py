@@ -1,8 +1,9 @@
 from __future__ import absolute_import
 
 import rules
-from planner.models import Rotation, RotationRequest, RotationRequestResponse, RotationRequestForward, \
+from rotations.models import Rotation, RotationRequest, RotationRequestResponse, RotationRequestForward, \
     RotationRequestForwardResponse
+
 
 @rules.predicate
 def is_owner(user, object):

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from planner.models import Rotation
+from rotations.models import Rotation
 from months.models import Internship
 
 

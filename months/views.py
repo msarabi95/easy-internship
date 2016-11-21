@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_201_CREATED
 
 from accounts.models import Profile
-from planner.models import RotationRequest
+from rotations.models import RotationRequest
 from months.models import Internship
 from months.serializers import InternshipMonthSerializer, InternshipSerializer
 

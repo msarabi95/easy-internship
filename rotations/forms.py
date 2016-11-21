@@ -2,7 +2,7 @@ from django import forms
 from djng.forms.angular_model import NgModelFormMixin
 from djng.forms.angular_validation import NgFormValidationMixin
 from djng.styling.bootstrap3.forms import Bootstrap3ModelForm
-from planner.models import RequestedDepartment
+from rotations.models import RequestedDepartment
 
 
 class RotationRequestForm(NgFormValidationMixin, NgModelFormMixin, Bootstrap3ModelForm):

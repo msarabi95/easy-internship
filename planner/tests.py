@@ -7,9 +7,11 @@ from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.test import TestCase
 from django.utils import timezone
 from month import Month
-from planner.models import Specialty, Department, SeatAvailability, Rotation, PlanRequest, \
+from planner.models import Specialty, Department, SeatAvailability, PlanRequest, \
     RotationRequest, RequestedDepartment, RotationRequestResponse, RotationRequestForward, \
     RotationRequestForwardResponse
+from rotations.models import Rotation, RequestedDepartment, RotationRequest, RotationRequestResponse, \
+    RotationRequestForward, RotationRequestForwardResponse
 from months.models import Internship
 from hospitals.models import Hospital, Specialty
 from planner.test_factories import InternshipFactory, HospitalFactory, DepartmentFactory, SpecialtyFactory, \
