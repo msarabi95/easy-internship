@@ -84,7 +84,7 @@ class RotationRequestByDepartmentAndMonth(viewsets.ViewSet):
 
 
 class RotationRequestFormView(django_generics.FormView):
-    template_name = "planner/intern/templates/rotations/intern/rotation-request-create.html"
+    template_name = "rotations/intern/rotation-request-create.html"
     form_class = RotationRequestForm
 
     def post(self, request, *args, **kwargs):
