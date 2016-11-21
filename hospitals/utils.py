@@ -1,5 +1,5 @@
 from django.core.exceptions import ImproperlyConfigured
-from planner.models import GlobalSettings
+from hospitals.models import GlobalSettings
 
 
 # Global settings getter

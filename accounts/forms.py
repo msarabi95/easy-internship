@@ -2,7 +2,7 @@ from accounts.models import Intern, Profile
 from django import forms
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator, MinLengthValidator
 from month import Month
-from planner.models import Internship
+from months.models import Internship
 from userena.forms import SignupFormOnlyEmail
 from userena.utils import get_profile_model
 

@@ -11,8 +11,8 @@ from rest_framework import viewsets
 from rest_framework.decorators import list_route
 from rest_framework.response import Response
 
-from planner.models import Hospital, Specialty, Department, MonthSettings, DepartmentSettings, DepartmentMonthSettings, \
-    AcceptanceSetting
+from hospitals.models import Hospital, Specialty, Department, MonthSettings, DepartmentSettings, \
+    DepartmentMonthSettings, AcceptanceSetting
 from hospitals.serializers import HospitalSerializer, SpecialtySerializer, DepartmentSerializer, \
     MonthSettingsSerializer, DepartmentSettingsSerializer, DepartmentMonthSettingsSerializer, \
     AcceptanceSettingSerializer

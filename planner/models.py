@@ -1,469 +1,16 @@
 from __future__ import unicode_literals
 
 from copy import copy
-from datetime import timedelta, datetime
 
 from django.core import validators
 from django.core.exceptions import ObjectDoesNotExist, ValidationError, MultipleObjectsReturned
 from django.db import models
-from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django_nyt.utils import notify
 from month.models import MonthField
 
 from accounts.models import Intern
-
-
-class Hospital(models.Model):
-    name = models.CharField(max_length=128)
-    abbreviation = models.CharField(max_length=16)
-    is_kamc = models.BooleanField(default=False)
-
-    def __unicode__(self):
-        return self.name
-
-
-class SpecialtyManager(models.Manager):
-    def general(self):
-        return self.filter(parent_specialty__isnull=True)
-
-
-class Specialty(models.Model):
-    name = models.CharField(max_length=128)
-    abbreviation = models.CharField(max_length=4)
-    required_months = models.PositiveIntegerField()
-    parent_specialty = models.ForeignKey("Specialty", related_name="subspecialties", null=True,
-                                         blank=True)
-
-    objects = SpecialtyManager()
-
-    def is_subspecialty(self):
-        """
-        Return True if the specialty has a parent_specialty.
-        """
-        if self.parent_specialty is not None:
-            return True
-        else:
-            return False
-
-    def get_general_specialty(self):
-        """
-        Return `self` if already a general specialty (no parent specialty).
-        Return parent specialty otherwise.
-        """
-        if not self.is_subspecialty():
-            return self
-        else:
-            return self.parent_specialty
-
-    def __unicode__(self):
-        return self.name
-
-    class Meta:
-        verbose_name_plural = "Specialties"
-
-
-"""
-
-General Specialties, General Departments
-========================================
-
-    Specialty 1 ----- * Department
-        1                   1
-        |                   |
-        |                   |
-        |                   |
-        *                   *
-    Specialty 1 ----- * Department
-
-========================================
-Subspecialties, Sub-departments (Sections)
-
-"""
-
-
-class Department(models.Model):
-    hospital = models.ForeignKey(Hospital, related_name="departments")
-    parent_department = models.ForeignKey("Department", related_name="sections", null=True,
-                                          blank=True)
-    name = models.CharField(max_length=128)
-    specialty = models.ForeignKey(Specialty, related_name="departments")
-    contact_name = models.CharField(max_length=128)
-    email = models.EmailField(max_length=128)
-    phone = models.CharField(max_length=128)
-    extension = models.CharField(max_length=16)
-
-    def get_available_seats(self, month):
-        """
-        Return the number of available seats for a specific month.
-        """
-        try:
-            return self.seats.get(month=month).total_seats
-        except DepartmentMonthSettings.DoesNotExist:
-            return None
-
-    def get_contact_details(self):
-        """
-        Return the contact details of the department if saved.
-        If no details are supplied, return the details of the parent department.
-        """
-        if self.email != "":
-            return {
-                "contact_name": self.contact_name,
-                "email": self.email,
-                "phone": self.phone,
-                "extension": self.extension,
-            }
-        elif self.parent_department is not None:
-            return self.parent_department.get_contact_details()
-
-    def __unicode__(self):
-        return "%s (%s)" % (self.name, self.hospital.abbreviation)
-
-
-FCFS_ACCEPTANCE = "FCFS"
-GPA_ACCEPTANCE = "GPA"
-
-ACCEPTANCE_CRITERION_CHOICES = (
-    (FCFS_ACCEPTANCE, "First-come, First-serve"),
-    (GPA_ACCEPTANCE, "GPA"),
-)
-
-
-class NonMonthSettingsMixin(object):
-    """
-    A mixin containing a `save` method common to `GlobalSettings` and `DepartmentSettings`
-    """
-    def save(self, *args, **kwargs):
-        # If saving for the first time, make sure either start date interval or end date interval
-        # is specified, based on selected criterion
-        if not self.id:
-            if self.acceptance_criterion == FCFS_ACCEPTANCE and self.acceptance_start_date_interval is None:
-                self.acceptance_start_date_interval = 30
-            elif self.acceptance_criterion == GPA_ACCEPTANCE and self.acceptance_end_date_interval is None:
-                self.acceptance_end_date_interval = 30
-
-        # Validate consistency
-        if (self.acceptance_criterion == FCFS_ACCEPTANCE and self.acceptance_start_date_interval is None) \
-           or (self.acceptance_criterion == GPA_ACCEPTANCE and self.acceptance_end_date_interval is None):
-            raise ValidationError("Either a start or an end date interval should be specified.")
-
-        super(NonMonthSettingsMixin, self).save(*args, **kwargs)
-
-    def get_acceptance_start_or_end_date(self, month):
-        """
-
-        Args:
-            month: `Month` instance.
-
-        Returns: Depending on the acceptance criterion, the start or end date is calculated and returned.
-
-        """
-        month_as_date = month.first_day()  # this returns an instance of datetime.date
-        month_first_day = timezone.make_aware(datetime(
-            year=month_as_date.year,
-            month=month_as_date.month,
-            day=month_as_date.day,
-            hour=0, minute=0, second=0, microsecond=0
-        ))
-        if self.acceptance_criterion == FCFS_ACCEPTANCE:
-            start_date = month_first_day - timedelta(days=self.acceptance_start_date_interval)
-            return start_date
-        elif self.acceptance_criterion == GPA_ACCEPTANCE:
-            end_date = month_first_day - timedelta(days=self.acceptance_end_date_interval)
-            return end_date
-
-
-class MonthSettingsMixin(object):
-    """
-    A mixin containing a `save` method common to `MonthSettings` and `DepartmentMonthSettings`
-    """
-    def save(self, *args, **kwargs):
-        # If saving for the first time, make sure either start date or end date is specified
-        # based on selected criterion
-        if not self.id:
-            if self.acceptance_criterion == FCFS_ACCEPTANCE and self.acceptance_start_date is None:
-                self.acceptance_start_date = self.month.first_day() - timedelta(days=30)
-            elif self.acceptance_criterion == GPA_ACCEPTANCE and self.acceptance_end_date is None:
-                self.acceptance_end_date = self.month.first_day() - timedelta(days=30)
-
-        # Validate consistency
-        if (self.acceptance_criterion == FCFS_ACCEPTANCE and self.acceptance_start_date is None) \
-           or (self.acceptance_criterion == GPA_ACCEPTANCE and self.acceptance_end_date is None):
-            raise ValidationError("Either a start or an end date should be specified.")
-
-        super(MonthSettingsMixin, self).save(*args, **kwargs)
-
-    def get_acceptance_start_or_end_date(self, month=None):
-        """
-
-        Args:
-            month: `Month` instance. Optional.
-
-        Returns: Depending on the acceptance criterion, either the start date or end date is returned.
-
-        """
-        if self.acceptance_criterion == FCFS_ACCEPTANCE:
-            return self.acceptance_start_date
-        elif self.acceptance_criterion == GPA_ACCEPTANCE:
-            return self.acceptance_end_date
-
-
-class GlobalSettings(NonMonthSettingsMixin, models.Model):
-    """
-    A model that saves global acceptance settings.
-    Only ONE instance of this model should be saved to the database.
-    """
-    acceptance_criterion = models.CharField(
-        max_length=4,
-        choices=ACCEPTANCE_CRITERION_CHOICES,
-        default=FCFS_ACCEPTANCE
-    )
-    acceptance_start_date_interval = models.PositiveIntegerField(blank=True, null=True)
-    acceptance_end_date_interval = models.PositiveIntegerField(blank=True, null=True)
-
-
-class MonthSettings(MonthSettingsMixin, models.Model):
-    """
-    Acceptance settings for a particular month.
-    """
-    month = MonthField(unique=True)
-    acceptance_criterion = models.CharField(
-        max_length=4,
-        choices=ACCEPTANCE_CRITERION_CHOICES,
-        default=FCFS_ACCEPTANCE
-    )
-    acceptance_start_date = models.DateTimeField(blank=True, null=True)
-    acceptance_end_date = models.DateTimeField(blank=True, null=True)
-
-
-class DepartmentSettings(NonMonthSettingsMixin, models.Model):
-    """
-    Acceptance settings for a particular department.
-    """
-    department = models.OneToOneField(Department, related_name="acceptance_settings")
-    acceptance_criterion = models.CharField(
-        max_length=4,
-        choices=ACCEPTANCE_CRITERION_CHOICES,
-        default=FCFS_ACCEPTANCE
-    )
-    acceptance_start_date_interval = models.PositiveIntegerField(blank=True, null=True)
-    acceptance_end_date_interval = models.PositiveIntegerField(blank=True, null=True)
-
-
-class DepartmentMonthSettings(MonthSettingsMixin, models.Model):
-    """
-    Acceptance settings for a particular department during a particular month
-    """
-    month = MonthField()
-    department = models.ForeignKey(Department, related_name="monthly_settings")
-    total_seats = models.PositiveIntegerField()
-    acceptance_criterion = models.CharField(
-        max_length=4,
-        choices=ACCEPTANCE_CRITERION_CHOICES,
-        blank=True, null=True
-    )
-    acceptance_start_date = models.DateTimeField(blank=True, null=True)
-    acceptance_end_date = models.DateTimeField(blank=True, null=True)
-
-    def __unicode__(self):
-        return "Acceptance settings in %s during %s" % (self.department.__unicode__(),
-                                                        self.month)
-
-    class Meta:
-        unique_together = ("month", "department")
-
-
-class AcceptanceSetting(object):
-    """
-    Acceptance setting for a particular department in a particular month.
-    """
-    def __init__(self, department, month):
-        """
-
-        Get settings for a month-department pair using the following sequence:
-        (1) If there's a DepartmentMonthSetting, use it.
-        (2) If not, look for a DepartmentSetting.
-        (3) If there isn't one, look for a MonthSetting.
-        (4) If there isn't one, use global settings.
-
-        Args:
-            department: A `Department` instance.
-            month: A `Month` instance.
-
-        """
-        total_seats = None
-        try:
-            settings_object = DepartmentMonthSettings.objects.get(department=department, month=month)
-            total_seats = settings_object.total_seats
-            if not settings_object.acceptance_criterion:
-                raise ObjectDoesNotExist
-            setting_type = 'DM'
-        except ObjectDoesNotExist:
-            try:
-                settings_object = DepartmentSettings.objects.get(department=department)
-                setting_type = 'D'
-            except ObjectDoesNotExist:
-                try:
-                    settings_object = MonthSettings.objects.get(month=month)
-                    setting_type = 'M'
-                except ObjectDoesNotExist:
-                    # Import is local to avoid cyclic import issues
-                    from hospitals.utils import get_global_settings
-
-                    settings_object = get_global_settings()
-                    setting_type = 'G'
-
-        self.month = month
-        self.department = department
-
-        self.type = setting_type
-        self.criterion = settings_object.acceptance_criterion
-        self.start_or_end_date = settings_object.get_acceptance_start_or_end_date(month)
-        self.total_seats = total_seats
-
-    # TODO: Implement as properties
-    def get_booked_seats(self):
-        if self.total_seats is None:
-            return None
-        return RotationRequest.objects.open().month(self.month).\
-            filter(requested_department__department=self.department).count()
-        # FIXME: what about departments not in db?
-        # FIXME: Exclude declined requests
-        # FIXME: Exclude cancellation requests
-
-    def get_occupied_seats(self):
-        if self.total_seats is None:
-            return None
-        return Rotation.objects.filter(department=self.department, month=self.month).count()
-
-    def get_unoccupied_seats(self):
-        if self.total_seats is None:
-            return None
-        return self.total_seats - self.get_occupied_seats()
-
-    def get_available_seats(self):
-        if self.total_seats is None:
-            return None
-        return self.total_seats - (self.get_booked_seats() + self.get_occupied_seats())
-
-    def can_submit_requests(self):
-        """
-
-        Returns: True or False, depending on whether it's possible to submit requests for this department-month pair.
-
-        """
-        if self.total_seats is None:
-            # If no seat count is specified, then requests can be submitted any time
-            return True
-        else:
-            # If a seat count is specified, check acceptance criterion
-            if self.criterion == GPA_ACCEPTANCE:
-                # When the criterion is GPA, the only factor to permit submissions is whether the end date has been
-                # reached or not (Available seat count isn't a factor)
-                return timezone.now() < self.start_or_end_date
-            elif self.criterion == FCFS_ACCEPTANCE:
-                # A sanity check
-                if self.get_available_seats() >= 0:
-                    if self.get_available_seats() > 0 and timezone.now() >= self.start_or_end_date:
-                        # Requests can be submitted when start date has passed, AND there is at least 1
-                        # available seat
-                        return True
-                    else:
-                        # If available seats equals 0, or start date hasn't passed yet,
-                        # then no requests can be submitted
-                        return False
-                else:
-                    raise ValueError("Unexpected value of available seats.")
-
-
-class InternshipMonth(object):
-    def __init__(self, month, current_rotation, current_request, request_history,
-                 current_leaves, current_leave_requests, current_leave_cancel_requests, leave_request_history,
-                 leave_cancel_request_history):
-        self.month = month
-        self.label = month.first_day().strftime("%B %Y")
-        self.label_short = month.first_day().strftime("%b. %Y")
-
-        self.current_rotation = current_rotation
-        self.current_request = current_request
-        self.request_history = request_history
-
-        self.current_leaves = current_leaves
-        self.current_leave_requests = current_leave_requests
-        self.current_leave_cancel_requests = current_leave_cancel_requests
-        self.leave_request_history = leave_request_history
-        self.leave_cancel_request_history = leave_cancel_request_history
-
-
-class Internship(models.Model):
-    intern = models.OneToOneField(Intern)
-    start_month = MonthField()
-
-    def get_months(self):
-        months = []
-        for add in range(15):
-            month = self.start_month + add
-
-            current_rotation = self.rotations.current_for_month(month)
-            current_request = self.rotation_requests.current_for_month(month)
-            request_history = self.rotation_requests.month(month).closed()
-
-            current_leaves = self.intern.profile.user.leaves.current_for_month(month)
-            current_leave_requests = self.intern.profile.user.leave_requests.current_for_month(month)
-            current_leave_cancel_requests = self.intern.profile.user.leave_cancel_requests.current_for_month(month)
-            leave_request_history = self.intern.profile.user.leave_requests.month(month).closed()
-            leave_cancel_request_history = self.intern.profile.user.leave_cancel_requests.month(month).closed()
-
-            months.append(InternshipMonth(
-                month,
-                current_rotation,
-                current_request,
-                request_history,
-                current_leaves,
-                current_leave_requests,
-                current_leave_cancel_requests,
-                leave_request_history,
-                leave_cancel_request_history,
-            ))
-        return months
-
-    months = property(get_months)
-
-    def clean(self):
-        """
-        Checks that:
-        1- The internship plan doesn't exceed 12 months.
-        2- Each specialty doesn't exceed its required months in non-elective rotations.
-        3- Not more than 2 months are used for electives. (Electives can be any specialty)
-        """
-        # FIXME: Doesn't work with admin, because it checks data that's stored in the database; i.e. a ModelForm
-        # can never evaluate! (e.g. the admin site)
-        errors = []
-        if self.rotations.count() > 12:
-            errors.append(ValidationError("The internship plan should contain no more than 12 months."))
-
-        # Get a list of general specialties.
-        general_specialties = Specialty.objects.general()
-        non_electives = filter(lambda rotation: not rotation.is_elective, self.rotations.all())
-        electives = filter(lambda rotation: rotation.is_elective, self.rotations.all())
-
-        # Check that the internship plan contains at most 2 non-elective months of each general specialty.
-        for specialty in general_specialties:
-            rotation_count = len(filter(lambda rotation: rotation.specialty.get_general_specialty() == specialty,
-                                        non_electives))
-
-            if rotation_count > specialty.required_months:
-                errors.append(ValidationError("The internship plan should contain at most %d month(s) of %s.",
-                                              params=(specialty.required_months, specialty.name)))
-
-        # Check that the internship plan contains at most 2 months of electives.
-        if len(electives) > 2:
-            errors.append(ValidationError("The internship plan should contain at most %d month of %s.",
-                                          params=(2, "electives")))
-
-        if errors:
-            raise ValidationError(errors)
+from months.models import Internship
 
 
 class RotationManager(models.Manager):
@@ -483,8 +30,8 @@ class RotationManager(models.Manager):
 class Rotation(models.Model):
     internship = models.ForeignKey(Internship, related_name="rotations")
     month = MonthField()
-    specialty = models.ForeignKey(Specialty, related_name="rotations")
-    department = models.ForeignKey(Department, related_name="rotations")
+    specialty = models.ForeignKey('hospitals.Specialty', related_name="rotations")
+    department = models.ForeignKey('hospitals.Department', related_name="rotations")
     is_elective = models.BooleanField(default=False)
     rotation_request = models.OneToOneField("RotationRequest")
 
@@ -496,11 +43,11 @@ class Rotation(models.Model):
 
 class RequestedDepartment(models.Model):
     is_in_database = models.BooleanField()
-    department = models.ForeignKey(Department, related_name="department_requests", null=True, blank=True)
+    department = models.ForeignKey('hospitals.Department', related_name="department_requests", null=True, blank=True)
 
-    department_hospital = models.ForeignKey(Hospital, null=True, blank=True)
+    department_hospital = models.ForeignKey('hospitals.Hospital', null=True, blank=True)
     department_name = models.CharField(max_length=128, blank=True)
-    department_specialty = models.ForeignKey(Specialty, null=True, blank=True)
+    department_specialty = models.ForeignKey('hospitals.Specialty', null=True, blank=True)
     department_contact_name = models.CharField(max_length=128, blank=True)
     department_email = models.EmailField(max_length=128, blank=True)
     department_phone = models.CharField(
@@ -563,6 +110,8 @@ class RequestedDepartment(models.Model):
         Clears all the department_* details fields and links to an existing department through
          the `department` field.
         """
+        from hospitals.models import Department
+
         if department in Department.objects.all():
 
             self.department = department
@@ -586,6 +135,8 @@ class RequestedDepartment(models.Model):
         Create a new department based on the data in this request, then link the request to that
         department and clear the department_* details fields.
         """
+        from hospitals.models import Department
+
         if self.department in Department.objects.all():
             raise Exception("Department already exists in database!")  # FIXME: A more accurate exception class?
 
@@ -605,6 +156,7 @@ class RequestedDepartment(models.Model):
         Return the `Department` instance if that exists in the database. Otherwise return
         a `Department` object containing all the details from the department_* fields.
         """
+        from hospitals.models import Department
         if self.is_in_database:
             return self.department
         else:
@@ -677,7 +229,7 @@ class RotationRequestQuerySet(models.QuerySet):
 class RotationRequest(models.Model):
     internship = models.ForeignKey(Internship, related_name="rotation_requests")
     month = MonthField()
-    specialty = models.ForeignKey(Specialty, related_name="rotation_requests")  # TODO: Is this field really necessary?
+    specialty = models.ForeignKey('hospitals.Specialty', related_name="rotation_requests")  # TODO: Is this field really necessary?
     requested_department = models.OneToOneField(RequestedDepartment)
     delete = models.BooleanField(default=False)  # Flag to determine if this is a "delete" request
     # FIXME: Maybe department & specialty should be optional with delete=True

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from planner.models import Hospital, Department, MonthSettings, DepartmentSettings, DepartmentMonthSettings, Specialty
+from hospitals.models import Hospital, Specialty, Department, MonthSettings, DepartmentSettings, DepartmentMonthSettings
 
 
 class HospitalAdmin(admin.ModelAdmin):

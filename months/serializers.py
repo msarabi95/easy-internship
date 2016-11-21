@@ -1,7 +1,7 @@
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 
-from planner.models import Internship
+from months.models import Internship
 
 
 class InternshipMonthSerializer(serializers.Serializer):

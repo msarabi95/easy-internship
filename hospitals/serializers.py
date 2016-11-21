@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from planner.models import Hospital, Specialty, Department, GlobalSettings, MonthSettings, DepartmentSettings, \
+from hospitals.models import Hospital, Specialty, Department, GlobalSettings, MonthSettings, DepartmentSettings, \
     DepartmentMonthSettings
 from planner.serializers import MonthField
 

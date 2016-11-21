@@ -2,8 +2,10 @@ import factory
 from accounts.models import Profile, Intern
 from django.contrib.auth.models import User
 from month import Month
-from planner.models import Rotation, Internship, Hospital, Department, Specialty, RotationRequest, \
+from planner.models import Rotation, Department, Specialty, RotationRequest, \
     RequestedDepartment, RotationRequestResponse, RotationRequestForward, RotationRequestForwardResponse
+from months.models import Internship
+from hospitals.models import Hospital, Specialty, Department
 
 
 class InternFactory(factory.django.DjangoModelFactory):
