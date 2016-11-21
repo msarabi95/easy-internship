@@ -1,6 +1,6 @@
 [
 {
-    "model": "planner.hospital",
+    "model": "hospitals.hospital",
     "pk": 1,
     "fields": {
         "name": "King Abdulaziz Medical City",
@@ -9,7 +9,7 @@
     }
 },
 {
-    "model": "planner.hospital",
+    "model": "hospitals.hospital",
     "pk": 2,
     "fields": {
         "name": "King Fahad Medical City",
@@ -18,7 +18,7 @@
     }
 },
 {
-    "model": "planner.department",
+    "model": "hospitals.department",
     "pk": 1,
     "fields": {
         "hospital": 1,
@@ -32,7 +32,7 @@
     }
 },
 {
-    "model": "planner.department",
+    "model": "hospitals.department",
     "pk": 3,
     "fields": {
         "hospital": 1,
@@ -46,7 +46,7 @@
     }
 },
 {
-    "model": "planner.department",
+    "model": "hospitals.department",
     "pk": 4,
     "fields": {
         "hospital": 1,
@@ -60,7 +60,7 @@
     }
 },
 {
-    "model": "planner.department",
+    "model": "hospitals.department",
     "pk": 5,
     "fields": {
         "hospital": 1,
@@ -74,7 +74,7 @@
     }
 },
 {
-    "model": "planner.specialty",
+    "model": "hospitals.specialty",
     "pk": 1,
     "fields": {
         "name": "Internal Medicine",
@@ -84,7 +84,7 @@
     }
 },
 {
-    "model": "planner.specialty",
+    "model": "hospitals.specialty",
     "pk": 2,
     "fields": {
         "name": "Surgery",
@@ -94,7 +94,7 @@
     }
 },
 {
-    "model": "planner.specialty",
+    "model": "hospitals.specialty",
     "pk": 3,
     "fields": {
         "name": "Pediatrics",
@@ -104,7 +104,7 @@
     }
 },
 {
-    "model": "planner.specialty",
+    "model": "hospitals.specialty",
     "pk": 4,
     "fields": {
         "name": "Obstetrics & Gynecology",
