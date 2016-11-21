@@ -45,7 +45,6 @@ INSTALLED_APPS = (
     'bootstrap3',
     'django_nyt',
     'rules.apps.AutodiscoverRulesConfig',
-    'planner.apps.PlannerConfig',
     'hospitals.apps.HospitalsConfig',
     'months.apps.MonthsConfig',
     'rotations.apps.RotationsConfig',
