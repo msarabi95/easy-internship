@@ -16,6 +16,11 @@ class Hospital(models.Model):
     abbreviation = models.CharField(max_length=16)
     is_kamc = models.BooleanField(default=False)
 
+    contact_name = models.CharField(max_length=128)
+    email = models.EmailField(max_length=128)
+    phone = models.CharField(max_length=128)
+    extension = models.CharField(max_length=16)
+
     def __unicode__(self):
         return self.name
 
