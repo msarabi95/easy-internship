@@ -4,8 +4,6 @@ from datetime import datetime, timedelta
 
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.db import models
-
-# Create your models here.
 from django.utils import timezone
 from month.models import MonthField
 
@@ -61,7 +59,6 @@ class Specialty(models.Model):
         verbose_name_plural = "Specialties"
 
 
-
 #
 # General Specialties, General Departments
 # ========================================
@@ -77,7 +74,6 @@ class Specialty(models.Model):
 # ========================================
 # Subspecialties, Sub-departments (Sections)
 #
-
 
 
 class Department(models.Model):

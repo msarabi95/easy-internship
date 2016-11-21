@@ -4,10 +4,7 @@ from copy import copy
 
 from django.core import validators
 from django.core.exceptions import ObjectDoesNotExist, ValidationError, MultipleObjectsReturned
-
 from django.db import models
-
-# Create your models here.
 from django.utils.crypto import get_random_string
 from django_nyt.utils import notify
 from month.models import MonthField
