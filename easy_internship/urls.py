@@ -17,39 +17,46 @@ from django.conf import settings
 from django.conf.urls import include, url
 from django.contrib import admin
 from django_nyt.urls import get_pattern as get_nyt_pattern
+from rest_framework import routers
 
 from accounts.forms import InternSignupForm, EditInternProfileForm
-from main import views as main_views
-from planner import views
-from planner.urls import router as planner_router, custom_departments_view_url, custom_internship_months_view_url, \
-    acceptance_settings_by_department_and_month_id, rotation_request_list_by_department_and_month
-from accounts.urls import router as accounts_router
+from accounts.urls import api_urls as accounts_urls
+from leaves.urls import api_urls as leaves_urls
+from rotations.urls import api_urls as rotations_urls
+from hospitals.urls import api_urls as hospitals_urls
+from months.urls import api_urls as months_urls
+
+from . import views
+
+api_urls = (
+    hospitals_urls,
+    months_urls,
+    rotations_urls,
+    accounts_urls,
+    leaves_urls,
+)
+
+router = routers.DefaultRouter()
+for app in api_urls:
+    for urlconf in app:
+        router.register(*urlconf)
+
 
 urlpatterns = [
-    url(r'^forwards/$', views.list_forwards, name="list_forwards"),  # Temporary, for testing only!
-    url(r'^rotation_request_responses/$', views.rotation_request_responses, name="rotation_request_responses"),
+    url(r'^$', views.index, name="index"),
 
-    custom_departments_view_url,
-    custom_internship_months_view_url,
-    acceptance_settings_by_department_and_month_id,
-    rotation_request_list_by_department_and_month,
-    url(r'^api/', include(planner_router.urls)),
-    url(r'^api/', include(accounts_router.urls)),
+    url(r'^api/', include(router.urls)),
+    url(r'^messages/$', views.GetMessages.as_view()),
+    url(r'^notifications/', get_nyt_pattern()),
 
-    url(r'^partials/(?P<template_name>.*\.html)$', "main.views.load_partial", name="load_partial"),
-
-    url(r'^planner/', include("planner.urls")),
+    url(r'^planner/', include("rotations.urls")),  # FIXME: update url in front-end
+    url(r'^leaves/', include("leaves.urls")),
 
     url(r'^accounts/(?P<username>[\@\.\w-]+)/edit/$', 'userena.views.profile_edit', {'edit_profile_form': EditInternProfileForm}),
     url(r'^accounts/signup/$', 'userena.views.signup', {'signup_form': InternSignupForm}),
     url(r'^accounts/', include('userena.urls')),
 
-    url(r'^messages/$', main_views.GetMessages.as_view()),
-    url(r'^notifications/', get_nyt_pattern()),
-
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^$', "main.views.index", name="index"),
-    # url(r'^(?P<url>.*)', "main.views.redirect_to_index", name="redirect_to_index")
 ]
 
 if settings.DEBUG:

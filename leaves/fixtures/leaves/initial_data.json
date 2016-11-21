@@ -1,0 +1,56 @@
+[
+{
+  "model": "leaves.leavetype",
+  "pk": 1,
+  "fields": {
+    "codename": "AL",
+    "name": "Annual Leave",
+    "max_days": 15
+  }
+},
+{
+  "model": "leaves.leavetype",
+  "pk": 2,
+  "fields": {
+    "codename": "UL",
+    "name": "Urgent Leave",
+    "max_days": 5
+  }
+},
+{
+  "model": "leaves.leavetype",
+  "pk": 3,
+  "fields": {
+    "codename": "EH",
+    "name": "Eid Holiday",
+    "max_days": 5
+  }
+},
+{
+  "model": "leaves.leavetype",
+  "pk": 4,
+  "fields": {
+    "codename": "ND",
+    "name": "National Day",
+    "max_days": 1
+  }
+},
+{
+  "model": "leaves.leavetype",
+  "pk": 5,
+  "fields": {
+    "codename": "EL",
+    "name": "Educational Leave",
+    "max_days": 7
+  }
+},
+{
+  "model": "leaves.leavetype",
+  "pk": 6,
+  "fields": {
+    "codename": "SL",
+    "name": "Sick Leave",
+    "max_days": null
+  }
+}
+]

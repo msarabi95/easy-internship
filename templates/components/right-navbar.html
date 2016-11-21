@@ -1,0 +1,94 @@
+{% load staticfiles %}
+<!-- Navbar Right Menu -->
+<div class="navbar-custom-menu">
+  <ul class="nav navbar-nav">
+
+    {% verbatim %}
+    <!-- Notifications Menu -->
+    <li class="dropdown notifications-menu" ng-controller="NotificationCtrl">
+      <!-- Menu toggle button -->
+      <a href="" class="dropdown-toggle" data-toggle="dropdown">
+        <i class="fa fa-bell-o"></i>
+        <span ng-show="total_count > 0" class="label label-danger notification-cnt" ng-cloak>{{ total_count }}</span>
+      </a>
+      <ul class="dropdown-menu">
+        <li class="header">Notifications</li>
+        <li>
+          <!-- Inner Menu: contains the notifications -->
+          <ul class="menu">
+            <li class="notification-before-list"></li>
+            <li ng-if="!notifications || notifications.length == 0" class="notifications-empty">
+              <a>
+                <em>No notifications</em>
+              </a>
+            </li>
+            <li ng-repeat="n in notifications">
+              <a href="" style="white-space: normal;" ng-click="nyt_read_notification(n)">
+                <div>{{ n.message }}</div>
+                <div class="since">{{ n.occurrences_msg }} - {{ n.since }}</div>
+              </a>
+            </li>
+          </ul>
+        </li>
+        <li class="footer">
+          <a href="" ng-click="nyt_mark_all_read()">
+            <i class="fa fa-check"></i>
+            Clear notifications list
+          </a>
+          <!--<a href="#">View all</a>-->
+        </li>
+      </ul>
+    </li>
+    {% endverbatim %}
+
+    <!-- User Account Menu -->
+    <li class="dropdown user user-menu">
+      <!-- Menu Toggle Button -->
+      <a href="" class="dropdown-toggle" data-toggle="dropdown">
+        <!-- The user image in the navbar-->
+        <img src="{{ user.profile.get_mugshot_url }}" class="user-image" alt="User Image">
+        <!-- hidden-xs hides the username on small devices so only the image appears. -->
+        <span class="hidden-xs">{{ user.profile.get_en_full_name }}</span>
+      </a>
+      <ul class="dropdown-menu">
+        <!-- The user image in the menu -->
+        <li class="user-header">
+          <img src="{{ user.profile.get_mugshot_url }}" class="img-circle" alt="User Image">
+          <p>
+            {{ user.profile.get_en_full_name }} - {{ user.profile.get_role_display }}
+            <small>Member since {{ user.date_joined|date }}</small>
+          </p>
+        </li>
+        {% if False %}
+        <!-- Menu Body -->
+        <li class="user-body">
+          <div class="col-xs-4 text-center">
+            <a href="#">Followers</a>
+          </div>
+          <div class="col-xs-4 text-center">
+            <a href="#">Sales</a>
+          </div>
+          <div class="col-xs-4 text-center">
+            <a href="#">Friends</a>
+          </div>
+        </li>
+        {% endif %}
+        <!-- Menu Footer-->
+        <li class="user-footer">
+          <div class="pull-left">
+            <a href="{% url 'userena_profile_detail' user.username %}" class="btn btn-default btn-flat">Profile</a>
+          </div>
+          <div class="pull-right">
+            <a href="{% url 'userena_signout' %}" class="btn btn-default btn-flat">Sign out</a>
+          </div>
+        </li>
+      </ul>
+    </li>
+  {% if False %}
+    <!-- Control Sidebar Toggle Button -->
+    <li>
+      <a href="#" data-toggle="control-sidebar"><i class="fa fa-gears"></i></a>
+    </li>
+  {% endif %}
+  </ul>
+</div><!-- /.navbar-custom-menu -->

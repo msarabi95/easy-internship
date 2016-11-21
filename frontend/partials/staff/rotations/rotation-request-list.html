@@ -1,0 +1,107 @@
+<!-- Content Header (Page header) -->
+<section class="content-header">
+  <h1>Rotation Requests</h1>
+</section>
+
+<!-- Main content -->
+<section class="content">
+  <div class="box box-solid">
+    <div class="box-body">
+      <span class="text-bold">Welcome to the rotation request review page!</span><br>
+      Start by choosing a month and a department. A list of all requests related to your selection will appear, in addition to information about the numbers of seats and the acceptance criterion used (if any).
+      If an acceptance criterion is set up, the requests will automatically be sorted and a recommended response is suggested. If there are no such settings, each individual request is left to be handled manually.
+    </div>
+  </div>
+
+  <div class="box box-solid">
+    <div class="box-header with-border">
+      <h4 class="box-title">Choose month and department</h4>
+    </div>
+    <div class="box-body">
+      <div class="row">
+        <div class="col-md-2">
+          <div class="form-group">
+            <label class="control-label" for="id_year">Year</label>
+            <input class="form-control" type="number" ng-model="selected.year" />
+
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-group"><label class="control-label" for="id_month">Month</label>
+            <ui-select id="id_month" name="month" ng-model="selected.month" theme="bootstrap"><!-- FIXME: Enable searching -->
+              <ui-select-match placeholder="Select or search for a month in the list...">{{ monthLabels[$select.selected % selected.year] }}</ui-select-match>
+              <ui-select-choices repeat="month in months | filter: monthFilter($select.search)">
+                <div ng-bind-html="monthLabels[month % selected.year] | highlight: $select.search"></div>
+              </ui-select-choices>
+            </ui-select>
+          </div>
+
+        </div>
+        <div class="col-md-6">
+          <div class="form-group"><label class="control-label" for="id_department">Department</label>
+            <ui-select id="id_department" ng-model="selected.department" theme="bootstrap">
+              <ui-select-match placeholder="Select or search for a department in the list...">{{ $select.selected.name }}</ui-select-match>
+              <ui-select-choices repeat="department in departments | filter: {name: $select.search}">
+                <div ng-bind-html="department.name | highlight: $select.search"></div>
+              </ui-select-choices>
+            </ui-select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="box box-primary" ng-if="setting">
+    <div class="box-header with-border">
+      <h4 class="box-title">{{ selected.department.name }} | {{ monthLabels[selected.month % 12] }} {{ selected.year }}</h4>
+    </div>
+    <div class="box-body">
+      <p class="text-center" ng-if="setting.total_seats == null">
+        No seat settings have been specified for this department and month combination. Requests are handled manually.
+      </p>
+      <div class="row" ng-if="setting.total_seats !== null">
+        <div class="col-md-6">
+          <dl class="dl-horizontal">
+
+            <dt>Total Seats</dt>
+            <dd>{{ setting.total_seats }}</dd>
+
+            <dt>Occupied Seats</dt>
+            <dd>{{ setting.occupied_seats }}</dd>
+
+            <dt>Unoccupied Seats</dt>
+            <dd>{{ setting.unoccupied_seats }}</dd>
+
+            <dt>Booked Seats</dt>
+            <dd>{{ setting.booked_seats }}</dd>
+
+          </dl>
+        </div>
+        <div class="col-md-6">
+          <dl class="dl-horizontal">
+
+            <dt>Acceptance Criterion</dt>
+            <dd><span class="badge bg-green">{{ setting.criterion }}</span></dd>
+
+            <dt>Submission</dt>
+            <dd ng-if="setting.can_submit_requests == true" class="text-bold text-green">Open</dd>
+            <dd ng-if="setting.can_submit_requests == false" class="text-bold text-red">Closed</dd>
+
+            <dt ng-if="setting.criterion == 'FCFS'">Submission opening date</dt>
+            <dt ng-if="setting.criterion == 'GPA'">Submission closure date</dt>
+            <dd>{{ moment(setting.start_or_end_date).format('d MMMM YYYY hh:mm a') }}</dd>
+
+          </dl>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="well">
+    <ng-include ng-if="template" src="template"></ng-include>
+    <p class="text-center" style="font-size: 1.5em;" ng-if="!template">
+      Choose department and month from the menus above.
+    </p>
+  </div>
+</section>

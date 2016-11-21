@@ -1,0 +1,373 @@
+<!-- Content Header (Page header) -->
+<section class="content-header">
+  <h1>Internship Planner</h1>
+</section>
+
+<!-- Main content -->
+<section class="content">
+  <div class="example-modal">
+    <div class="modal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+
+          <div class="modal-header">
+            <h3 class="modal-title">{{ internship.intern.profile.en_full_name }}</h3>
+          </div>
+
+          <div class="modal-body">
+            <h4 class="text-bold">Open requests</h4>
+            <h5 class="text-bold">Unreviewed</h5>
+            <p ng-if="internship.unreviewed_rotation_requests.length > 0">
+              Below is the list of {{ internship.intern.profile.en_first_name }}'s requests that await your response.
+            </p>
+            <div class="box box-solid box-warning" ng-repeat="request in internship.unreviewed_rotation_requests">
+              <div class="box-header">
+                <h5 class="box-title">Request #{{ request.id }}</h5>
+
+                <div class="box-tools">
+                  <button type="button" class="btn btn-sm btn-block btn-flat btn-warning" ng-if="!flags['forwardFlag' + $index]" ng-click="flag('forwardFlag' + $index)">
+                    <i class="fa fa-mail-forward"></i>
+                    Forward
+                  </button>
+                  <button type="button" class="btn btn-sm btn-block btn-flat btn-danger" ng-if="flags['forwardFlag' + $index]" ng-click="forward(request)">
+                    Confirm
+                  </button>
+                </div>
+              </div>
+              <div class="box-body">
+                
+                <dl class="dl-horizontal">
+                  <dt>Month</dt>
+                  <dd>{{ request.month.label }}</dd>
+
+                  <hr>
+
+                  <div ng-if="!request.delete">
+                    <dt>Specialty</dt>
+                    <dd class="text-yellow text-bold">{{ request.specialty.name }}</dd>
+
+                    <dt>Hospital</dt>
+                    <dd class="text-yellow text-bold">{{ request.requested_department.department.hospital.name }}</dd>
+
+                    <dt>Elective?</dt>
+                    <dd>
+                      <span ng-if="request.is_elective == true" class="text-yellow text-bold">Yes</span>
+                      <span ng-if="request.is_elective == false">No</span>
+                    </dd>
+                  </div>
+
+                  <div ng-if="request.delete">
+                    <dt>Description</dt>
+                    <dd>{{ internship.intern.profile.en_full_name}} requested <span class="text-red text-bold">cancellation of the rotation</span> during this month.</dd>
+                  </div>
+
+                  <dt style="width: inherit;">Submission date and time</dt>
+                  <dd>{{ request.submission_datetime }}</dd>
+                </dl>
+
+                <hr>
+
+                <h4>Response</h4>
+
+                <div class="row">
+                  <div class="col-xs-12">
+                    <div class="form-group">
+                      <textarea class="form-control" rows="3" placeholder="Comment (optional)" ng-model="response['comments' + $index]"></textarea>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6">
+                    <button type="button" class="btn btn-block btn-flat btn-success" ng-if="!flags['approveFlag' + $index]" ng-click="flag('approveFlag' + $index)">
+                      <i class="fa fa-check"></i>
+                      Approve
+                    </button>
+                    <button type="button" class="btn btn-block btn-flat btn-warning" ng-if="flags['approveFlag' + $index]" ng-click="respond(request, 1, response['comments' + $index])">
+                      Confirm
+                    </button>
+                  </div>
+                  <div class="col-md-6">
+                    <button type="button" class="btn btn-block btn-flat btn-danger" ng-if="!flags['declineFlag' + $index]" ng-click="flag('declineFlag' + $index)">
+                      <i class="fa fa-remove"></i>
+                      Decline
+                    </button>
+                    <button type="button" class="btn btn-block btn-flat btn-warning" ng-if="flags['declineFlag' + $index]" ng-click="respond(request, 0, response['comments' + $index])">
+                      Confirm
+                    </button>
+                  </div>
+                </div>
+
+
+              </div>
+            </div>
+            <p ng-if="internship.unreviewed_rotation_requests.length == 0">
+              {{ internship.intern.profile.en_full_name }} doesn't have any unreviewed requests currently.
+            </p>
+
+            <h5 class="text-bold">Forwarded</h5>
+            <p ng-if="internship.forwarded_unreviewed_rotation_requests.length > 0">
+              These requests have been forwarded and await the respective departments' response.
+            </p>
+            <p ng-if="internship.forwarded_unreviewed_rotation_requests.length == 0">
+              {{ internship.intern.profile.en_full_name }} doesn't have any forwarded requests currently.
+            </p>
+
+            <hr>
+            <h4 class="text-bold">Intern details</h4>
+
+            <p>Below are the details of {{ internship.intern.profile.en_full_name }}.</p>
+
+            <div class="row">
+              <div class="col-md-10 col-md-offset-1">
+                <div class="box box-widget widget-user-2">
+                  <div class="widget-user-header bg-blue-active">
+                    <div class="widget-user-image">
+                      <img class="img-circle img-md" ng-src="{{ internship.intern.profile.mugshot }}" alt="User Mugshot">
+                    </div><!-- /.widget-user-image -->
+                    <h3 class="widget-user-username">
+                      {{ internship.intern.profile.en_full_name }}
+                      ({{ internship.intern.profile.ar_full_name }})
+                    </h3>
+                    <h5 class="widget-user-desc">{{ internship.intern.profile.role }}</h5>
+                  </div>
+                  <div class="box-footer no-padding">
+                    <ul class="nav nav-stacked bg-info">
+                      <li><a href=""><span class="text-bold">Student Number</span> <span class="pull-right">{{ internship.intern.student_number }}</span></a></li>
+                      <li><a href=""><span class="text-bold">Badge Number</span> <span class="pull-right">{{ internship.intern.badge_number }}</span></a></li>
+                      <li><a href=""><span class="text-bold">Saudi ID Number</span> <span class="pull-right">{{ internship.intern.saudi_id_number }}</span></a></li>
+                      <li><a href="{{ internship.intern.saudi_id }}">
+                        <span class="text-bold">Saudi ID Image</span>
+                        <span class="pull-right text-bold text-blue" ng-if="internship.intern.saudi_id">Click to view</span>
+                      </a></li>
+                      <li><a href=""><span class="text-bold">Passport Number</span> <span class="pull-right">{{ internship.intern.passport_number }}</span></a></li>
+                      <li><a href="{{ internship.intern.passport }}">
+                        <span class="text-bold">Passport Image</span>
+                        <span class="pull-right text-bold text-blue" ng-if="internship.intern.passport">Click to view</span>
+                      </a></li>
+                      <li><a href=""><span class="text-bold">Medical Record Number</span> <span class="pull-right">{{ internship.intern.medical_record_number }}</span></a></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6">
+                <div class="box box-solid">
+                  <div class="box-header bg-olive">
+                    <h4 class="box-title">
+                      Intern contact info
+                    </h4>
+                  </div>
+
+                  <div class="box-footer no-padding">
+                    <ul class="nav nav-stacked bg-success">
+                      <li><a href=""><span class="text-bold">Email</span> <span class="pull-right">{{ internship.intern.profile.user.email }}</span></a></li>
+                      <li><a href=""><span class="text-bold">Phone Number</span> <span class="pull-right">{{ internship.intern.phone_number}}</span></a></li>
+                      <li><a href=""><span class="text-bold">Mobile Number</span> <span class="pull-right">{{ internship.intern.mobile_number}}</span></a></li>
+                      <li><a href=""><span class="text-bold">Address</span> <span class="pull-right" style="white-space: pre;">{{ internship.intern.address }}</span></a></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <div class="box box-solid">
+                  <div class="box-header bg-orange">
+                    <h4 class="box-title">
+                      Contact person info
+                    </h4>
+                  </div>
+
+                  <div class="box-footer no-padding">
+                    <ul class="nav nav-stacked bg-warning">
+                      <li><a href=""><span class="text-bold">Name</span> <span class="pull-right">{{ internship.intern.contact_person_name }}</span></a></li>
+                      <li><a href=""><span class="text-bold">Relation</span> <span class="pull-right">{{ internship.intern.contact_person_relation }}</span></a></li>
+                      <li><a href=""><span class="text-bold">Email</span> <span class="pull-right">{{ internship.intern.contact_person_email }}</span></a></li>
+                      <li><a href=""><span class="text-bold">Mobile</span> <span class="pull-right">{{ internship.intern.contact_person_mobile }}</span></a></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <hr>
+            <h4 class="text-bold">Current internship plan</h4>
+
+            <p>
+              This is a snapshot of {{ internship.intern.profile.en_full_name }}'s current internship plan.
+              Each box represents a specific month. Changes in <span class="text-yellow">orange</span> or
+              <span class="text-red">red</span> color are pending review.
+            </p>
+
+            <!-- Check out: -->
+            <!-- http://stackoverflow.com/a/25838091 -->
+            <div  style="background-color: #ecf0f5; border-radius: 3px; padding: 5px;">
+              <div id="internship-plan-grid" class="row" ng-repeat="month in months track by $index" ng-if="$index % 5 == 0">
+                <div class="col-md-2 internship-plan-box" ng-class="{'col-md-offset-1': $index % 5 == 0}" ng-repeat="i in [$index, $index + 1, $index + 2, $index + 3, $index + 4]">
+                  <div class="box box-primary">
+                    <div class="box-header with-border">
+                      <h7 class="box-title">{{ months[i].label_short }}</h7>
+                    </div>
+                    <div class="box-body">
+                      <div ng-if="!months[i].requested && !months[i].occupied">
+                        <h5 class="text-gray text-center"><i>No rotation</i></h5>
+                      </div>
+
+                      <div ng-if="months[i].requested && !months[i].occupied">
+                        <h4 class="text-yellow text-center">{{ months[i].current_request.specialty.abbreviation }}</h4>
+                        <h5 class="text-center">{{ months[i].current_request.requested_department.department.hospital.abbreviation}}</h5>
+                      </div>
+
+                      <div ng-if="!months[i].requested && months[i].occupied">
+                        <h4 class="text-blue text-center">{{ months[i].current_rotation.specialty.abbreviation }}</h4>
+                        <h5 class="text-center">{{ months[i].current_rotation.department.hospital.abbreviation}}</h5>
+                      </div>
+
+                      <div ng-if="months[i].requested && months[i].occupied">
+                        <h5 class="text-center">
+                          <span class="text-blue">{{ months[i].current_rotation.specialty.abbreviation }}</span>
+                          @
+                          {{ months[i].current_rotation.department.hospital.abbreviation }}
+                        </h5>
+                        <hr style="margin-top: 2px; margin-bottom: 2px;">
+                        <h5 class="text-center" ng-if="!months[i].current_request.delete">
+                          <span class="text-yellow">{{ months[i].current_request.specialty.abbreviation }}</span>
+                          @
+                          {{ months[i].current_request.requested_department.department.hospital.abbreviation }}
+                        </h5>
+                        <h5 class="text-center" ng-if="months[i].current_request.delete">
+                          <span class="text-red">To cancel</span>
+                        </h5>
+                      </div>
+
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
+            <hr>
+            <h4 class="text-bold">
+              Previous requests
+              <span class="pull-right">
+                <small><i>Filter by month:</i></small>
+                <select ng-model="monthFilter">
+                  <option value="">All</option>
+                  <option ng-repeat="month in internship.months" value="{{ month.month }}">{{ month.label }}</option>
+                </select>
+              </span>
+            </h4>
+
+            <p>Following are the full details of all previous requests made by this intern. You can use the filter
+            above to show requests for a specific month.</p>
+
+            <script type="text/ng-template" id="accordion-template.html">
+              <div class="panel">
+                <div class="panel-heading" role="tab" id="headingOne">
+                  <h4 class="panel-title">
+                    <a href tabindex="0" class="accordion-toggle" ng-click="toggleOpen()" uib-accordion-transclude="heading">
+                      <span uib-accordion-header ng-class="{'text-muted': isDisabled}">
+                        {{ heading }}
+                      </span>
+                    </a>
+                  </h4>
+                </div>
+                <div class="panel-collapse collapse" uib-collapse="!isOpen">
+                  <div class="panel-body" ng-transclude></div>
+                </div>
+              </div>
+            </script>
+
+            <uib-accordion>
+              <div uib-accordion-group template-url="accordion-template.html"
+                   ng-repeat="request in internship.closed_rotation_requests | orderBy: 'id' | filter: monthFilter" class="panel-{{ getClass(request) }}">
+                <uib-accordion-heading>
+                  <span class="text-{{ getClass(request) }}">#{{ request.id }} - <span class="text-bold">{{ getStatus(request) }}</span> |
+                    <span ng-if="request.delete == false">{{ request.specialty.abbreviation }} @ {{ request.requested_department.department.hospital.abbreviation }}</span>
+                    <span ng-if="request.delete == true">Cancellation</span>
+                    (<i>for</i> {{ request.month.label }})</span>
+                </uib-accordion-heading>
+
+                <dl class="dl-horizontal">
+                  <dt>Request #</dt>
+                  <dd>{{ request.id }}</dd>
+
+                  <dt>Month</dt>
+                  <dd>{{ request.month.label }}</dd>
+
+                  <div ng-if="!request.delete">
+                    <dt>Specialty</dt>
+                    <dd class="text-bold" ng-class="{'text-green': request.response.is_approved, 'text-red': request.response.is_approved == false}">{{ request.specialty.name }}</dd>
+
+                    <dt>Hospital</dt>
+                    <dd class="text-bold" ng-class="{'text-green': request.response.is_approved, 'text-red': request.response.is_approved == false}">{{ request.requested_department.department.hospital.name }}</dd>
+
+                    <dt>Elective?</dt>
+                    <dd>
+                      <span ng-if="request.is_elective == true" class="text-bold" ng-class="{'text-green': request.response.is_approved, 'text-red': request.response.is_approved == false}">
+                        Yes
+                      </span>
+                      <span ng-if="request.is_elective == false">No</span>
+                    </dd>
+                  </div>
+                  <div ng-if="request.delete">
+                    <dt>Description</dt>
+                    <dd class="text-bold text-red">Cancellation of rotation</dd>
+                  </div>
+
+                  <dt style="width: inherit;">Submission date and time</dt>
+                  <dd>{{ request.submission_datetime }}</dd>
+                </dl>
+
+                <div class="box box-solid" style="margin-bottom: 0;">
+                  <div class="box-body" ng-class="{'bg-success': request.response.is_approved, 'bg-danger': request.response.is_approved == false}">
+
+                    <dl class="dl-horizontal" style="margin-bottom: 0;">
+                      <dt>Response</dt>
+                      <dd>
+                        <span class="text-bold" ng-class="{'text-green': request.response.is_approved, 'text-red': request.response.is_approved == false}">
+                          <span ng-if="request.response.is_approved">Approved</span>
+                          <span ng-if="request.response.is_approved == false">Declined</span>
+                        </span>
+                      </dd>
+
+                      <dt>Response date and time</dt>
+                      <dd>{{ request.response.response_datetime }}</dd>
+
+                      <dt>Comments</dt>
+                      <dd>
+                        <div class="box box-solid box-default" style="margin-bottom: 0;"
+                             ng-if="request.response.comments">
+                          <div class="box-body bg-gray-light">
+                            <p style="white-space: pre;">{{ request.response.comments }}</p>
+                          </div>
+                        </div>
+                        <span ng-if="!request.response.comments">No comment was provided.</span>
+                      </dd>
+                    </dl>
+
+                  </div>
+                </div>
+
+              </div>
+            </uib-accordion>
+
+            <p ng-if="internship.closed_rotation_requests.length == 0">
+              {{ internship.intern.profile.en_full_name }} doesn't have any previous requests.
+            </p>
+
+          </div><!-- /.modal-body -->
+
+          <div class="modal-footer">
+            <a class="btn btn-default pull-left" href="javascript:history.back()">
+              Back
+            </a>
+          </div>
+
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div>
+  </div>
+</section>

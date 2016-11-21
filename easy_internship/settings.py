@@ -45,8 +45,11 @@ INSTALLED_APPS = (
     'bootstrap3',
     'django_nyt',
     'rules.apps.AutodiscoverRulesConfig',
-    'main.apps.MainConfig',
     'planner.apps.PlannerConfig',
+    'hospitals.apps.HospitalsConfig',
+    'months.apps.MonthsConfig',
+    'rotations.apps.RotationsConfig',
+    'leaves.apps.LeavesConfig',
     'accounts.apps.AccountsConfig',
     'userena',  # Userena should be kept at the end in order to overwrite the 'base.html' template it has
     'guardian',
@@ -71,7 +74,9 @@ ROOT_URLCONF = 'easy_internship.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'templates'),
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -119,6 +124,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'frontend')
+]
 STATIC_URL = '/static/'
 STATIC_ROOT = secrets.STATIC_ROOT
 
@@ -126,6 +134,12 @@ STATIC_ROOT = secrets.STATIC_ROOT
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Fixtures
+
+FIXTURE_DIRS = [
+    os.path.join(BASE_DIR, 'fixtures'),
+]
 
 # Messages
 #

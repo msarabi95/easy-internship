@@ -6,6 +6,7 @@ from django.db import migrations, models
 import django.db.models.deletion
 import month.models
 import planner.models
+import hospitals.models
 
 
 class Migration(migrations.Migration):
@@ -26,7 +27,7 @@ class Migration(migrations.Migration):
                 ('acceptance_end_date', models.DateTimeField(blank=True, null=True)),
                 ('department', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='monthly_settings', to='planner.Department')),
             ],
-            bases=(planner.models.MonthSettingsMixin, models.Model),
+            bases=(hospitals.models.MonthSettingsMixin, models.Model),
         ),
         migrations.CreateModel(
             name='DepartmentSettings',
@@ -37,7 +38,7 @@ class Migration(migrations.Migration):
                 ('acceptance_end_date_interval', models.PositiveIntegerField(blank=True, null=True)),
                 ('department', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='acceptance_settings', to='planner.Department')),
             ],
-            bases=(planner.models.NonMonthSettingsMixin, models.Model),
+            bases=(hospitals.models.NonMonthSettingsMixin, models.Model),
         ),
         migrations.CreateModel(
             name='MonthSettings',
@@ -48,7 +49,7 @@ class Migration(migrations.Migration):
                 ('acceptance_start_date', models.DateTimeField(blank=True, null=True)),
                 ('acceptance_end_date', models.DateTimeField(blank=True, null=True)),
             ],
-            bases=(planner.models.MonthSettingsMixin, models.Model),
+            bases=(hospitals.models.MonthSettingsMixin, models.Model),
         ),
         migrations.AlterUniqueTogether(
             name='seatavailability',
