@@ -7,6 +7,7 @@ from django.db import models
 from django.utils import timezone
 from month.models import MonthField
 
+from hospitals.managers import SpecialtyManager
 from rotations.models import Rotation, RotationRequest
 
 
@@ -17,11 +18,6 @@ class Hospital(models.Model):
 
     def __unicode__(self):
         return self.name
-
-
-class SpecialtyManager(models.Manager):
-    def general(self):
-        return self.filter(parent_specialty__isnull=True)
 
 
 class Specialty(models.Model):
