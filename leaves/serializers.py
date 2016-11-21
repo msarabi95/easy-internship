@@ -1,6 +1,6 @@
 from leaves.models import LeaveType, LeaveSetting, LeaveRequest, LeaveRequestResponse, Leave, LeaveCancelRequest, \
     LeaveCancelRequestResponse
-from planner.serializers import MonthField
+from easy_internship.serializers import MonthField
 from rest_framework import serializers
 
 

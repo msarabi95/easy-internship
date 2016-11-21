@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from hospitals.models import Hospital, Specialty, Department, GlobalSettings, MonthSettings, DepartmentSettings, \
     DepartmentMonthSettings
-from planner.serializers import MonthField
+from easy_internship.serializers import MonthField
 
 
 class HospitalSerializer(serializers.ModelSerializer):
