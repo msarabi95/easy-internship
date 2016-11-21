@@ -58,14 +58,14 @@
             <div class="box-header with-border">
               <h3 class="box-title">{{ months[i].label }}</h3>
               <div class="box-tools pull-right">
-                <span ng-if="months[i].current_leave_requests.length > 0 || months[i].current_leaves.length > 0"
+                <!--<span ng-if="months[i].current_leave_requests.length > 0 || months[i].current_leaves.length > 0"
                       uib-popover-template="'leave-summary-popover.html'"
                       popover-title="Leaves for {{ months[i].label }}"
                       popover-append-to-body="true"
                       class="badge"
                       ng-class="{'bg-yellow': months[i].current_leave_requests.length > 0, 'bg-light-blue': months[i].current_leave_requests.length == 0}">
                   <i class="fa fa-plane"></i>
-                </span>
+                </span>-->
                 <!-- See bottom of this file for templates -->
               </div>
             </div><!-- /.box-header -->
@@ -162,11 +162,11 @@
                 <ul class="dropdown-menu">
                   <li><a href="#/planner/{{ months[i].month }}/new/">Request a different rotation</a></li>
                   <li><a href="#/planner/{{ months[i].month }}/cancel/">Cancel this rotation</a></li>
-                  <li class="divider"></li>
+                  <!--<li class="divider"></li>
                   <li><a href="#/planner/{{ months[i].month }}/leaves/new/">Request a leave during this month</a></li>
-                  <li class="divider"></li>
+                  <li class="divider"></li>-->
                   <li><a href="#/planner/{{ months[i].month }}/history/">See previous requests for this month</a></li>
-                  <li><a href="#/planner/{{ months[i].month }}/leaves/history/">See previous leave requests for this month</a></li>
+                  <!--<li><a href="#/planner/{{ months[i].month }}/leaves/history/">See previous leave requests for this month</a></li>-->
                 </ul>
               </div>
 
