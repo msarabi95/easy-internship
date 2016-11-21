@@ -21,6 +21,10 @@ class Hospital(models.Model):
     phone = models.CharField(max_length=128)
     extension = models.CharField(max_length=16)
 
+    has_requirement = models.BooleanField("Has special requirements?", default=False)
+    requirement_description = models.TextField(blank=True, null=True)
+    requirement_file = models.FileField(upload_to='hospital_requirements', blank=True, null=True)
+
     def __unicode__(self):
         return self.name
 
@@ -87,6 +91,10 @@ class Department(models.Model):
     email = models.EmailField(max_length=128)
     phone = models.CharField(max_length=128)
     extension = models.CharField(max_length=16)
+
+    has_requirement = models.BooleanField("Has special requirements?", default=False)
+    requirement_description = models.TextField(blank=True, null=True)
+    requirement_file = models.FileField(upload_to='hospital_requirements', blank=True, null=True)
 
     def get_available_seats(self, month):
         """
