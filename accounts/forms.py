@@ -31,6 +31,7 @@ class InternSignupForm(SignupFormOnlyEmail):
         max_length=9,
         validators=[RegexValidator(r'^\d+$', message="Enter numbers only."), MinLengthValidator(5)]
     )
+    alt_email = forms.EmailField(label="Alternative email")
     phone_number = forms.CharField(
         max_length=16,
         validators=[RegexValidator(r'^\+966\d{9}$', message="Phone number should follow the format +966XXXXXXXXX.")],
@@ -148,6 +149,7 @@ class InternSignupForm(SignupFormOnlyEmail):
         
         # Create an Intern profile for the new user
         intern_profile = Intern(profile=user_profile)
+        intern_profile.alt_email = self.cleaned_data['alt_email']
         intern_profile.student_number = self.cleaned_data['student_number']
         intern_profile.badge_number = self.cleaned_data['badge_number']
         intern_profile.phone_number = self.cleaned_data['phone_number']
@@ -211,6 +213,7 @@ class EditInternProfileForm(forms.ModelForm):
         max_length=9,
         validators=[RegexValidator(r'^\d+$', message="Enter numbers only."), MinLengthValidator(5)]
     )
+    alt_email = forms.EmailField(label="Alternative email")
     phone_number = forms.CharField(
         max_length=16,
         validators=[RegexValidator(r'^\+966\d{9}$', message="Phone number should follow the format +966XXXXXXXXX.")],
@@ -280,6 +283,7 @@ class EditInternProfileForm(forms.ModelForm):
 
         intern_profile = self.instance.intern
 
+        self.fields['alt_email'].initial = intern_profile.alt_email
         self.fields['student_number'].initial = intern_profile.student_number
         self.fields['badge_number'].initial = intern_profile.badge_number
         self.fields['phone_number'].initial = intern_profile.phone_number
@@ -304,6 +308,7 @@ class EditInternProfileForm(forms.ModelForm):
 
         intern_profile = profile.intern
 
+        intern_profile.alt_email = self.cleaned_data['alt_email']
         intern_profile.student_number = self.cleaned_data['student_number']
         intern_profile.badge_number = self.cleaned_data['badge_number']
         intern_profile.phone_number = self.cleaned_data['phone_number']

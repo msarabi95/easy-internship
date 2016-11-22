@@ -28,7 +28,7 @@ class InternSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Intern
-        fields = ('id', 'profile', 'student_number', 'badge_number', 'phone_number', 'mobile_number',
+        fields = ('id', 'profile', 'alt_email', 'student_number', 'badge_number', 'phone_number', 'mobile_number',
                   'address', 'saudi_id_number', 'saudi_id', 'passport_number', 'passport',
                   'medical_record_number', 'contact_person_name', 'contact_person_relation',
                   'contact_person_mobile', 'contact_person_email', 'gpa')

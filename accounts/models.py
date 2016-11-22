@@ -43,6 +43,7 @@ class Intern(models.Model):
     profile = models.OneToOneField(Profile, related_name="intern")
     student_number = models.CharField(max_length=9)
     badge_number = models.CharField(max_length=9)
+    alt_email = models.EmailField()
     phone_number = models.CharField(max_length=16)
     mobile_number = models.CharField(max_length=16)
     address = models.CharField(max_length=128)
