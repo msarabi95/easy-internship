@@ -1,16 +1,18 @@
+from django.contrib.auth.models import User
+
 from accounts.models import Intern, Profile
 from django import forms
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator, MinLengthValidator
 from month import Month
 from months.models import Internship
-from userena.forms import SignupFormOnlyEmail
+from userena.forms import SignupFormOnlyEmail, ChangeEmailForm
 from userena.utils import get_profile_model
 
 
 class InternSignupForm(SignupFormOnlyEmail):
     """
-    A form to demonstrate how to add extra fields to the signup form, in this
-    case adding the first and last name.
+    A full signup form for interns, which appropriately saves the intern's
+    data into `User`, `Profile`, `Intern`, and `Internship` models.
 
     """
     ar_first_name = forms.CharField(label="First name (Arabic)", max_length=32)
@@ -95,29 +97,31 @@ class InternSignupForm(SignupFormOnlyEmail):
 
     def __init__(self, *args, **kw):
         """
-
-        A bit of hackery to get the first name and last name at the top of the
-        form instead at the end.
+        Add an extra validator to the email field.
 
         """
         super(InternSignupForm, self).__init__(*args, **kw)
-        # # Put the first and last name at the top
-        # new_order = self.fields.keyOrder[:-2]
-        # new_order.insert(0, 'first_name')
-        # new_order.insert(1, 'last_name')
-        # self.fields.keyOrder = new_order
+
+        self.fields['email'].validators.append(RegexValidator(
+            r'^\w+@ksau-hs.edu.sa$', message="Email must end in '@ksau-hs.edu.sa'."
+        ))
+
+    def clean_email(self):
+        email = super(InternSignupForm, self).clean_email()
+        username_to_be = email.split("@")[0].lower()
+
+        if User.objects.filter(username=username_to_be).exists():
+            raise forms.ValidationError("This email conflicts with an existing username.")
+
+        return email
 
     def save(self):
         """
-        Override the save method to save the first and last name to the user
-        field.
+        Override the save method to save the intern's info into models other than `User`.
 
         """
         # Use the first part of the user's email as a username
         self.cleaned_data['username'] = self.cleaned_data['email'].split("@")[0].lower()
-        # FIXME: An error is thrown when a user registers with a duplicate first part of the email
-        # (e.g. a@example1.com and a@example2.com)
-        # This is because username uniqueness is not checked (only the full email uniqueness)
 
         # Save the parent form and get the user.
         # Notice we're calling the super of `SignupFormOnlyEmail` (not InternSignupForm), essentially
@@ -175,6 +179,19 @@ class InternSignupForm(SignupFormOnlyEmail):
         # Userena expects to get the new user from this form, so return the new
         # user.
         return new_user
+
+
+class ChangeInternEmailForm(ChangeEmailForm):
+    def __init__(self, *args, **kw):
+        """
+        Add an extra validator to the email field.
+
+        """
+        super(ChangeInternEmailForm, self).__init__(*args, **kw)
+
+        self.fields['email'].validators.append(RegexValidator(
+            r'^\w+@ksau-hs.edu.sa$', message="Email must end in '@ksau-hs.edu.sa'."
+        ))
 
 
 class EditInternProfileForm(forms.ModelForm):

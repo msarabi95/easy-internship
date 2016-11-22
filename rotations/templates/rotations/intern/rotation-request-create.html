@@ -21,7 +21,7 @@
 
               <ui-select id="id_department_specialty" name="department_specialty" ng-model="rotationRequestData.department_specialty" theme="bootstrap">
                 <ui-select-match placeholder="Select or search for a specialty in the list...">{{ $select.selected.name }}</ui-select-match>
-                <ui-select-choices repeat="specialty.id as specialty in specialties | filter: {name: $select.search}">
+                <ui-select-choices repeat="specialty.id as specialty in specialties | filter: {name: $select.search} | orderBy: 'name'">
                   <div ng-bind-html="specialty.name | highlight: $select.search"></div>
                 </ui-select-choices>
               </ui-select>

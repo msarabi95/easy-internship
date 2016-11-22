@@ -83,6 +83,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'easy_internship.context_processors.settings_processor',
             ],
         },
     },
@@ -179,7 +180,7 @@ USERENA_SIGNIN_REDIRECT_URL = '/'
 USERENA_REDIRECT_ON_SIGNOUT = '/'
 
 USERENA_WITHOUT_USERNAMES = True
-USERENA_ACTIVATION_REQUIRED = False
+USERENA_ACTIVATION_REQUIRED = True
 USERENA_DEFAULT_PRIVACY = "closed"
 USERENA_DISABLE_PROFILE_LIST = True
 USERENA_HTML_EMAIL = True
@@ -191,3 +192,7 @@ USERENA_PROFILE_DETAIL_TEMPLATE = "userena/profile_detail_custom.html"
 
 NYT_ENABLE_ADMIN = True
 NYT_EMAIL_SENDER = secrets.NYT_EMAIL_SENDER
+
+# Misc
+
+SUPPORT_EMAIL_ADDRESS = secrets.SUPPORT_EMAIL_ADDRESS
