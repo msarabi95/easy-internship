@@ -16,6 +16,7 @@ plannerModule.factory("Department", ["$resource", function($resource) {
         get_by_specialty_and_hospital: {
             method: 'get',
             url: '/api/departments/:specialty/:hospital',
+            isArray: true,
             params: {
                 specialty: '@specialty',
                 hospital: '@hospital'

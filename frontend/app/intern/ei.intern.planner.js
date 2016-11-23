@@ -159,6 +159,7 @@ angular.module("ei.planner", ["ei.planner.models", "ei.leaves.models", "ei.utils
         $scope.$watch('rotationRequestData.department_specialty', function (newValue, oldValue) {
             if (newValue !== oldValue) {
                 $scope.disableHospitalMenu = true;
+                $scope.showDepartmentMenu = false;
                 if (newValue !== undefined && newValue !== "") {
                     $scope.getDepartments();
                 } else {
@@ -172,27 +173,30 @@ angular.module("ei.planner", ["ei.planner.models", "ei.leaves.models", "ei.utils
 
             $scope.hospitals = Hospital.query(function (hospitals) {
                 angular.forEach(hospitals, function (hospital, index) {
-                    $scope.hospitals[index].department = Department.get_by_specialty_and_hospital({
+                    $scope.hospitals[index].specialty_departments = Department.get_by_specialty_and_hospital({
                         specialty: $scope.rotationRequestData.department_specialty,
                         hospital: $scope.hospitals[index].id
                     });
 
-                    $scope.hospitals[index].department.$promise.then(function (department) {
-                        // Get acceptance settings
-                        $scope.hospitals[index].department.acceptance_settings = AcceptanceSettings.get({}, {
-                            department: department.id,
-                            month: $scope.internshipMonth.month
-                        });
-                        $scope.hospitals[index].department.acceptance_settings.$promise.then(
-                            function (settings) {
-                                /*console.log(settings);*/
-                            },
-                            function (error) {
-                                if (error.status !== 404) {
-                                    toastr.error(error.statusText);
-                                    console.error(error.statusText);
-                                }
+                    $scope.hospitals[index].specialty_departments.$promise.then(function (departments) {
+                        angular.forEach(departments, function (department, dIndex) {
+                            // Get acceptance settings
+                            $scope.hospitals[index].specialty_departments[dIndex].acceptance_settings = AcceptanceSettings.get({}, {
+                                department: department.id,
+                                month: $scope.internshipMonth.month
                             });
+                            $scope.hospitals[index].specialty_departments[dIndex].acceptance_settings.$promise.then(
+                                function (settings) {
+                                    /*console.log(settings);*/
+                                },
+                                function (error) {
+                                    if (error.status !== 404) {
+                                        toastr.error(error.statusText);
+                                        console.error(error.statusText);
+                                    }
+                                });
+                        });
+
                     }, function (error) {
                         if (error.status !== 404) {
                             toastr.error(error.statusText);
@@ -213,11 +217,19 @@ angular.module("ei.planner", ["ei.planner.models", "ei.leaves.models", "ei.utils
                     return obj.id == newValue;
                 });
 
-                if (!!hospital.department.id) {
-                    var department = hospital.department;
+                console.log(hospital);
+
+                if (hospital.specialty_departments.length == 1) {
+                    $scope.showDepartmentMenu = false;
+                    var department = hospital.specialty_departments[0];
                     $scope.rotationRequestData.department = department.id;
                     $scope.rotationRequestData.is_in_database = true;
+                } else if (hospital.specialty_departments.length > 1) {
+                    $scope.showDepartmentMenu = true;
+                    $scope.rotationRequestData.is_in_database = true;
+                    $scope.departmentMenuHospital = hospital;
                 } else {
+                    $scope.showDepartmentMenu = false;
                     $scope.rotationRequestData.is_in_database = false;
                 }
             }
