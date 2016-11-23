@@ -1,16 +1,17 @@
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import get_object_or_404
 
 # Create your views here.
 from django_nyt.utils import subscribe, notify
 from month import Month
-from rest_framework import viewsets
+from rest_framework import viewsets, permissions
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.response import Response
 from rest_framework.status import HTTP_201_CREATED
 
 from accounts.models import Profile
+from accounts.permissions import IsIntern, IsStaff
 from rotations.models import RotationRequest
 from months.models import Internship
 from months.serializers import InternshipMonthSerializer, InternshipSerializer
@@ -19,6 +20,7 @@ from months.serializers import InternshipMonthSerializer, InternshipSerializer
 class InternshipMonthViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = InternshipMonthSerializer
     lookup_field = 'month'
+    permission_classes = [permissions.IsAuthenticated, IsIntern]
 
     def get_queryset(self):
         user = self.request.user
@@ -76,6 +78,7 @@ class InternshipMonthViewSet(viewsets.ReadOnlyModelViewSet):
 
 class InternshipMonthByInternshipAndId(viewsets.ViewSet):
     serializer_class = InternshipMonthSerializer
+    permission_classes = [permissions.IsAuthenticated, IsStaff]
 
     def list(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -106,8 +109,14 @@ class InternshipMonthByInternshipAndId(viewsets.ViewSet):
 class InternshipViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = InternshipSerializer
     queryset = Internship.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
 
-    @list_route(methods=['get'])
+    def get_queryset(self):
+        if self.request.user.has_perm("months.internship.view_all"):
+            return self.queryset.all()
+        return self.queryset.filter(intern__profile__user=self.request.user)
+
+    @list_route(methods=['get'], permission_classes=[permissions.IsAuthenticated, IsStaff])
     def with_unreviewed_requests(self, request):
         internships = Internship.objects.all()
         unreviewed_requests = RotationRequest.objects.unreviewed()

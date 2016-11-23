@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404, get_list_or_404
 # Create your views here.
 from django.utils import timezone
 from month import Month
-from rest_framework import viewsets
+from rest_framework import viewsets, permissions
 from rest_framework.decorators import list_route
 from rest_framework.response import Response
 
@@ -24,21 +24,25 @@ from hospitals.utils import get_global_acceptance_criterion, set_global_acceptan
 class HospitalViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = HospitalSerializer
     queryset = Hospital.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
 
 
 class SpecialtyViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = SpecialtySerializer
     queryset = Specialty.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
 
 
 class DepartmentViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = DepartmentSerializer
     queryset = Department.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
 
 
 class DepartmentBySpecialtyAndHospital(viewsets.ViewSet):
     serializer_class = DepartmentSerializer
     queryset = Department.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
 
     def list(self, request, *args, **kwargs):
         departments = self.get_queryset()
@@ -67,6 +71,8 @@ class DepartmentBySpecialtyAndHospital(viewsets.ViewSet):
 
 
 class GlobalSettingsViewSet(viewsets.ViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+
     @list_route(methods=["get", "post"])
     def acceptance_criterion(self, request):
         if request.method == 'GET':
@@ -139,16 +145,19 @@ class SettingsMessagesMixin(object):
 class MonthSettingsViewSet(SettingsMessagesMixin, viewsets.ModelViewSet):
     serializer_class = MonthSettingsSerializer
     queryset = MonthSettings.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
 
 
 class DepartmentSettingsViewSet(SettingsMessagesMixin, viewsets.ModelViewSet):
     serializer_class = DepartmentSettingsSerializer
     queryset = DepartmentSettings.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
 
 
 class DepartmentMonthSettingsViewSet(SettingsMessagesMixin, viewsets.ModelViewSet):
     serializer_class = DepartmentMonthSettingsSerializer
     queryset = DepartmentMonthSettings.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
 
     @list_route(methods=['get'], url_path='starting_month')
     def get_display_starting_month(self, request):
@@ -157,6 +166,7 @@ class DepartmentMonthSettingsViewSet(SettingsMessagesMixin, viewsets.ModelViewSe
 
 class AcceptanceSettingsByDepartmentAndMonth(viewsets.ViewSet):
     serializer_class = AcceptanceSettingSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def list(self, request, *args, **kwargs):
         instance = self.get_object()

@@ -8,10 +8,11 @@ from django.http import Http404, HttpResponse
 from django.views import generic as django_generics
 from django_nyt.utils import subscribe, notify
 from month import Month
-from rest_framework import viewsets
+from rest_framework import viewsets, permissions
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.response import Response
 
+from accounts.permissions import IsStaff
 from rotations.forms import RotationRequestForm
 from rotations.models import Rotation, RequestedDepartment, RotationRequest, RotationRequestResponse, \
     RotationRequestForward, RotationRequestForwardResponse
@@ -23,16 +24,29 @@ from rotations.serializers import RotationSerializer, RequestedDepartmentSeriali
 class RotationViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = RotationSerializer
     queryset = Rotation.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        if self.request.user.has_perm("rotations.rotation.view_all"):
+            return self.queryset.all()
+        return self.queryset.filter(internship__intern__profile__user=self.request.user)
 
 
-class RequestedDepartmentViewSet(viewsets.ModelViewSet):
+class RequestedDepartmentViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = RequestedDepartmentSerializer
     queryset = RequestedDepartment.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
 
 
-class RotationRequestViewSet(viewsets.ModelViewSet):
+class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = RotationRequestSerializer
     queryset = RotationRequest.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        if self.request.user.has_perm("rotations.rotation_request.view_all"):
+            return self.queryset.all()
+        return self.queryset.filter(internship__intern__profile__user=self.request.user)
 
     @detail_route(methods=["post"])
     def respond(self, request, pk=None):
@@ -53,6 +67,8 @@ class RotationRequestViewSet(viewsets.ModelViewSet):
 
 class RotationRequestByDepartmentAndMonth(viewsets.ViewSet):
     serializer_class = RotationRequestSerializer
+    queryset = RotationRequest.objects.all()
+    permission_classes = [permissions.IsAuthenticated, IsStaff]
 
     def list(self, request, *args, **kwargs):
         try:
@@ -86,6 +102,7 @@ class RotationRequestByDepartmentAndMonth(viewsets.ViewSet):
 class RotationRequestFormView(django_generics.FormView):
     template_name = "rotations/intern/rotation-request-create.html"
     form_class = RotationRequestForm
+    # TODO: permissions?
 
     def post(self, request, *args, **kwargs):
         if request.is_ajax():
@@ -147,12 +164,24 @@ class RotationRequestFormView(django_generics.FormView):
 class RotationRequestResponseViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = RotationRequestResponseSerializer
     queryset = RotationRequestResponse.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        if self.request.user.has_perm("rotations.rotation_request_response.view_all"):
+            return self.queryset.all()
+        return self.queryset.filter(rotation_request__internship__intern__profile__user=self.request.user)
 
 
 class RotationRequestForwardViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = RotationRequestForwardSerializer
     queryset = RotationRequestForward.objects.all()
     lookup_field = 'key'
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        if self.request.user.has_perm("rotations.rotation_request_forward.view_all"):
+            return self.queryset.all()
+        return self.queryset.filter(rotation_request__internship__intern__profile__user=self.request.user)
 
     @list_route(methods=["post"])
     def respond(self, request):
@@ -170,3 +199,9 @@ class RotationRequestForwardViewSet(viewsets.ReadOnlyModelViewSet):
 class RotationRequestForwardResponseViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = RotationRequestForwardResponseSerializer
     queryset = RotationRequestForwardResponse.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        if self.request.user.has_perm("rotations.rotation_request_forward_response.view_all"):
+            return self.queryset.all()
+        return self.queryset.filter(forward__rotation_request__internship__intern__profile__user=self.request.user)
