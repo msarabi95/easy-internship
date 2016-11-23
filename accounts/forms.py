@@ -103,10 +103,31 @@ class InternSignupForm(SignupFormOnlyEmail):
         validators=[MaxValueValidator(5.0), MinValueValidator(0.0)]
     )
 
+    STARTING_MONTH_CHOICES = (
+        (1, "January"),
+        (2, "February"),
+        (3, "March"),
+        (4, "April"),
+        (5, "May"),
+        (6, "June"),
+        (7, "July"),
+        (8, "August"),
+        (9, "September"),
+        (10, "October"),
+        (11, "November"),
+        (12, "December"),
+    )
+
     starting_year = forms.IntegerField(
         label="Starting year",
         validators=[MinValueValidator(2017)],
         help_text="The year in which your internship will start (e.g. 2017)",
+    )
+    starting_month = forms.ChoiceField(
+        label="Starting month",
+        choices=STARTING_MONTH_CHOICES,
+        help_text="The month in which your internship will start (e.g. July)",
+        initial=7,  # July is the default month for internship start
     )
 
     def __init__(self, *args, **kw):
@@ -212,7 +233,7 @@ class InternSignupForm(SignupFormOnlyEmail):
         # Create an Internship object for the new intern
         internship = Internship(
             intern=intern_profile,
-            start_month=Month(self.cleaned_data['starting_year'], 7)  # July of the year selected by the user
+            start_month=Month(self.cleaned_data['starting_year'], self.cleaned_data['starting_month'])
         )
         internship.save()
 
