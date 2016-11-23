@@ -1,7 +1,7 @@
 /**
  * Created by MSArabi on 6/16/16.
  */
-angular.module("easyInternship", ["ei.planner", "ei.leaves", "ei.utils", "ngRoute"])
+angular.module("easyInternship", ["ei.months", "ei.rotations", "ei.leaves", "ei.utils", "ngRoute"])
 
 .config(["$routeProvider", function ($routeProvider) {
 

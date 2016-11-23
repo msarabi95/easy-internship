@@ -1,7 +1,8 @@
 /**
  * Created by MSArabi on 11/17/16.
  */
-angular.module("ei.leaves", ["ngRoute", "djng.forms", "ui.select", "ei.utils", "ei.planner.models", "ei.leaves.models"])
+angular.module("ei.leaves", ["ngRoute", "djng.forms", "ui.select", "ei.utils",
+                             "ei.hospitals.models", "ei.months.models", "ei.rotations.models", "ei.leaves.models"])
 
 .config(["$routeProvider", function ($routeProvider) {
 
