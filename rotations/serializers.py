@@ -16,7 +16,7 @@ class RequestedDepartmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = RequestedDepartment
         fields = ('id', 'is_in_database', 'department', 'department_hospital',
-                  'department_name', 'department_specialty', 'department_contact_name',
+                  'department_name', 'department_specialty', 'department_contact_name', 'department_contact_position',
                   'department_email', 'department_phone', 'department_extension')
 
 

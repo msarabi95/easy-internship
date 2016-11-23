@@ -119,7 +119,10 @@
                       <dd>{{ month.current_request.requested_department.department.name }}</dd>
 
                       <dt>Name of contact person</dt>
-                      <dd>{{ month.current_request.requested_department.department.contact_name }}</dd>
+                      <dd>
+                        {{ month.current_request.requested_department.department.contact_name }},
+                        {{ month.current_request.requested_department.department.contact_position }}
+                      </dd>
 
                       <dt>Email</dt>
                       <dd>{{ month.current_request.requested_department.department.email }}</dd>
