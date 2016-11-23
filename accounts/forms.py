@@ -123,9 +123,9 @@ class InternSignupForm(SignupFormOnlyEmail):
         validators=[MinValueValidator(2017)],
         help_text="The year in which your internship will start (e.g. 2017)",
     )
-    starting_month = forms.ChoiceField(
+    starting_month = forms.IntegerField(
         label="Starting month",
-        choices=STARTING_MONTH_CHOICES,
+        widget=forms.Select(choices=STARTING_MONTH_CHOICES),
         help_text="The month in which your internship will start (e.g. July)",
         initial=7,  # July is the default month for internship start
     )
