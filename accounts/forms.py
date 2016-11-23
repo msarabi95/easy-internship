@@ -55,7 +55,14 @@ class InternSignupForm(SignupFormOnlyEmail):
         label="Saudi ID image",
         help_text="Note that this will be visible to all medical internship unit staff members."
     )
+
+    # Note that the following is a `has_no_passport`, opposite to the `has_passport` field on the `Intern `model
+    has_no_passport = forms.BooleanField(
+        required=False,
+        label="I don't have a valid passport."
+    )
     passport_number = forms.CharField(
+        required=False,
         max_length=32,
         validators=[RegexValidator(
             r'^\w{1}\d{6}$',
@@ -63,9 +70,15 @@ class InternSignupForm(SignupFormOnlyEmail):
         )]
     )
     passport = forms.ImageField(
+        required=False,
         label="Passport image",
         help_text="Note that this will be visible to all medical internship unit staff members."
     )
+    passport_attachment = forms.FileField(
+        required=False,
+        label="Expired or no passport form",
+    )
+
     medical_record_number = forms.CharField(
         max_length=10,
         validators=[RegexValidator(r'^\d+$', message="Enter numbers only.")]
@@ -116,6 +129,27 @@ class InternSignupForm(SignupFormOnlyEmail):
 
         return email
 
+    def clean(self):
+        """
+        Validate passport fields.
+        """
+        cleaned_data = super(InternSignupForm, self).clean()
+        if cleaned_data.get('has_no_passport') is True:
+            if cleaned_data['passport_attachment'] is None:
+
+                # TODO: Clear passport & passport number
+
+                self.add_error('passport_attachment', forms.ValidationError("This field is required."))
+        else:
+
+            # TODO: Clear passport attachment
+
+            if cleaned_data['passport_number'] == "":
+                self.add_error('passport_number', forms.ValidationError("This field is required."))
+            if cleaned_data['passport'] is None:
+                self.add_error('passport', forms.ValidationError("This field is required."))
+        return cleaned_data
+
     def save(self):
         """
         Override the save method to save the intern's info into models other than `User`.
@@ -158,8 +192,12 @@ class InternSignupForm(SignupFormOnlyEmail):
 
         intern_profile.saudi_id_number = self.cleaned_data['saudi_id_number']
         intern_profile.saudi_id = self.cleaned_data['saudi_id']
+
+        intern_profile.has_passport = not self.cleaned_data.get('has_no_passport', False)
         intern_profile.passport_number = self.cleaned_data['passport_number']
         intern_profile.passport = self.cleaned_data['passport']
+        intern_profile.passport_attachment = self.cleaned_data['passport_attachment']
+
         intern_profile.medical_record_number = self.cleaned_data['medical_record_number']
 
         intern_profile.contact_person_name = self.cleaned_data['contact_person_name']
@@ -237,7 +275,14 @@ class EditInternProfileForm(forms.ModelForm):
         label="Saudi ID image",
         help_text="Note that this will be visible to all medical internship unit staff members."
     )
+
+    # Note that the following is a `has_no_passport`, opposite to the `has_passport` field on the `Intern `model
+    has_no_passport = forms.BooleanField(
+        required=False,
+        label="I don't have a valid passport."
+    )
     passport_number = forms.CharField(
+        required=False,
         max_length=32,
         validators=[RegexValidator(
             r'^\w{1}\d{6}$',
@@ -245,9 +290,15 @@ class EditInternProfileForm(forms.ModelForm):
         )]
     )
     passport = forms.ImageField(
+        required=False,
         label="Passport image",
         help_text="Note that this will be visible to all medical internship unit staff members."
     )
+    passport_attachment = forms.FileField(
+        required=False,
+        label="Expired or no passport form",
+    )
+
     medical_record_number = forms.CharField(
         max_length=10,
         validators=[RegexValidator(r'^\d+$', message="Enter numbers only.")]
@@ -292,8 +343,12 @@ class EditInternProfileForm(forms.ModelForm):
 
         self.fields['saudi_id_number'].initial = intern_profile.saudi_id_number
         self.fields['saudi_id'].initial = intern_profile.saudi_id
+
+        self.fields['has_no_passport'].initial = not intern_profile.has_passport
         self.fields['passport_number'].initial = intern_profile.passport_number
         self.fields['passport'].initial = intern_profile.passport
+        self.fields['passport_attachment'].initial = intern_profile.passport_attachment
+
         self.fields['medical_record_number'].initial = intern_profile.medical_record_number
 
         self.fields['contact_person_name'].initial = intern_profile.contact_person_name
@@ -302,6 +357,27 @@ class EditInternProfileForm(forms.ModelForm):
         self.fields['contact_person_email'].initial = intern_profile.contact_person_email
 
         self.fields['gpa'].initial = intern_profile.gpa
+
+    def clean(self):
+        """
+        Validate passport fields.
+        """
+        cleaned_data = super(EditInternProfileForm, self).clean()
+        if cleaned_data.get('has_no_passport') is True:
+            if cleaned_data['passport_attachment'] is None:
+
+                # TODO: Clear passport & passport number
+
+                self.add_error('passport_attachment', forms.ValidationError("This field is required."))
+        else:
+
+            # TODO: Clear passport attachment
+
+            if cleaned_data['passport_number'] == "":
+                self.add_error('passport_number', forms.ValidationError("This field is required."))
+            if cleaned_data['passport'] is None:
+                self.add_error('passport', forms.ValidationError("This field is required."))
+        return cleaned_data
 
     def save(self, *args, **kwargs):
         profile = super(EditInternProfileForm, self).save(*args, **kwargs)
@@ -317,8 +393,12 @@ class EditInternProfileForm(forms.ModelForm):
 
         intern_profile.saudi_id_number = self.cleaned_data['saudi_id_number']
         intern_profile.saudi_id = self.cleaned_data['saudi_id']
+
+        intern_profile.has_passport = not self.cleaned_data.get('has_no_passport', False)
         intern_profile.passport_number = self.cleaned_data['passport_number']
         intern_profile.passport = self.cleaned_data['passport']
+        intern_profile.passport_attachment = self.cleaned_data['passport_attachment']
+
         intern_profile.medical_record_number = self.cleaned_data['medical_record_number']
 
         intern_profile.contact_person_name = self.cleaned_data['contact_person_name']

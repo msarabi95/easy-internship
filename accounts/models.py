@@ -50,8 +50,12 @@ class Intern(models.Model):
 
     saudi_id_number = models.CharField(max_length=10)
     saudi_id = models.ImageField(upload_to='saudi_ids')
-    passport_number = models.CharField(max_length=10)
-    passport = models.ImageField(upload_to='passports')
+
+    has_passport = models.BooleanField(default=True)
+    passport_number = models.CharField(max_length=10, blank=True, null=True)
+    passport = models.ImageField(upload_to='passports', blank=True, null=True)
+    passport_attachment = models.FileField(upload_to='passport_attachments', blank=True, null=True)
+
     medical_record_number = models.CharField(max_length=10)
 
     contact_person_name = models.CharField(max_length=64)

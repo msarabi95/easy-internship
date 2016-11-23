@@ -140,11 +140,20 @@
                         <span class="text-bold">Saudi ID Image</span>
                         <span class="pull-right text-bold text-blue" ng-if="internship.intern.saudi_id">Click to view</span>
                       </a></li>
-                      <li><a href=""><span class="text-bold">Passport Number</span> <span class="pull-right">{{ internship.intern.passport_number }}</span></a></li>
-                      <li><a href="{{ internship.intern.passport }}">
-                        <span class="text-bold">Passport Image</span>
+
+                      <li ng-if="internship.intern.has_passport == true"><a href=""><span class="text-bold">Passport Number</span> <span class="pull-right">{{ internship.intern.passport_number }}</span></a></li>
+                      <li ng-if="internship.intern.has_passport == true"><a href="{{ internship.intern.passport }}">
+                        <span class="text-bold">Passport</span>
                         <span class="pull-right text-bold text-blue" ng-if="internship.intern.passport">Click to view</span>
                       </a></li>
+
+
+                      <li ng-if="internship.intern.has_passport == false"><a href="{{ internship.intern.passport_attachment }}">
+                        <span class="text-bold">No passport form</span>
+                        <span class="pull-right text-bold text-blue" ng-if="internship.intern.passport_attachment">Click to view</span>
+                      </a></li>
+
+
                       <li><a href=""><span class="text-bold">Medical Record Number</span> <span class="pull-right">{{ internship.intern.medical_record_number }}</span></a></li>
                     </ul>
                   </div>

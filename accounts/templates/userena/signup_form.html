@@ -1,5 +1,5 @@
 {% extends 'userena/base_userena.html' %}
-{% load i18n %}{% load bootstrap3 %}
+{% load i18n %}{% load bootstrap3 %}{% load staticfiles %}
 
 {% block title %}{% trans "Signup" %}{% endblock %}
 
@@ -16,28 +16,40 @@
 
   {% bootstrap_form_errors form %}
 
-  {% bootstrap_field form.ar_first_name placeholder='' %}
+  {% bootstrap_field form.ar_first_name %}
   {% bootstrap_field form.ar_middle_name %}
   {% bootstrap_field form.ar_last_name %}
   {% bootstrap_field form.en_first_name %}
   {% bootstrap_field form.en_middle_name %}
   {% bootstrap_field form.en_last_name %}
+  <hr>
   {% bootstrap_field form.student_number %}
   {% bootstrap_field form.badge_number %}
+  <hr>
   {% bootstrap_field form.email %}
   {% bootstrap_field form.alt_email %}
+  <hr>
   {% bootstrap_field form.phone_number %}
   {% bootstrap_field form.mobile_number %}
   {% bootstrap_field form.address %}
+  <hr>
   {% bootstrap_field form.saudi_id_number %}
   {% bootstrap_field form.saudi_id %}
+  <hr>
+  <p>In case you don't have a valid passport for any reason, please check the box below.</p>
+  {% bootstrap_field form.has_no_passport %}
+  <hr>
   {% bootstrap_field form.passport_number %}
   {% bootstrap_field form.passport %}
+  {% bootstrap_field form.passport_attachment %}
+  <hr>
   {% bootstrap_field form.medical_record_number %}
+  <hr>
   {% bootstrap_field form.contact_person_name %}
   {% bootstrap_field form.contact_person_relation %}
   {% bootstrap_field form.contact_person_mobile %}
   {% bootstrap_field form.contact_person_email %}
+  <hr>
   {% bootstrap_field form.gpa %}
   {% bootstrap_field form.starting_year %}
   <hr>
@@ -57,5 +69,39 @@
 </form>
 
 <a href="{% url 'userena_signin' %}" class="text-center">Already registered? Sign in</a>
+
+<script type="text/javascript">
+$(document).ready(function () {
+  var $checkbox = $("#id_has_no_passport"),
+      $passportNumber = $(".form-group input[name=passport_number]").parent(),
+      $passport = $(".form-group input[name=passport]").parent().parent().parent(),
+      $passportAttachment = $(".form-group input[name=passport_attachment]").parent().parent().parent();
+
+  function showOrHide(checked) {
+    if (checked) {
+      $passportNumber.hide();
+      $passport.hide();
+      $passportAttachment.show();
+    } else {
+      $passportNumber.show();
+      $passport.show();
+      $passportAttachment.hide();
+    }
+  }
+
+  $checkbox.on('ifChecked', function (event) {
+    showOrHide(true);
+  });
+
+  $checkbox.on('ifUnchecked', function (event) {
+    showOrHide(false);
+  });
+
+  $("<p>Please fill <a href='{% static 'expired_or_no_passport_form.pdf' %}'>this form</a> and attach it below.</p>").insertAfter($passportAttachment.find("label"));
+
+  showOrHide($checkbox.prop('checked'));
+});
+
+</script>
 
 {% endblock %}
