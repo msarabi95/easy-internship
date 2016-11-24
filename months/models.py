@@ -71,6 +71,9 @@ class Internship(models.Model):
     intern = models.OneToOneField(Intern)
     start_month = MonthField()
 
+    def __unicode__(self):
+        return "Internship of %s (%s)" % (self.intern.profile.get_en_full_name(), self.intern.profile.user.username)
+
     def get_months(self):
         months = []
         for add in range(15):
