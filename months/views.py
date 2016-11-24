@@ -13,8 +13,11 @@ from rest_framework.status import HTTP_201_CREATED
 from accounts.models import Profile
 from accounts.permissions import IsIntern, IsStaff
 from rotations.models import RotationRequest
-from months.models import Internship
-from months.serializers import InternshipMonthSerializer, InternshipSerializer
+from months.models import Internship, Freeze, FreezeRequest, FreezeRequestResponse, FreezeCancelRequest, \
+    FreezeCancelRequestResponse
+from months.serializers import InternshipMonthSerializer, InternshipSerializer, FreezeSerializer, \
+    FreezeRequestSerializer, FreezeRequestResponseSerializer, FreezeCancelRequestSerializer, \
+    FreezeCancelRequestResponseSerializer
 
 
 class InternshipMonthViewSet(viewsets.ReadOnlyModelViewSet):
@@ -75,6 +78,66 @@ class InternshipMonthViewSet(viewsets.ReadOnlyModelViewSet):
 
         return Response(status=HTTP_201_CREATED)
 
+    @detail_route(methods=["post"])
+    def request_freeze(self, request, month=None):
+        month = Month.from_int(int(month))
+        intern = self.request.user
+
+        if intern.freeze_requests.current_for_month(month):
+            raise PermissionDenied("There is a pending freeze request for this month already.")
+
+        freeze_request = FreezeRequest.objects.create(intern=intern, month=month)
+
+        # Subscribe user to receive update notifications on the request
+        subscribe(intern.settings_set.first(), "freeze_request_approved", object_id=freeze_request.id)
+        subscribe(intern.settings_set.first(), "freeze_request_declined", object_id=freeze_request.id)
+
+        # Notify medical internship unit of the request
+        notify(
+            "A new freeze request has been submitted by %s" % (request.user.profile.get_en_full_name()),
+            "freeze_request_submitted",
+            url="/planner/%d/" % freeze_request.intern.profile.intern.internship.id,
+        )
+
+        # Display success message to user
+        messages.success(request._request, "Your freeze request has been submitted successfully.")
+
+        return Response(status=HTTP_201_CREATED)
+
+    @detail_route(methods=["post"])
+    def request_freeze_cancel(self, request, month=None):
+        intern = request.user
+        month = Month.from_int(int(month))
+        current_freeze = intern.freezes.current_for_month(month)
+
+        if not current_freeze:
+            raise ObjectDoesNotExist("This month has no freeze to cancel.")
+
+        if intern.freeze_cancel_request.current_for_month(month):
+            raise PermissionDenied("There is a pending freeze cancel request for this month already.")
+
+        request = FreezeCancelRequest.objects.create(
+            intern=intern,
+            month=month,
+        )
+
+        # --notifications--
+
+        # Subscribe user to receive update notifications on the request
+        subscribe(request.user.settings_set.first(), "freeze_cancel_request_approved", object_id=request.id)
+        subscribe(request.user.settings_set.first(), "freeze_cancel_request_declined", object_id=request.id)
+
+        # Notify medical internship unit of the request
+        notify(
+            "A freeze cancellation request has been submitted by %s" % (request.user.profile.get_en_full_name()),
+            "freeze_cancel_request_submitted",
+            url="/planner/%d/" % request.internship.id,
+            )
+
+        messages.success(request._request, "Your freeze cancellation request has been submitted successfully.")
+
+        return Response(status=HTTP_201_CREATED)
+
 
 class InternshipMonthByInternshipAndId(viewsets.ViewSet):
     serializer_class = InternshipMonthSerializer
@@ -122,3 +185,58 @@ class InternshipViewSet(viewsets.ReadOnlyModelViewSet):
         unreviewed_requests = RotationRequest.objects.unreviewed()
         filtered = filter(lambda i: any([r in unreviewed_requests for r in i.rotation_requests.all()]), internships)
         return Response(self.get_serializer(filtered, many=True).data)
+
+
+class FreezeViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = FreezeSerializer
+    queryset = Freeze.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        if self.request.user.has_perm("months.freeze.view_all"):
+            return self.queryset.all()
+        return self.queryset.filter(intern=self.request.user)
+
+
+class FreezeRequestViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = FreezeRequestSerializer
+    queryset = FreezeRequest.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        if self.request.user.has_perm("months.freeze_request.view_all"):
+            return self.queryset.all()
+        return self.queryset.filter(intern=self.request.user)
+
+
+class FreezeRequestResponseViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = FreezeRequestResponseSerializer
+    queryset = FreezeRequestResponse.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        if self.request.user.has_perm("months.freeze_request_response.view_all"):
+            return self.queryset.all()
+        return self.queryset.filter(request__intern=self.request.user)
+
+
+class FreezeCancelRequestViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = FreezeCancelRequestSerializer
+    queryset = FreezeCancelRequest.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        if self.request.user.has_perm("months.freeze_cancel_request.view_all"):
+            return self.queryset.all()
+        return self.queryset.filter(intern=self.request.user)
+
+
+class FreezeCancelRequestResponseViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = FreezeCancelRequestResponseSerializer
+    queryset = FreezeCancelRequestResponse.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        if self.request.user.has_perm("months.freeze_cancel_request_response.view_all"):
+            return self.queryset.all()
+        return self.queryset.filter(request__intern=self.request.user)
