@@ -31,7 +31,7 @@
             <div class="has-feedback form-group"><label class="control-label" for="id_department_hospital">Hospital</label>
               <ui-select id="id_department_hospital" name="department_hospital" ng-model="rotationRequestData.department_hospital" theme="bootstrap" ng-disabled="disableHospitalMenu">
                 <ui-select-match placeholder="Select or search for a hospital in the list...">{{ $select.selected.name }}</ui-select-match>
-                <ui-select-choices repeat="hospital.id as hospital in hospitals | filter: {name: $select.search}" ui-disable-choice="hospital.department.acceptance_settings.can_submit_requests == false">
+                <ui-select-choices repeat="hospital.id as hospital in hospitals | filter: {name: $select.search}" ui-disable-choice="hospital.specialty_departments.length == 1 && hospital.specialty_departments[0].acceptance_settings.can_submit_requests == false">
                   <div ng-bind-html="hospital.name | highlight: $select.search"></div>
                   <small ng-if="hospital.specialty_departments.length > 1">
                     <i class="text-gray">Multiple departments available</i>
