@@ -39,6 +39,11 @@ rules.add_perm("rotations.rotation_request_forward.view_all", is_staff)
 rules.add_perm("rotations.rotation_request_forward_response.view_all", is_staff)
 
 rules.add_perm("months.internship.view_all", is_staff)
+rules.add_perm("months.freeze.view_all", is_staff)
+rules.add_perm("months.freeze_request.view_all", is_staff)
+rules.add_perm("months.freeze_request_response.view_all", is_staff)
+rules.add_perm("months.freeze_cancel_request.view_all", is_staff)
+rules.add_perm("months.freeze_cancel_request_response.view_all", is_staff)
 
 rules.add_perm("leaves.leave_setting.view_all", is_staff)
 rules.add_perm("leaves.leave_request.view_all", is_staff)

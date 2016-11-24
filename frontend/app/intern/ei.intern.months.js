@@ -16,6 +16,14 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
             templateUrl: "static/partials/intern/months/month-detail.html",
             controller: "MonthDetailCtrl"
         })
+        .when("/planner/:month_id/freeze/", {
+            templateUrl: "static/partials/intern/months/freeze-request-create.html",
+            controller: "FreezeRequestCreateCtrl"
+        })
+        .when("/planner/:month_id/freeze/cancel/", {
+            templateUrl: "static/partials/intern/months/freeze-cancel-request-create.html",
+            controller: "FreezeCancelRequestCreateCtrl"
+        })
 
 }])
 
@@ -78,17 +86,28 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
         });
 
         $scope.getTileClass = function (month) {
-            if (!month.occupied && !month.requested) {
-                return "default";
-            } else if (!month.occupied && month.requested) {
-                return "warning";
-            } else if (month.occupied && !month.requested) {
-                return "primary";
-            //} else if (month.occupied && month.requested && month.current_request.delete) {
-            //    return "danger";
+            if (!month.disabled && !month.frozen) {
+                if (!month.occupied && !month.requested) {
+                    if (!month.current_freeze_request) {
+                        return "default";
+                    } else {
+                        return "warning";
+                    }
+                } else if (!month.occupied && month.requested) {
+                    return "warning";
+                } else if (month.occupied && !month.requested) {
+                    return "primary";
+                //} else if (month.occupied && month.requested && month.current_request.delete) {
+                //    return "danger";
+                } else {
+                    return "primary";
+                }
+            } else if (!!month.frozen) {
+                return "info";
             } else {
-                return "primary";
+                return "default";
             }
+
         };
 }])
 
@@ -134,4 +153,32 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
 
         })
 
+}])
+
+.controller("FreezeRequestCreateCtrl", ["$scope", "$routeParams", "$location", "InternshipMonth", function ($scope, $routeParams, $location, InternshipMonth) {
+    $scope.month = InternshipMonth.get({month_id: $routeParams.month_id});
+
+    $scope.submit = function () {
+
+        $scope.month.$request_freeze({}, function (data) {
+            $location.path("/planner");
+        }, function (error) {
+            toastr.error(error.statusText);
+        });
+
+    };
+}])
+
+.controller("FreezeCancelRequestCreateCtrl", ["$scope", "$routeParams", "$location", "InternshipMonth", function ($scope, $routeParams, $location, InternshipMonth) {
+    $scope.month = InternshipMonth.get({month_id: $routeParams.month_id});
+
+    $scope.submit = function () {
+
+        $scope.month.$request_freeze_cancel({}, function (data) {
+            $location.path("/planner");
+        }, function (error) {
+            toastr.error(error.statusText);
+        });
+
+    };
 }]);

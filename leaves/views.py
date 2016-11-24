@@ -99,6 +99,8 @@ class LeaveRequestFormView(django_generics.FormView):
         month = Month.from_int(int(data['month']))
         intern = self.request.user
 
+        # TODO: Check that month is not frozen or disabled
+
         form = self.form_class(data=data, instance=LeaveRequest(intern=intern, month=month))
 
         if form.is_valid():
