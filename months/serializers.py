@@ -1,13 +1,16 @@
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 
-from months.models import Internship
+from months.models import Internship, Freeze, FreezeRequest, FreezeRequestResponse, FreezeCancelRequest, \
+    FreezeCancelRequestResponse
 
 
 class InternshipMonthSerializer(serializers.Serializer):
-    month = serializers.IntegerField()
-    label = serializers.CharField()
-    label_short = serializers.CharField()
+    intern = serializers.PrimaryKeyRelatedField(read_only=True)
+    month = serializers.IntegerField(read_only=True)
+
+    label = serializers.CharField(read_only=True)
+    label_short = serializers.CharField(read_only=True)
 
     current_rotation = serializers.PrimaryKeyRelatedField(read_only=True)
     current_request = serializers.PrimaryKeyRelatedField(read_only=True)
@@ -18,6 +21,17 @@ class InternshipMonthSerializer(serializers.Serializer):
     current_leave_cancel_requests = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
     leave_request_history = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
     leave_cancel_request_history = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
+
+    current_freeze = serializers.PrimaryKeyRelatedField(read_only=True)
+    current_freeze_request = serializers.PrimaryKeyRelatedField(read_only=True)
+    current_freeze_cancel_request = serializers.PrimaryKeyRelatedField(read_only=True)
+    freeze_request_history = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
+    freeze_cancel_request_history = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
+
+    occupied = serializers.BooleanField(read_only=True)
+    requested = serializers.BooleanField(read_only=True)
+    disabled = serializers.BooleanField(read_only=True)
+    frozen = serializers.BooleanField(read_only=True)
 
     def create(self, validated_data):
         pass
@@ -69,3 +83,38 @@ class InternshipSerializer(serializers.ModelSerializer):
         fields = ('id', 'intern', 'start_month', 'months', 'unreviewed_rotation_requests',
                   'forwarded_unreviewed_rotation_requests', 'closed_rotation_requests',
                   'unreviewed_request_count', 'latest_request_datetime', 'latest_response_datetime')
+
+
+class FreezeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Freeze
+        fields = '__all__'
+
+
+class FreezeRequestSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = FreezeRequest
+        fields = '__all__'
+
+
+class FreezeRequestResponseSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = FreezeRequestResponse
+        fields = '__all__'
+
+
+class FreezeCancelRequestSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = FreezeCancelRequest
+        fields = '__all__'
+
+
+class FreezeCancelRequestResponseSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = FreezeCancelRequestResponse
+        fields = '__all__'

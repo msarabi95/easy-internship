@@ -117,6 +117,8 @@ class RotationRequestFormView(django_generics.FormView):
         if internship.rotation_requests.current_for_month(month):
             raise PermissionDenied("There is a rotation request for this month already.")
 
+        # TODO: Check that month is not frozen or disabled
+
         form = self.form_class(data=data)
         if form.is_valid():
 

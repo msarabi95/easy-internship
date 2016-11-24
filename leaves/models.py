@@ -170,13 +170,12 @@ class LeaveCancelRequest(models.Model):
         try:
             self.response
         except ObjectDoesNotExist:
-            LeaveRequestResponse.objects.create(
+            LeaveCancelRequestResponse.objects.create(
                 request=self,
                 is_approved=is_approved,
                 comments=comments,
             )
 
-            # TODO: Test
             if is_approved:
                 self.leave_request.leave.delete()
 
