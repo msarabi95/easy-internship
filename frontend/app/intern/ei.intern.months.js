@@ -86,17 +86,28 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
         });
 
         $scope.getTileClass = function (month) {
-            if (!month.occupied && !month.requested) {
-                return "default";
-            } else if (!month.occupied && month.requested) {
-                return "warning";
-            } else if (month.occupied && !month.requested) {
-                return "primary";
-            //} else if (month.occupied && month.requested && month.current_request.delete) {
-            //    return "danger";
+            if (!month.disabled && !month.frozen) {
+                if (!month.occupied && !month.requested) {
+                    if (!month.current_freeze_request) {
+                        return "default";
+                    } else {
+                        return "warning";
+                    }
+                } else if (!month.occupied && month.requested) {
+                    return "warning";
+                } else if (month.occupied && !month.requested) {
+                    return "primary";
+                //} else if (month.occupied && month.requested && month.current_request.delete) {
+                //    return "danger";
+                } else {
+                    return "primary";
+                }
+            } else if (!!month.frozen) {
+                return "info";
             } else {
-                return "primary";
+                return "default";
             }
+
         };
 }])
 

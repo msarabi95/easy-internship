@@ -116,10 +116,12 @@ class InternshipMonthViewSet(viewsets.ReadOnlyModelViewSet):
         if not current_freeze:
             raise ObjectDoesNotExist("This month has no freeze to cancel.")
 
-        if intern.freeze_cancel_request.current_for_month(month):
+        if intern.freeze_cancel_requests.current_for_month(month):
             raise PermissionDenied("There is a pending freeze cancel request for this month already.")
 
-        request = FreezeCancelRequest.objects.create(
+        # TODO: Check that there are no rotations, leaves, freezes, or related requests in the month to be disabled
+
+        cancel_request = FreezeCancelRequest.objects.create(
             intern=intern,
             month=month,
         )
@@ -127,14 +129,14 @@ class InternshipMonthViewSet(viewsets.ReadOnlyModelViewSet):
         # --notifications--
 
         # Subscribe user to receive update notifications on the request
-        subscribe(request.user.settings_set.first(), "freeze_cancel_request_approved", object_id=request.id)
-        subscribe(request.user.settings_set.first(), "freeze_cancel_request_declined", object_id=request.id)
+        subscribe(request.user.settings_set.first(), "freeze_cancel_request_approved", object_id=cancel_request.id)
+        subscribe(request.user.settings_set.first(), "freeze_cancel_request_declined", object_id=cancel_request.id)
 
         # Notify medical internship unit of the request
         notify(
             "A freeze cancellation request has been submitted by %s" % (request.user.profile.get_en_full_name()),
             "freeze_cancel_request_submitted",
-            url="/planner/%d/" % request.internship.id,
+            url="/planner/%d/" % cancel_request.intern.profile.intern.internship.id,
             )
 
         messages.success(request._request, "Your freeze cancellation request has been submitted successfully.")

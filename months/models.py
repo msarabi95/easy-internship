@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 from django.contrib.auth.models import User
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.db import models
 from django_nyt.utils import notify
 
@@ -144,7 +144,7 @@ class FreezeRequest(models.Model):
         """
         try:
             self.response
-        except self.DoesNotExist:
+        except ObjectDoesNotExist:
             FreezeRequestResponse.objects.create(
                 request=self,
                 is_approved=is_approved,
@@ -204,7 +204,7 @@ class FreezeCancelRequest(models.Model):
         """
         try:
             self.response
-        except self.DoesNotExist:
+        except ObjectDoesNotExist:
             FreezeCancelRequestResponse.objects.create(
                 request=self,
                 is_approved=is_approved,
