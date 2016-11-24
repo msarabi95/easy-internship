@@ -86,6 +86,9 @@ class InternshipMonthViewSet(viewsets.ReadOnlyModelViewSet):
         if intern.freeze_requests.current_for_month(month):
             raise PermissionDenied("There is a pending freeze request for this month already.")
 
+        # TODO: Check that month is not disabled
+        # TODO: Check that month has not current rotation or rotation request
+
         freeze_request = FreezeRequest.objects.create(intern=intern, month=month)
 
         # Subscribe user to receive update notifications on the request
