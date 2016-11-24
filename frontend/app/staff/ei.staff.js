@@ -2,7 +2,8 @@
  * Created by MSArabi on 7/14/16.
  */
 var app = angular.module("easyInternship",
-                         ["ei.planner.models", "ei.accounts.models", "ei.utils", "ngRoute", "ngResource", "ngSanitize",
+                         ["ei.hospitals.models", "ei.months.models", "ei.rotations.models", "ei.accounts.models",
+                             "ei.utils", "ngRoute", "ngResource", "ngSanitize",
                              "datatables", "datatables.bootstrap", "ngHandsontable", "ngScrollbars",
                              "ui.bootstrap", "ui.select"]);
 

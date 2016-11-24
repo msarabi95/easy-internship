@@ -35,6 +35,7 @@ class RequestedDepartment(models.Model):
     department_name = models.CharField(max_length=128, blank=True)
     department_specialty = models.ForeignKey('hospitals.Specialty', null=True, blank=True)
     department_contact_name = models.CharField(max_length=128, blank=True)
+    department_contact_position = models.CharField(max_length=128, null=True, blank=True)
     department_email = models.EmailField(max_length=128, blank=True)
     department_phone = models.CharField(
         max_length=128,
@@ -71,6 +72,7 @@ class RequestedDepartment(models.Model):
             self.department_name != "",
             self.department_specialty is not None,
             self.department_contact_name != "",
+            self.department_contact_position != "",
             self.department_email != "",
             self.department_phone != "",
             self.department_extension != "",
@@ -108,6 +110,7 @@ class RequestedDepartment(models.Model):
             self.department_name = ""
             self.department_specialty = None
             self.department_contact_name = ""
+            self.department_contact_position = ""
             self.department_email = ""
             self.department_phone = ""
             self.department_extension = ""
@@ -131,6 +134,7 @@ class RequestedDepartment(models.Model):
             name=self.department_name,
             specialty=self.department_specialty,
             contact_name=self.department_contact_name,
+            contact_position=self.department_contact_position,
             email=self.department_email,
             phone=self.department_phone,
             extension=self.department_extension,
@@ -151,6 +155,7 @@ class RequestedDepartment(models.Model):
                 name=self.department_name,
                 specialty=self.department_specialty,
                 contact_name=self.department_contact_name,
+                contact_position=self.department_contact_position,
                 email=self.department_email,
                 phone=self.department_phone,
                 extension=self.department_extension,

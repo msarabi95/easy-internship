@@ -23,7 +23,7 @@ class DepartmentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Department
-        fields = ('id', 'hospital', 'parent_department', 'name', 'specialty', 'contact_name',
+        fields = ('id', 'hospital', 'parent_department', 'name', 'specialty', 'contact_name', 'contact_position',
                   'email', 'phone', 'extension')
 
 

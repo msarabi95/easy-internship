@@ -16,6 +16,16 @@ class Hospital(models.Model):
     abbreviation = models.CharField(max_length=16)
     is_kamc = models.BooleanField(default=False)
 
+    contact_name = models.CharField(max_length=128)
+    contact_position = models.CharField(max_length=128)
+    email = models.EmailField(max_length=128)
+    phone = models.CharField(max_length=128)
+    extension = models.CharField(max_length=16)
+
+    has_requirement = models.BooleanField("Has special requirements?", default=False)
+    requirement_description = models.TextField(blank=True, null=True)
+    requirement_file = models.FileField(upload_to='hospital_requirements', blank=True, null=True)
+
     def __unicode__(self):
         return self.name
 
@@ -79,9 +89,14 @@ class Department(models.Model):
     name = models.CharField(max_length=128)
     specialty = models.ForeignKey(Specialty, related_name="departments")
     contact_name = models.CharField(max_length=128)
+    contact_position = models.CharField(max_length=128)
     email = models.EmailField(max_length=128)
     phone = models.CharField(max_length=128)
     extension = models.CharField(max_length=16)
+
+    has_requirement = models.BooleanField("Has special requirements?", default=False)
+    requirement_description = models.TextField(blank=True, null=True)
+    requirement_file = models.FileField(upload_to='hospital_requirements', blank=True, null=True)
 
     def get_available_seats(self, month):
         """
@@ -100,6 +115,7 @@ class Department(models.Model):
         if self.email != "":
             return {
                 "contact_name": self.contact_name,
+                "contact_position": self.contact_position,
                 "email": self.email,
                 "phone": self.phone,
                 "extension": self.extension,

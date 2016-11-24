@@ -24,11 +24,18 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 class InternSerializer(serializers.ModelSerializer):
     saudi_id = serializers.URLField(source='saudi_id.url')
-    passport = serializers.URLField(source='passport.url')
+    passport = serializers.SerializerMethodField(method_name='get_passport_url')
+    passport_attachment = serializers.SerializerMethodField(method_name='get_passport_attachment_url')
+
+    def get_passport_url(self, obj):
+        return obj.passport.url if obj.has_passport else None
+
+    def get_passport_attachment_url(self, obj):
+        return obj.passport_attachment.url if not obj.has_passport else None
 
     class Meta:
         model = Intern
-        fields = ('id', 'profile', 'student_number', 'badge_number', 'phone_number', 'mobile_number',
-                  'address', 'saudi_id_number', 'saudi_id', 'passport_number', 'passport',
+        fields = ('id', 'profile', 'alt_email', 'student_number', 'badge_number', 'phone_number', 'mobile_number',
+                  'address', 'saudi_id_number', 'saudi_id', 'has_passport', 'passport_number', 'passport', 'passport_attachment',
                   'medical_record_number', 'contact_person_name', 'contact_person_relation',
                   'contact_person_mobile', 'contact_person_email', 'gpa')

@@ -24,6 +24,9 @@
     {% if not hide_email %}
       <dt>Email</dt>
       <dd>{{ profile.user.email }}</dd>
+
+      <dt>Alternative Email</dt>
+      <dd>{{ profile.intern.alt_email }}</dd>
     {% endif %}
 
     <dt>Student Number</dt>
@@ -47,11 +50,16 @@
     <dt>Saudi ID Image</dt>
     <dd>See it <a href="{{ profile.intern.saudi_id.url }}">here</a>.</dd>
 
-    <dt>Passport Number</dt>
-    <dd>{{ profile.intern.passport_number }}</dd>
+    {% if profile.intern.has_passport %}
+      <dt>Passport Number</dt>
+      <dd>{{ profile.intern.passport_number }}</dd>
 
-    <dt>Passport Image</dt>
-    <dd>See it <a href="{{ profile.intern.passport.url }}">here</a>.</dd>
+      <dt>Passport Image</dt>
+      <dd>See it <a href="{{ profile.intern.passport.url }}">here</a>.</dd>
+    {% else %}
+      <dt>Expired or no passport form</dt>
+      <dd>See it <a href="{{ profile.intern.passport_attachment.url }}">here</a>.</dd>
+    {% endif %}
 
     <dt>Medical Record Number</dt>
     <dd>{{ profile.intern.medical_record_number }}</dd>

@@ -3,10 +3,18 @@
 
 {% block title %}{% trans "Signup almost done!" %}{% endblock %}
 
-{% block content_title %}
-  <h2>Signup Complete</h2>
-{% endblock %}
+{% block content_title %}<h2>{% trans "Signup" %}</h2>{% endblock %}
 
 {% block content %}
-  <p>You can now use the supplied credentials to <a href="{% url 'userena_signin' %}">signin</a>.</p>
+  <p>Thanks for signing up!</p>
+
+  {% if userena_activation_required %}
+  <p>We're almost done. <b>An e-mail has been sent to you with an activation link.</b> Please follow the link to activate your account</p>
+  <p>In case you didn't find the activation email, make sure you look in your spam folder.
+    If you still can't find it or if face any other problems, please
+    <a href="mailto:{{ SUPPORT_EMAIL_ADDRESS }}"><i class="glyphicon glyphicon-new-window"></i> contact us</a> at <b>support@easyinternship.net</b>.</p>
+  <p>You should activate your account within {{ userena_activation_days }} days.</p>
+  {% else  %}
+  <p>You can now use your email and password to <a href="{% url 'userena_signin' %}">signin</a>.</p>
+  {% endif %}
 {% endblock %}

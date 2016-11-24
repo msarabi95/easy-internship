@@ -2,12 +2,12 @@ from datetime import datetime
 
 from django.contrib import messages
 from django.core.exceptions import ValidationError
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, get_list_or_404
 
 # Create your views here.
 from django.utils import timezone
 from month import Month
-from rest_framework import viewsets
+from rest_framework import viewsets, permissions
 from rest_framework.decorators import list_route
 from rest_framework.response import Response
 
@@ -24,25 +24,29 @@ from hospitals.utils import get_global_acceptance_criterion, set_global_acceptan
 class HospitalViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = HospitalSerializer
     queryset = Hospital.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
 
 
 class SpecialtyViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = SpecialtySerializer
     queryset = Specialty.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
 
 
 class DepartmentViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = DepartmentSerializer
     queryset = Department.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
 
 
 class DepartmentBySpecialtyAndHospital(viewsets.ViewSet):
     serializer_class = DepartmentSerializer
     queryset = Department.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
 
     def list(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance)
+        departments = self.get_queryset()
+        serializer = self.get_serializer(departments, many=True)
         return Response(serializer.data)
 
     def get_serializer(self, *args, **kwargs):
@@ -60,13 +64,15 @@ class DepartmentBySpecialtyAndHospital(viewsets.ViewSet):
             'view': self
         }
 
-    def get_object(self):
+    def get_queryset(self):
         specialty = Specialty.objects.get(id=self.kwargs['specialty'])
         hospital = Hospital.objects.get(id=self.kwargs['hospital'])
-        return get_object_or_404(Department, specialty=specialty, hospital=hospital)
+        return get_list_or_404(Department, specialty=specialty, hospital=hospital)
 
 
 class GlobalSettingsViewSet(viewsets.ViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+
     @list_route(methods=["get", "post"])
     def acceptance_criterion(self, request):
         if request.method == 'GET':
@@ -139,16 +145,19 @@ class SettingsMessagesMixin(object):
 class MonthSettingsViewSet(SettingsMessagesMixin, viewsets.ModelViewSet):
     serializer_class = MonthSettingsSerializer
     queryset = MonthSettings.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
 
 
 class DepartmentSettingsViewSet(SettingsMessagesMixin, viewsets.ModelViewSet):
     serializer_class = DepartmentSettingsSerializer
     queryset = DepartmentSettings.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
 
 
 class DepartmentMonthSettingsViewSet(SettingsMessagesMixin, viewsets.ModelViewSet):
     serializer_class = DepartmentMonthSettingsSerializer
     queryset = DepartmentMonthSettings.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
 
     @list_route(methods=['get'], url_path='starting_month')
     def get_display_starting_month(self, request):
@@ -157,6 +166,7 @@ class DepartmentMonthSettingsViewSet(SettingsMessagesMixin, viewsets.ModelViewSe
 
 class AcceptanceSettingsByDepartmentAndMonth(viewsets.ViewSet):
     serializer_class = AcceptanceSettingSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def list(self, request, *args, **kwargs):
         instance = self.get_object()

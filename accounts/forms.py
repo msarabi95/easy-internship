@@ -1,16 +1,18 @@
+from django.contrib.auth.models import User
+
 from accounts.models import Intern, Profile
 from django import forms
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator, MinLengthValidator
 from month import Month
 from months.models import Internship
-from userena.forms import SignupFormOnlyEmail
+from userena.forms import SignupFormOnlyEmail, ChangeEmailForm
 from userena.utils import get_profile_model
 
 
 class InternSignupForm(SignupFormOnlyEmail):
     """
-    A form to demonstrate how to add extra fields to the signup form, in this
-    case adding the first and last name.
+    A full signup form for interns, which appropriately saves the intern's
+    data into `User`, `Profile`, `Intern`, and `Internship` models.
 
     """
     ar_first_name = forms.CharField(label="First name (Arabic)", max_length=32)
@@ -29,6 +31,7 @@ class InternSignupForm(SignupFormOnlyEmail):
         max_length=9,
         validators=[RegexValidator(r'^\d+$', message="Enter numbers only."), MinLengthValidator(5)]
     )
+    alt_email = forms.EmailField(label="Alternative email")
     phone_number = forms.CharField(
         max_length=16,
         validators=[RegexValidator(r'^\+966\d{9}$', message="Phone number should follow the format +966XXXXXXXXX.")],
@@ -52,7 +55,14 @@ class InternSignupForm(SignupFormOnlyEmail):
         label="Saudi ID image",
         help_text="Note that this will be visible to all medical internship unit staff members."
     )
+
+    # Note that the following is a `has_no_passport`, opposite to the `has_passport` field on the `Intern `model
+    has_no_passport = forms.BooleanField(
+        required=False,
+        label="I don't have a valid passport."
+    )
     passport_number = forms.CharField(
+        required=False,
         max_length=32,
         validators=[RegexValidator(
             r'^\w{1}\d{6}$',
@@ -60,9 +70,15 @@ class InternSignupForm(SignupFormOnlyEmail):
         )]
     )
     passport = forms.ImageField(
+        required=False,
         label="Passport image",
         help_text="Note that this will be visible to all medical internship unit staff members."
     )
+    passport_attachment = forms.FileField(
+        required=False,
+        label="Expired or no passport form",
+    )
+
     medical_record_number = forms.CharField(
         max_length=10,
         validators=[RegexValidator(r'^\d+$', message="Enter numbers only.")]
@@ -87,37 +103,81 @@ class InternSignupForm(SignupFormOnlyEmail):
         validators=[MaxValueValidator(5.0), MinValueValidator(0.0)]
     )
 
+    STARTING_MONTH_CHOICES = (
+        (1, "January"),
+        (2, "February"),
+        (3, "March"),
+        (4, "April"),
+        (5, "May"),
+        (6, "June"),
+        (7, "July"),
+        (8, "August"),
+        (9, "September"),
+        (10, "October"),
+        (11, "November"),
+        (12, "December"),
+    )
+
     starting_year = forms.IntegerField(
         label="Starting year",
         validators=[MinValueValidator(2017)],
         help_text="The year in which your internship will start (e.g. 2017)",
     )
+    starting_month = forms.IntegerField(
+        label="Starting month",
+        widget=forms.Select(choices=STARTING_MONTH_CHOICES),
+        help_text="The month in which your internship will start (e.g. July)",
+        initial=7,  # July is the default month for internship start
+    )
 
     def __init__(self, *args, **kw):
         """
-
-        A bit of hackery to get the first name and last name at the top of the
-        form instead at the end.
+        Add an extra validator to the email field.
 
         """
         super(InternSignupForm, self).__init__(*args, **kw)
-        # # Put the first and last name at the top
-        # new_order = self.fields.keyOrder[:-2]
-        # new_order.insert(0, 'first_name')
-        # new_order.insert(1, 'last_name')
-        # self.fields.keyOrder = new_order
+
+        self.fields['email'].validators.append(RegexValidator(
+            r'^\w+@ksau-hs.edu.sa$', message="Email must end in '@ksau-hs.edu.sa'."
+        ))
+
+    def clean_email(self):
+        email = super(InternSignupForm, self).clean_email()
+        username_to_be = email.split("@")[0].lower()
+
+        if User.objects.filter(username=username_to_be).exists():
+            raise forms.ValidationError("This email conflicts with an existing username.")
+
+        return email
+
+    def clean(self):
+        """
+        Validate passport fields.
+        """
+        cleaned_data = super(InternSignupForm, self).clean()
+        if cleaned_data.get('has_no_passport') is True:
+            if cleaned_data['passport_attachment'] is None:
+
+                # TODO: Clear passport & passport number
+
+                self.add_error('passport_attachment', forms.ValidationError("This field is required."))
+        else:
+
+            # TODO: Clear passport attachment
+
+            if cleaned_data['passport_number'] == "":
+                self.add_error('passport_number', forms.ValidationError("This field is required."))
+            if cleaned_data['passport'] is None:
+                self.add_error('passport', forms.ValidationError("This field is required."))
+        return cleaned_data
 
     def save(self):
         """
-        Override the save method to save the first and last name to the user
-        field.
+        Override the save method to save the intern's info into models other than `User`.
 
         """
         # Use the first part of the user's email as a username
         self.cleaned_data['username'] = self.cleaned_data['email'].split("@")[0].lower()
-        # FIXME: An error is thrown when a user registers with a duplicate first part of the email
-        # (e.g. a@example1.com and a@example2.com)
-        # This is because username uniqueness is not checked (only the full email uniqueness)
 
         # Save the parent form and get the user.
         # Notice we're calling the super of `SignupFormOnlyEmail` (not InternSignupForm), essentially
@@ -144,6 +204,7 @@ class InternSignupForm(SignupFormOnlyEmail):
         
         # Create an Intern profile for the new user
         intern_profile = Intern(profile=user_profile)
+        intern_profile.alt_email = self.cleaned_data['alt_email']
         intern_profile.student_number = self.cleaned_data['student_number']
         intern_profile.badge_number = self.cleaned_data['badge_number']
         intern_profile.phone_number = self.cleaned_data['phone_number']
@@ -152,8 +213,12 @@ class InternSignupForm(SignupFormOnlyEmail):
 
         intern_profile.saudi_id_number = self.cleaned_data['saudi_id_number']
         intern_profile.saudi_id = self.cleaned_data['saudi_id']
+
+        intern_profile.has_passport = not self.cleaned_data.get('has_no_passport', False)
         intern_profile.passport_number = self.cleaned_data['passport_number']
         intern_profile.passport = self.cleaned_data['passport']
+        intern_profile.passport_attachment = self.cleaned_data['passport_attachment']
+
         intern_profile.medical_record_number = self.cleaned_data['medical_record_number']
 
         intern_profile.contact_person_name = self.cleaned_data['contact_person_name']
@@ -168,13 +233,26 @@ class InternSignupForm(SignupFormOnlyEmail):
         # Create an Internship object for the new intern
         internship = Internship(
             intern=intern_profile,
-            start_month=Month(self.cleaned_data['starting_year'], 7)  # July of the year selected by the user
+            start_month=Month(self.cleaned_data['starting_year'], self.cleaned_data['starting_month'])
         )
         internship.save()
 
         # Userena expects to get the new user from this form, so return the new
         # user.
         return new_user
+
+
+class ChangeInternEmailForm(ChangeEmailForm):
+    def __init__(self, *args, **kw):
+        """
+        Add an extra validator to the email field.
+
+        """
+        super(ChangeInternEmailForm, self).__init__(*args, **kw)
+
+        self.fields['email'].validators.append(RegexValidator(
+            r'^\w+@ksau-hs.edu.sa$', message="Email must end in '@ksau-hs.edu.sa'."
+        ))
 
 
 class EditInternProfileForm(forms.ModelForm):
@@ -194,6 +272,7 @@ class EditInternProfileForm(forms.ModelForm):
         max_length=9,
         validators=[RegexValidator(r'^\d+$', message="Enter numbers only."), MinLengthValidator(5)]
     )
+    alt_email = forms.EmailField(label="Alternative email")
     phone_number = forms.CharField(
         max_length=16,
         validators=[RegexValidator(r'^\+966\d{9}$', message="Phone number should follow the format +966XXXXXXXXX.")],
@@ -217,7 +296,14 @@ class EditInternProfileForm(forms.ModelForm):
         label="Saudi ID image",
         help_text="Note that this will be visible to all medical internship unit staff members."
     )
+
+    # Note that the following is a `has_no_passport`, opposite to the `has_passport` field on the `Intern `model
+    has_no_passport = forms.BooleanField(
+        required=False,
+        label="I don't have a valid passport."
+    )
     passport_number = forms.CharField(
+        required=False,
         max_length=32,
         validators=[RegexValidator(
             r'^\w{1}\d{6}$',
@@ -225,9 +311,15 @@ class EditInternProfileForm(forms.ModelForm):
         )]
     )
     passport = forms.ImageField(
+        required=False,
         label="Passport image",
         help_text="Note that this will be visible to all medical internship unit staff members."
     )
+    passport_attachment = forms.FileField(
+        required=False,
+        label="Expired or no passport form",
+    )
+
     medical_record_number = forms.CharField(
         max_length=10,
         validators=[RegexValidator(r'^\d+$', message="Enter numbers only.")]
@@ -263,6 +355,7 @@ class EditInternProfileForm(forms.ModelForm):
 
         intern_profile = self.instance.intern
 
+        self.fields['alt_email'].initial = intern_profile.alt_email
         self.fields['student_number'].initial = intern_profile.student_number
         self.fields['badge_number'].initial = intern_profile.badge_number
         self.fields['phone_number'].initial = intern_profile.phone_number
@@ -271,8 +364,12 @@ class EditInternProfileForm(forms.ModelForm):
 
         self.fields['saudi_id_number'].initial = intern_profile.saudi_id_number
         self.fields['saudi_id'].initial = intern_profile.saudi_id
+
+        self.fields['has_no_passport'].initial = not intern_profile.has_passport
         self.fields['passport_number'].initial = intern_profile.passport_number
         self.fields['passport'].initial = intern_profile.passport
+        self.fields['passport_attachment'].initial = intern_profile.passport_attachment
+
         self.fields['medical_record_number'].initial = intern_profile.medical_record_number
 
         self.fields['contact_person_name'].initial = intern_profile.contact_person_name
@@ -282,11 +379,33 @@ class EditInternProfileForm(forms.ModelForm):
 
         self.fields['gpa'].initial = intern_profile.gpa
 
+    def clean(self):
+        """
+        Validate passport fields.
+        """
+        cleaned_data = super(EditInternProfileForm, self).clean()
+        if cleaned_data.get('has_no_passport') is True:
+            if cleaned_data['passport_attachment'] is None:
+
+                # TODO: Clear passport & passport number
+
+                self.add_error('passport_attachment', forms.ValidationError("This field is required."))
+        else:
+
+            # TODO: Clear passport attachment
+
+            if cleaned_data['passport_number'] == "":
+                self.add_error('passport_number', forms.ValidationError("This field is required."))
+            if cleaned_data['passport'] is None:
+                self.add_error('passport', forms.ValidationError("This field is required."))
+        return cleaned_data
+
     def save(self, *args, **kwargs):
         profile = super(EditInternProfileForm, self).save(*args, **kwargs)
 
         intern_profile = profile.intern
 
+        intern_profile.alt_email = self.cleaned_data['alt_email']
         intern_profile.student_number = self.cleaned_data['student_number']
         intern_profile.badge_number = self.cleaned_data['badge_number']
         intern_profile.phone_number = self.cleaned_data['phone_number']
@@ -295,8 +414,12 @@ class EditInternProfileForm(forms.ModelForm):
 
         intern_profile.saudi_id_number = self.cleaned_data['saudi_id_number']
         intern_profile.saudi_id = self.cleaned_data['saudi_id']
+
+        intern_profile.has_passport = not self.cleaned_data.get('has_no_passport', False)
         intern_profile.passport_number = self.cleaned_data['passport_number']
         intern_profile.passport = self.cleaned_data['passport']
+        intern_profile.passport_attachment = self.cleaned_data['passport_attachment']
+
         intern_profile.medical_record_number = self.cleaned_data['medical_record_number']
 
         intern_profile.contact_person_name = self.cleaned_data['contact_person_name']

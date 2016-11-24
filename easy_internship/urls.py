@@ -19,7 +19,7 @@ from django.contrib import admin
 from django_nyt.urls import get_pattern as get_nyt_pattern
 from rest_framework import routers
 
-from accounts.forms import InternSignupForm, EditInternProfileForm
+from accounts.forms import InternSignupForm, EditInternProfileForm, ChangeInternEmailForm
 from accounts.urls import api_urls as accounts_urls
 from leaves.urls import api_urls as leaves_urls
 from rotations.urls import api_urls as rotations_urls
@@ -52,6 +52,8 @@ urlpatterns = [
     url(r'^planner/', include("rotations.urls")),  # FIXME: update url in front-end
     url(r'^leaves/', include("leaves.urls")),
 
+    url(r'^accounts/activate/(?P<activation_key>\w+)/$', 'userena.views.activate', {'success_url': '/'}),
+    url(r'^accounts/(?P<username>[\@\.\w-]+)/email/$', 'userena.views.email_change', {'email_form': ChangeInternEmailForm}),
     url(r'^accounts/(?P<username>[\@\.\w-]+)/edit/$', 'userena.views.profile_edit', {'edit_profile_form': EditInternProfileForm}),
     url(r'^accounts/signup/$', 'userena.views.signup', {'signup_form': InternSignupForm}),
     url(r'^accounts/', include('userena.urls')),
