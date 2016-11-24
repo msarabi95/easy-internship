@@ -156,7 +156,7 @@ class InternSignupForm(SignupFormOnlyEmail):
         """
         cleaned_data = super(InternSignupForm, self).clean()
         if cleaned_data.get('has_no_passport') is True:
-            if cleaned_data['passport_attachment'] is None:
+            if cleaned_data.get('passport_attachment') is None:
 
                 # TODO: Clear passport & passport number
 
@@ -165,9 +165,9 @@ class InternSignupForm(SignupFormOnlyEmail):
 
             # TODO: Clear passport attachment
 
-            if cleaned_data['passport_number'] == "":
+            if cleaned_data.get('passport_number', None) == "":
                 self.add_error('passport_number', forms.ValidationError("This field is required."))
-            if cleaned_data['passport'] is None:
+            if cleaned_data.get('passport') is None:
                 self.add_error('passport', forms.ValidationError("This field is required."))
         return cleaned_data
 
