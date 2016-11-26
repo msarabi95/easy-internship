@@ -17,7 +17,9 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
             controller: "MonthDetailCtrl"
         })
         .when("/planner/:month_id/freeze/", {
-            templateUrl: "static/partials/intern/months/freeze-request-create.html",
+            templateUrl: function (params) {
+                return "/api/internship_months/" + params[0] + "/request_freeze/";
+            },
             controller: "FreezeRequestCreateCtrl"
         })
         .when("/planner/:month_id/freeze/cancel/", {
@@ -155,16 +157,29 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
 
 }])
 
-.controller("FreezeRequestCreateCtrl", ["$scope", "$routeParams", "$location", "InternshipMonth", function ($scope, $routeParams, $location, InternshipMonth) {
+.controller("FreezeRequestCreateCtrl", ["$scope", "$http", "$routeParams", "$location", "djangoForm", "InternshipMonth", function ($scope, $http, $routeParams, $location, djangoForm, InternshipMonth) {
     $scope.month = InternshipMonth.get({month_id: $routeParams.month_id});
 
     $scope.submit = function () {
 
-        $scope.month.$request_freeze({}, function (data) {
-            $location.path("/planner");
-        }, function (error) {
-            toastr.error(error.statusText);
-        });
+        if ($scope.freezeRequestData) {
+
+            $scope.freezeRequestData.month = $routeParams.month_id;
+
+            $http.post(
+                "/api/internship_months/" + $scope.month.month + "/request_freeze/",
+                $scope.freezeRequestData
+            ).success(function (out_data) {
+                if (!djangoForm.setErrors($scope.freezeRequestForm, out_data.errors)) {
+                    $location.path("/planner");
+                }
+            }).error(function (error) {
+                console.log(error);
+                toastr.error(error);
+            });
+        }
+
+        return false;
 
     };
 }])

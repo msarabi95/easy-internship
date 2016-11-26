@@ -1,0 +1,42 @@
+{% load staticfiles %}{% load bootstrap3 %}
+<div class="example-modal">
+  <div class="modal">
+    <div class="modal-dialog">
+      <form name="{{ form.form_name }}" novalidate>
+        <div class="modal-content">
+
+          <div class="modal-header">
+          {% verbatim %}
+            <h3 class="modal-title">Request a freeze during {{ month.label }}</h3>
+          {% endverbatim %}
+          </div>
+
+          <div class="modal-body">
+
+            <p>Please write your justification for requesting this freeze.</p>
+
+            <div class="has-feedback form-group">
+              <label class="control-label" for="id_justification">Justification</label>
+              <textarea class="form-control" id="id_justification" name="justification" ng-model="freezeRequestData[&#39;justification&#39;]" ng-required="true" rows="3"></textarea>
+              <ul class="djng-form-control-feedback djng-field-errors" ng-show="freezeRequestForm.justification.$dirty" ng-cloak><li ng-show="freezeRequestForm['justification'].$error.required" class="invalid">This field is required.</li><li ng-show="freezeRequestForm['justification'].$valid" class="valid"></li></ul><ul class="djng-form-control-feedback djng-field-errors" ng-show="freezeRequestForm.justification.$pristine" ng-cloak><li ng-show="freezeRequestForm.justification.$message" class="invalid" ng-bind="freezeRequestForm.justification.$message"></li></ul>
+            </div>
+
+          </div><!-- /.modal-body -->
+
+
+
+          <div class="modal-footer">
+            <a type="button" class="btn btn-default pull-left" href="javascript:history.back()">Back</a>
+            <button type="button" class="btn btn-primary" ng-click="submit()" ng-disabled="{{ form.form_name }}.$invalid">Submit</button>
+            <hr>
+            <p class="text-yellow text-center">Please note that once submitted, this request <span class="text-bold">cannot</span> be modified until it's reviewed by the medical internship unit.</p>
+          </div>
+
+        </div><!-- /.modal-content -->
+      </form>
+    </div><!-- /.modal-dialog -->
+  </div>
+</div>
+
+
+
