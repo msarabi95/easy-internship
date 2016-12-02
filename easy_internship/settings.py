@@ -134,7 +134,7 @@ STATIC_ROOT = secrets.STATIC_ROOT
 # Media files (user-uploaded files)
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = secrets.MEDIA_ROOT
 
 # Fixtures
 
