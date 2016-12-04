@@ -54,7 +54,10 @@
 <script src="{% static 'app/intern/ei.intern.leaves.js' %}"></script>
 <script src="{% static 'app/intern/ei.intern.js' %}"></script>
 {% elif role == 'staff' %}
-<script src="{% static 'app/staff/ei.staff.js' %}"></script>
+<script src="{% static 'app/staff/ei.staff.accounts.js' %}"></script>
+<script src="{% static 'app/staff/ei.staff.hospitals.js' %}"></script>
+<script src="{% static 'app/staff/ei.staff.rotations.js' %}"></script>
+<script src="{% static 'app/staff/ei.staff.js' %}?v=0001"></script>
 {% elif role == 'outsider' %}
 <script src="{% static 'app/outsider/ei.outsider.js' %}"></script>
 {% endif %}
