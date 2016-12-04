@@ -401,9 +401,9 @@ angular.module("ei.staff.hospitals", ["ei.hospitals.models", "ei.months.models",
     $scope.loadPreviousYear = function () {
         $scope.displayYear -= 1;
     };
-}]);
+}])
 
-app.controller("DepartmentMonthSettingModalCtrl", ["$scope", "$uibModalInstance", "department", "momentMonth", "dmSetting",
+.controller("DepartmentMonthSettingModalCtrl", ["$scope", "$uibModalInstance", "department", "momentMonth", "dmSetting",
     function ($scope, $uibModalInstance, department, momentMonth, dmSetting) {
         // TODO: Isolate modal scope from route scope
         $scope.department = department;
@@ -446,9 +446,9 @@ app.controller("DepartmentMonthSettingModalCtrl", ["$scope", "$uibModalInstance"
         $scope.cancel = function () {
             $uibModalInstance.dismiss('cancel');
         };
-}]);
+}])
 
-app.controller("DepartmentSettingModalCtrl", ["$scope", "$uibModalInstance", "department", "dSetting",
+.controller("DepartmentSettingModalCtrl", ["$scope", "$uibModalInstance", "department", "dSetting",
     function ($scope, $uibModalInstance, department, dSetting) {
         // TODO: Isolate modal scope from route scope
         $scope.department = department;
@@ -476,9 +476,9 @@ app.controller("DepartmentSettingModalCtrl", ["$scope", "$uibModalInstance", "de
         $scope.cancel = function () {
             $uibModalInstance.dismiss('cancel');
         };
-}]);
+}])
 
-app.controller("MonthSettingModalCtrl", ["$scope", "$uibModalInstance", "momentMonth", "mSetting",
+.controller("MonthSettingModalCtrl", ["$scope", "$uibModalInstance", "momentMonth", "mSetting",
     function ($scope, $uibModalInstance, momentMonth, mSetting) {
         // TODO: Isolate modal scope from route scope
         $scope.month = momentMonth;

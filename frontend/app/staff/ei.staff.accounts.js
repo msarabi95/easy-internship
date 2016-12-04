@@ -51,27 +51,34 @@ angular.module("ei.staff.accounts", ["ei.months.models", "ei.accounts.models",
         ];
 }])
 
-.controller("InternDetailCtrl", ["$scope", "$routeParams", "$timeout", "Internship", "Intern", "Profile", "User", "InternshipMonth",
+.controller("InternDetailCtrl", ["$scope", "$routeParams", "$timeout", "$q", "loadWithRelated", "Internship", "Intern", "Profile", "User", "InternshipMonth",
     "RotationRequest", "RequestedDepartment", "Specialty", "Department", "Hospital", "RotationRequestResponse", "RotationRequestForward",
     "RotationRequestForwardResponse", "Rotation",
-    function ($scope, $routeParams, $timeout, Internship, Intern, Profile, User, InternshipMonth, RotationRequest, RequestedDepartment,
+    function ($scope, $routeParams, $timeout, $q, loadWithRelated, Internship, Intern, Profile, User, InternshipMonth, RotationRequest, RequestedDepartment,
               Specialty, Department, Hospital, RotationRequestResponse, RotationRequestForward, RotationRequestForwardResponse, Rotation) {
-        $scope.internship = Internship.get({id: $routeParams.id});
+        $scope.internship = loadWithRelated($routeParams.id, Internship, [
+            [{intern: Intern}, [
+                [{profile: Profile}, [
+                    {user: User}
+                ]]
+            ]]
+        ], true);
 
-        $scope.internship.$promise.then(function (internship) {
+        $scope.internship.$promise.then(function () {
 
-            $scope.internship.intern = Intern.get({id: internship.intern});
-            $scope.internship.intern.$promise.then(function (intern) {
+            var startMonth = $scope.internship.start_month.split("-");
 
-                $scope.internship.intern.profile = Profile.get({id: intern.profile});
-                $scope.internship.intern.profile.$promise.then(function (profile) {
+            startMonth = parseInt(startMonth[0]) * 12 + parseInt(startMonth[1]) - 1;
 
-                    $scope.internship.intern.profile.user = User.get({id: profile.user});
-                })
-            });
+            $scope.internship.months = Array.apply(null, Array(15)).map(function (_, i) {return startMonth + i;});
+
+            var promises = [];
 
             angular.forEach($scope.internship.months, function (month_id, index) {
-                $scope.internship.months[index] = InternshipMonth.get_by_internship_and_id({internship_id: internship.id, month_id: month_id});
+                $scope.internship.months[index] = InternshipMonth.get_by_internship_and_id({internship_id: $scope.internship.id, month_id: month_id});
+
+                promises.push($scope.internship.months[index].$promise);
+
                 $scope.internship.months[index].$promise.then(function (internshipMonth) {
 
                     $scope.internship.months[index].occupied = (internshipMonth.current_rotation !== null);
@@ -116,64 +123,74 @@ angular.module("ei.staff.accounts", ["ei.months.models", "ei.accounts.models",
                 });
             });
 
+            $scope.internship.months.$promise = $q.all(promises);
+
             $scope.months = $scope.internship.months; // a handy shortcut
 
-            // Load unreviewed and closed rotation requests separately
-            angular.forEach($scope.internship.unreviewed_rotation_requests, function (id, index) {
-                $scope.internship.unreviewed_rotation_requests[index] = RotationRequest.get({id: id});
-                $scope.internship.unreviewed_rotation_requests[index].$promise.then(loadRotationRequestDetails(index, "unreviewed"));
-            });
+            console.log($scope.internship);
 
-            angular.forEach($scope.internship.forwarded_unreviewed_rotation_requests, function (id, index) {
-                $scope.internship.forwarded_unreviewed_rotation_requests[index] = RotationRequest.get({id: id});
-                $scope.internship.forwarded_unreviewed_rotation_requests[index].$promise.then(loadRotationRequestDetails(index, "forwarded_unreviewed"));
-            });
+            $scope.internship.rotation_requests = loadWithRelated($scope.internship.rotation_requests, RotationRequest);
 
-            angular.forEach($scope.internship.closed_rotation_requests, function (id, index) {
-                $scope.internship.closed_rotation_requests[index] = RotationRequest.get({id: id});
-                $scope.internship.closed_rotation_requests[index].$promise.then(loadRotationRequestDetails(index, "closed"));
-            });
+            $scope.internship.rotation_requests.$promise.then(function (rotation_requests) {
 
-            // A common function to avoid repitition
-            function loadRotationRequestDetails(index, type) {
-                return function (request) {
-                    $scope.internship[type + "_rotation_requests"][index].month =
-                        InternshipMonth.get_by_internship_and_id({internship_id: internship.id, month_id: request.month});
+                $scope.internship.unreviewed_rotation_requests = [];
+                $scope.internship.forwarded_rotation_requests = [];
+                $scope.internship.closed_rotation_requests = [];
 
-                    $scope.internship[type + "_rotation_requests"][index].specialty =
-                        Specialty.get({id: request.specialty});
+                angular.forEach(rotation_requests, function (rotation_request, index) {
 
-                    $scope.internship[type + "_rotation_requests"][index].requested_department =
-                        RequestedDepartment.get({id: request.requested_department});
+                    rotation_request.month = InternshipMonth.get_by_internship_and_id({month_id: rotation_request.month, internship_id: $scope.internship.id});
+                    var promises = [rotation_request.month.$promise];
 
-                    $scope.internship[type + "_rotation_requests"][index].requested_department.$promise.then(function (requested_department) {
-                        $scope.internship[type + "_rotation_requests"][index].requested_department.department =
-                            Department.get({id: requested_department.department});
+                    if (!!rotation_request.response) {
+                        rotation_request.response = RotationRequestResponse.get({id: rotation_request.response});
+                        rotation_request.specialty = Specialty.get({id: rotation_request.specialty});
+                        rotation_request.requested_department = loadWithRelated(rotation_request.requested_department, RequestedDepartment, [
+                            [{department: Department}, [
+                                {hospital: Hospital}
+                            ]]
+                        ], true);
 
-                        $scope.internship[type + "_rotation_requests"][index].requested_department.department.$promise.then(function (department) {
-                            $scope.internship[type + "_rotation_requests"][index].requested_department.department.hospital =
-                                Hospital.get({id: department.hospital});
-                        })
-                    });
+                        promises.push(rotation_request.response.$promise);
+                        promises.push(rotation_request.specialty.$promise);
+                        promises.push(rotation_request.requested_department.$promise);
 
-                    if (!!request.response) {
-                        $scope.internship[type + "_rotation_requests"][index].response =
-                            RotationRequestResponse.get({id: request.response});
+                        rotation_request.$promise = rotation_request.$promise.then(function () {
+                            return $q.all(promises);
+                        });
+
+                        $scope.internship.closed_rotation_requests.push(rotation_request);
+
+                    } else if (!!rotation_request.forward) {
+                        rotation_request.forward = RotationRequestForward.get({id: rotation_request.forward});
+
+                        promises.push(rotation_request.forward.$promise);
+
+                        rotation_request.$promise = rotation_request.$promise.then(function () {
+                            return $q.all(promises);
+                        });
+
+                        $scope.internship.forwarded_rotation_requests.push(rotation_request);
+                    } else {
+                        rotation_request.specialty = Specialty.get({id: rotation_request.specialty});
+                        rotation_request.requested_department = loadWithRelated(rotation_request.requested_department, RequestedDepartment, [
+                            [{department: Department}, [
+                                {hospital: Hospital}
+                            ]]
+                        ]);
+
+                        promises.push(rotation_request.specialty.$promise);
+                        promises.push(rotation_request.requested_department.$promise);
+
+                        rotation_request.$promise = rotation_request.$promise.then(function () {
+                            return $q.all(promises);
+                        });
+
+                        $scope.internship.unreviewed_rotation_requests.push(rotation_request);
                     }
+                });
+            });
 
-                    if (!!request.forward) {
-                        $scope.internship[type + "_rotation_requests"][index].forward =
-                            RotationRequestForward.get({id: request.forward});
-
-                        $scope.internship[type + "_rotation_requests"][index].forward.$promise.then(function (forward) {
-                            if (!!forward.response) {
-                                $scope.internship[type + "_rotation_requests"][index].forward.response =
-                                    RotationRequestForwardResponse.get({id: forward.response});
-                            }
-                        })
-                    }
-                };
-            }
         });
 
         $scope.flag = function (flagName) {
