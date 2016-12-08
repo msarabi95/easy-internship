@@ -9,11 +9,11 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
 
     $routeProvider
         .when("/planner/", {
-            templateUrl: "static/partials/intern/months/month-list.html",
+            templateUrl: "static/partials/intern/months/month-list.html?v=0001",
             controller: "MonthListCtrl"
         })
         .when("/planner/:month_id/", {
-            templateUrl: "static/partials/intern/months/month-detail.html",
+            templateUrl: "static/partials/intern/months/month-detail.html?v=0001",
             controller: "MonthDetailCtrl"
         })
         .when("/planner/:month_id/freeze/", {

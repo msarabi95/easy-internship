@@ -147,12 +147,12 @@
                           {{ months[i].current_rotation.department.hospital.abbreviation }}
                         </h5>
                         <hr style="margin-top: 2px; margin-bottom: 2px;">
-                        <h5 class="text-center" ng-if="!months[i].current_request.delete">
+                        <h5 class="text-center" ng-if="!months[i].current_request.is_delete">
                           <span class="text-yellow">{{ months[i].current_request.specialty.abbreviation }}</span>
                           @
                           {{ months[i].current_request.requested_department.department.hospital.abbreviation }}
                         </h5>
-                        <h5 class="text-center" ng-if="months[i].current_request.delete">
+                        <h5 class="text-center" ng-if="months[i].current_request.is_delete">
                           <span class="text-red">To cancel</span>
                         </h5>
                       </div>
@@ -198,7 +198,7 @@
 
                     <hr>
 
-                    <div ng-if="!request.delete">
+                    <div ng-if="!request.is_delete">
                       <dt>Specialty</dt>
                       <dd class="text-yellow text-bold">{{ request.specialty.name }}</dd>
 
@@ -212,7 +212,7 @@
                       </dd>
                     </div>
 
-                    <div ng-if="request.delete">
+                    <div ng-if="request.is_delete">
                       <dt>Description</dt>
                       <dd>{{ internship.intern.profile.en_full_name}} requested <span class="text-red text-bold">cancellation of the rotation</span> during this month.</dd>
                     </div>
@@ -311,8 +311,8 @@
                 <uib-accordion-heading>
                   <img ng-hide="request.$promise.$$state.status == 1" src="/static/loading.gif" height="20px" />
                   <span class="text-{{ getClass(request) }}">#{{ request.id }} - <span class="text-bold">{{ getStatus(request) }}</span> |
-                    <span ng-if="request.delete == false">{{ request.specialty.abbreviation }} @ {{ request.requested_department.department.hospital.abbreviation }}</span>
-                    <span ng-if="request.delete == true">Cancellation</span>
+                    <span ng-if="request.is_delete == false">{{ request.specialty.abbreviation }} @ {{ request.requested_department.department.hospital.abbreviation }}</span>
+                    <span ng-if="request.is_delete == true">Cancellation</span>
                     (<i>for</i> {{ request.month.label }})</span>
                 </uib-accordion-heading>
 
@@ -323,7 +323,7 @@
                   <dt>Month</dt>
                   <dd>{{ request.month.label }}</dd>
 
-                  <div ng-if="!request.delete">
+                  <div ng-if="!request.is_delete">
                     <dt>Specialty</dt>
                     <dd class="text-bold" ng-class="{'text-green': request.response.is_approved, 'text-red': request.response.is_approved == false}">{{ request.specialty.name }}</dd>
 
@@ -338,7 +338,7 @@
                       <span ng-if="request.is_elective == false">No</span>
                     </dd>
                   </div>
-                  <div ng-if="request.delete">
+                  <div ng-if="request.is_delete">
                     <dt>Description</dt>
                     <dd class="text-bold text-red">Cancellation of rotation</dd>
                   </div>

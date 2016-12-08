@@ -64,7 +64,7 @@ class InternshipMonthViewSet(viewsets.ReadOnlyModelViewSet):
             month=month,
             specialty=requested_department.department_specialty,
             requested_department=requested_department,
-            delete=True,
+            is_delete=True,
         )
 
         # --notifications--

@@ -86,7 +86,7 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
                 if ($setting.total_seats == null) {
 
                     // Uncontrolled submission
-                    $scope.template = 'static/partials/staff/rotations/rotation-request-list-components/uncontrolled-request-list.html';
+                    $scope.template = 'static/partials/staff/rotations/rotation-request-list-components/uncontrolled-request-list.html?v=0001';
                     $scope.requests = RotationRequest.query_by_department_and_month({department_id: $department.id, month_id: $month});
                     $scope.requests.$promise.then(function (requests) {
                         angular.forEach(requests, function (request, index) {
@@ -150,7 +150,7 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
 
                     // Controlled submission, either criterion is FCFS & seats are all done, or criterion is GPA & submission isn't over yet
                     // In both cases show a list of "disabled" requests
-                    $scope.template = 'static/partials/staff/rotations/rotation-request-list-components/disabled-request-list.html';
+                    $scope.template = 'static/partials/staff/rotations/rotation-request-list-components/disabled-request-list.html?v=0001';
                     $scope.requests = RotationRequest.query_by_department_and_month({department_id: $department.id, month_id: $month});
                     $scope.requests.$promise.then(function (requests) {
                         angular.forEach(requests, function (request, index) {
@@ -186,7 +186,7 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
 
                     // TODO: ability to override automated recommendation
 
-                    $scope.template = 'static/partials/staff/rotations/rotation-request-list-components/recommended-request-list.html';
+                    $scope.template = 'static/partials/staff/rotations/rotation-request-list-components/recommended-request-list.html?v=0001';
                     $scope.requests = RotationRequest.query_by_department_and_month({department_id: $department.id, month_id: $month});
                     $scope.requests.$promise.then(function (requests) {
                         var promises = [];
