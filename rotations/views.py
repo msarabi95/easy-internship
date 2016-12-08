@@ -132,12 +132,15 @@ class RotationRequestFormView(django_generics.FormView):
 
             requested_department = form.save()
             try:
-                rr = internship.rotation_requests.create(
+                rr = RotationRequest(
+                    internship=internship,
                     month=month,
                     specialty=requested_department.department_specialty,
                     requested_department=requested_department,
                     is_elective=form.cleaned_data['is_elective'],
                 )
+                rr.validate_request()
+                rr.save()
             except ValidationError as e:
                 for error in e.message_dict[NON_FIELD_ERRORS]:
                     form.add_error(None, error)

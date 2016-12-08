@@ -11,7 +11,7 @@ class RotationInline(admin.TabularInline):
 class RotationRequestInline(admin.TabularInline):
     model = RotationRequest
     extra = 0
-    readonly_fields = ['month', 'specialty', 'requested_department', 'delete', 'is_elective']    
+    readonly_fields = ['month', 'specialty', 'requested_department']
 #    def get_readonly_fields(self, request, obj=None):
 #        return ['requested_department', 'specialty']
 
