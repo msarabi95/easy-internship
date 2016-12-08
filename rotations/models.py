@@ -182,13 +182,7 @@ class RotationRequest(models.Model):
     FORWARDED_STATUS = "F"
     REVIEWED_STATUS = "R"
 
-    def save(self, *args, **kwargs):
-        # Make sure the request is valid before saving
-        self.full_clean()
-
-        super(RotationRequest, self).save(*args, **kwargs)
-
-    def clean(self):
+    def validate_request(self):
         """
         Checks that:
         1- The rotation request alters the internship plan in a way that keeps it at 12 rotations or less.
@@ -196,7 +190,7 @@ class RotationRequest(models.Model):
          for each required specialty.
         """
         predicted_plan = self.get_predicted_plan()
-        predicted_plan.clean()
+        predicted_plan.validate_internship_plan()
 
     def get_predicted_plan(self):
         """

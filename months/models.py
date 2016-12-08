@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 from django.contrib.auth.models import User
-from django.core.exceptions import ValidationError, ObjectDoesNotExist
+from django.core.exceptions import ValidationError, ObjectDoesNotExist, NON_FIELD_ERRORS
 from django.db import models
 from django_nyt.utils import notify
 
@@ -82,6 +82,45 @@ class Internship(models.Model):
         return months
 
     months = property(get_months)
+
+    def validate_internship_plan(self):
+        """
+        Checks that:
+        1- The internship plan doesn't exceed 12 months.
+        2- Each specialty doesn't exceed its required months in non-elective rotations.
+        3- Not more than 2 months are used for electives. (Electives can be any specialty)
+        """
+        # FIXME: Doesn't work with admin, because it checks data that's stored in the database; i.e. a ModelForm
+        # can never evaluate! (e.g. the admin site)
+        errors = []
+        if self.rotations.count() > 12:
+            errors.append(ValidationError("The internship plan should contain no more than 12 months."))
+
+        from hospitals.models import Specialty
+
+        # Get a list of general specialties.
+        general_specialties = Specialty.objects.general()
+        non_electives = filter(lambda rotation: not rotation.is_elective, self.rotations.all())
+        electives = filter(lambda rotation: rotation.is_elective, self.rotations.all())
+
+        # Check that the internship plan contains at most 2 non-elective months of each general specialty.
+        for specialty in general_specialties:
+            rotation_count = len(filter(lambda rotation: rotation.specialty.get_general_specialty() == specialty,
+                                        non_electives))
+
+            if rotation_count > specialty.required_months:
+                errors.append(ValidationError("The internship plan should contain at most %d month(s) of %s.",
+                                              params=(specialty.required_months, specialty.name)))
+
+        # Check that the internship plan contains at most 2 months of electives.
+        if len(electives) > 2:
+            errors.append(ValidationError("The internship plan should contain at most %d month of %s.",
+                                          params=(2, "electives")))
+
+        if errors:
+            raise ValidationError({
+                NON_FIELD_ERRORS: errors,
+            })
 
 
 class Freeze(models.Model):
