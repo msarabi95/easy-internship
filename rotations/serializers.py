@@ -31,7 +31,7 @@ class RotationRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = RotationRequest
         fields = ('id', 'internship', 'month', 'specialty',
-                  'requested_department', 'delete', 'is_elective', 'submission_datetime',
+                  'requested_department', 'is_delete', 'is_elective', 'submission_datetime',
                   'status', 'response', 'forward')
 
 

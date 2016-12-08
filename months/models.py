@@ -83,43 +83,6 @@ class Internship(models.Model):
 
     months = property(get_months)
 
-    def clean(self):
-        """
-        Checks that:
-        1- The internship plan doesn't exceed 12 months.
-        2- Each specialty doesn't exceed its required months in non-elective rotations.
-        3- Not more than 2 months are used for electives. (Electives can be any specialty)
-        """
-        # FIXME: Doesn't work with admin, because it checks data that's stored in the database; i.e. a ModelForm
-        # can never evaluate! (e.g. the admin site)
-        errors = []
-        if self.rotations.count() > 12:
-            errors.append(ValidationError("The internship plan should contain no more than 12 months."))
-
-        from hospitals.models import Specialty
-
-        # Get a list of general specialties.
-        general_specialties = Specialty.objects.general()
-        non_electives = filter(lambda rotation: not rotation.is_elective, self.rotations.all())
-        electives = filter(lambda rotation: rotation.is_elective, self.rotations.all())
-
-        # Check that the internship plan contains at most 2 non-elective months of each general specialty.
-        for specialty in general_specialties:
-            rotation_count = len(filter(lambda rotation: rotation.specialty.get_general_specialty() == specialty,
-                                        non_electives))
-
-            if rotation_count > specialty.required_months:
-                errors.append(ValidationError("The internship plan should contain at most %d month(s) of %s.",
-                                              params=(specialty.required_months, specialty.name)))
-
-        # Check that the internship plan contains at most 2 months of electives.
-        if len(electives) > 2:
-            errors.append(ValidationError("The internship plan should contain at most %d month of %s.",
-                                          params=(2, "electives")))
-
-        if errors:
-            raise ValidationError(errors)
-
 
 class Freeze(models.Model):
     intern = models.ForeignKey(User, limit_choices_to={'profile__role': Profile.INTERN}, related_name='freezes')

@@ -170,7 +170,7 @@ class RotationRequest(models.Model):
     month = MonthField()
     specialty = models.ForeignKey('hospitals.Specialty', related_name="rotation_requests")  # TODO: Is this field really necessary?
     requested_department = models.OneToOneField(RequestedDepartment)
-    delete = models.BooleanField(default=False)  # Flag to determine if this is a "delete" request
+    is_delete = models.BooleanField(default=False)  # Flag to determine if this is a "delete" request
     # FIXME: Maybe department & specialty should be optional with delete=True
     # FIXME: The name `delete` conflicts with the api function `delete()`
     is_elective = models.BooleanField(default=False)
@@ -212,11 +212,11 @@ class RotationRequest(models.Model):
                      specialty=request.specialty,
                      is_elective=request.is_elective)
 
-            for request in self.internship.rotation_requests.open().filter(delete=False)
+            for request in self.internship.rotation_requests.open().filter(is_delete=False)
         ]
 
         # Don't forget this rotation request (self), since it's not yet saved when this is running
-        if not self.delete:
+        if not self.is_delete:
             updated_rotations.append(
                 Rotation(internship=self.internship,
                          month=self.month,
@@ -306,7 +306,7 @@ class RotationRequest(models.Model):
                 self.internship.rotations.filter(month=self.month).delete()
 
                 # Unless this is a delete, request, add a new rotation object for the current month
-                if not self.delete:
+                if not self.is_delete:
                     # If the requested department is not in the database, add it.
                     # FIXME: This shouldn't be default behavior
                     if not self.requested_department.is_in_database:
@@ -416,7 +416,7 @@ class RotationRequestForward(models.Model):
                 self.rotation_request.internship.rotations.filter(month=self.rotation_request.month).delete()
 
                 # Unless this is a delete request, add a new rotation object for the current month
-                if not self.rotation_request.delete:
+                if not self.rotation_request.is_delete:
                     self.rotation_request.internship.rotations.create(
                         month=self.rotation_request.month,
                         specialty=self.rotation_request.specialty,
