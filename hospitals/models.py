@@ -350,7 +350,8 @@ class AcceptanceSetting(object):
     def get_available_seats(self):
         if self.total_seats is None:
             return None
-        return self.total_seats - (self.get_booked_seats() + self.get_occupied_seats())
+        seats = self.total_seats - (self.get_booked_seats() + self.get_occupied_seats())
+        return seats if seats >= 0 else 0
 
     def can_submit_requests(self):
         """
@@ -379,4 +380,5 @@ class AcceptanceSetting(object):
                         # then no requests can be submitted
                         return False
                 else:
-                    raise ValueError("Unexpected value of available seats.")
+                    return False
+                    #raise ValueError("Unexpected value of available seats.")

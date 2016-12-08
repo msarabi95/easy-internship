@@ -5,14 +5,16 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 
 
-class ProfileInline(admin.StackedInline):
-    model = Profile
+class InternInline(admin.StackedInline):
+    model = Intern
     extra = 0
 
-
-# class InternInline(admin.StackedInline):
-#     model = Intern
-#     extra = 0
+class ProfileAdmin(admin.ModelAdmin):
+    list_display = ["get_ar_full_name", "get_en_full_name", "role"]
+    search_fields = ["ar_first_name", "ar_middle_name",
+                     "ar_last_name", "en_first_name",
+                     "en_middle_name", "en_last_name"]
+    inlines = [InternInline, ]
 
 class RoleListFilter(admin.SimpleListFilter):
     # Refer to: https://docs.djangoproject.com/en/1.9/ref/contrib/admin/#django.contrib.admin.ModelAdmin.list_filter
@@ -36,7 +38,12 @@ class RoleListFilter(admin.SimpleListFilter):
 
 
 class ModifiedUserAdmin(UserAdmin):
-    inlines = [ProfileInline, ]
+    search_fields = ["profile__ar_first_name",
+                     "profile__ar_middle_name",
+                     "profile__ar_last_name",
+                     "profile__en_first_name",
+                     "profile__en_middle_name",
+                     "profile__en_last_name"]
 
     def get_role(self, instance):
         try:
@@ -61,3 +68,4 @@ class ModifiedUserAdmin(UserAdmin):
 
 admin.site.unregister(User)
 admin.site.register(User, ModifiedUserAdmin)
+admin.site.register(Profile, ProfileAdmin)
