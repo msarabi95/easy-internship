@@ -86,7 +86,7 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
                 if ($setting.total_seats == null) {
 
                     // Uncontrolled submission
-                    $scope.template = 'static/partials/staff/rotations/rotation-request-list-components/uncontrolled-request-list.html?v=0001';
+                    $scope.template = 'static/partials/staff/rotations/rotation-request-list-components/uncontrolled-request-list.html?v=0002';
                     $scope.requests = RotationRequest.query_by_department_and_month({department_id: $department.id, month_id: $month});
                     $scope.requests.$promise.then(function (requests) {
                         angular.forEach(requests, function (request, index) {
@@ -100,7 +100,7 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
                     ];
 
                     $scope.orderingOptions = [
-                        {label: "Submission date and time", value: function (request) {return moment(request.submission_datetime).toDate();}},
+                        {label: "Submission date and time", value: function (request) {return request.submission_datetime.toDate();}},
                         {label: "GPA", value: function (request) {return parseFloat(request.internship.intern.gpa)}},
                         {label: "Name", value: function (request) {return request.internship.intern.profile.en_full_name;}}
                     ];
@@ -138,19 +138,19 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
                         });
                     };
 
-                } else if ($setting.criterion == 'FCFS' && $setting.can_submit_requests == false && moment().isBefore(moment($setting.start_or_end_date))) {
+                } else if ($setting.criterion == 'FCFS' && $setting.can_submit_requests == false && moment().isBefore($setting.start_or_end_date)) {
 
                     // Controlled submission, criterion is FCFS, and no requests have been received yet (start date is yet to come)
                     $scope.template = 'static/partials/staff/rotations/rotation-request-list-components/empty-request-list.html';
 
-                    $scope.message = "Request submission for this department during this month will open on " + moment($setting.start_or_end_date).format("d MMM YYYY, hh:mm a") + "." ;
+                    $scope.message = "Request submission for this department during this month will open on " + $setting.start_or_end_date.format("d MMM YYYY, hh:mm a") + "." ;
 
                 } else if ( ($setting.criterion == 'FCFS' && $setting.can_submit_requests == false && $setting.unoccupied_seats == 0)
                     || ($setting.criterion == 'GPA' && $setting.can_submit_requests == true)) {
 
                     // Controlled submission, either criterion is FCFS & seats are all done, or criterion is GPA & submission isn't over yet
                     // In both cases show a list of "disabled" requests
-                    $scope.template = 'static/partials/staff/rotations/rotation-request-list-components/disabled-request-list.html?v=0001';
+                    $scope.template = 'static/partials/staff/rotations/rotation-request-list-components/disabled-request-list.html?v=0002';
                     $scope.requests = RotationRequest.query_by_department_and_month({department_id: $department.id, month_id: $month});
                     $scope.requests.$promise.then(function (requests) {
                         angular.forEach(requests, function (request, index) {
@@ -164,7 +164,7 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
                     ];
 
                     $scope.orderingOptions = [
-                        {label: "Submission date and time", value: function (request) {return moment(request.submission_datetime).toDate();}},
+                        {label: "Submission date and time", value: function (request) {return request.submission_datetime.toDate();}},
                         {label: "GPA", value: function (request) {return parseFloat(request.internship.intern.gpa)}},
                         {label: "Name", value: function (request) {return request.internship.intern.profile.en_full_name;}}
                     ];
@@ -174,7 +174,7 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
                     };
 
                     if ($setting.criterion == 'GPA') {
-                        $scope.message = "Request submission is still ongoing. You'll be able to review submitted requests starting on " + moment($setting.start_or_end_date).format("d MMM YYYY, hh:mm a") + "." ;
+                        $scope.message = "Request submission is still ongoing. You'll be able to review submitted requests starting on " + $setting.start_or_end_date.format("d MMM YYYY, hh:mm a") + "." ;
                     } else if ($setting.criterion == 'FCFS') {
                         $scope.message = "No more requests can be reviewed, as there are no longer any unoccupied seats.";
                     }
@@ -186,7 +186,7 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
 
                     // TODO: ability to override automated recommendation
 
-                    $scope.template = 'static/partials/staff/rotations/rotation-request-list-components/recommended-request-list.html?v=0001';
+                    $scope.template = 'static/partials/staff/rotations/rotation-request-list-components/recommended-request-list.html?v=0002';
                     $scope.requests = RotationRequest.query_by_department_and_month({department_id: $department.id, month_id: $month});
                     $scope.requests.$promise.then(function (requests) {
                         var promises = [];
@@ -203,7 +203,7 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
                                 ordering.option = function (request) {return parseFloat(request.internship.intern.gpa);};
                                 ordering.reverse = true;
                             } else if ($setting.criterion == 'FCFS') {
-                                ordering.option = function (request) {return moment(request.submission_datetime).toDate();};
+                                ordering.option = function (request) {return request.submission_datetime.toDate();};
                                 ordering.reverse = false;
                             }
                             var sortedRequests = $filter('orderBy')($scope.requests, ordering.option, ordering.reverse);

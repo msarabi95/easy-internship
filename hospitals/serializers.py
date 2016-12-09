@@ -36,8 +36,8 @@ class GlobalSettingsSerializer(serializers.ModelSerializer):
 
 class MonthSettingsSerializer(serializers.ModelSerializer):
     month = MonthField()
-    acceptance_start_date = serializers.DateTimeField(format="%A, %-d %B %Y, %-I:%M %p", required=False, allow_null=True)
-    acceptance_end_date = serializers.DateTimeField(format="%A, %-d %B %Y, %-I:%M %p", required=False, allow_null=True)
+    acceptance_start_date = serializers.DateTimeField(required=False, allow_null=True)
+    acceptance_end_date = serializers.DateTimeField(required=False, allow_null=True)
 
     class Meta:
         model = MonthSettings

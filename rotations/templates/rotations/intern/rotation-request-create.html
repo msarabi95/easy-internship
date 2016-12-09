@@ -48,8 +48,8 @@
                           | Available: {{ $settings.available_seats }}
                         </span>
 
-                        <span ng-if="$settings.criterion == 'GPA' && moment().isBefore(moment($settings.start_or_end_date))">
-                          | Will close on {{ moment($settings.start_or_end_date).format('D MMMM YYYY hh:mm a') }}
+                        <span ng-if="$settings.criterion == 'GPA' && moment().isBefore($settings.start_or_end_date)">
+                          | Will close on {{ $settings.start_or_end_date.format('D MMMM YYYY hh:mm a') }}
                         </span>
                       </span>
                     </span>
@@ -58,11 +58,11 @@
                       <span ng-if="$settings.criterion == 'FCFS' && $settings.available_seats == 0">
                         | No available seats
                       </span>
-                      <span ng-if="$settings.criterion == 'FCFS' && moment().isBefore(moment($settings.start_or_end_date))">
-                        | Submission will open on {{ moment($settings.start_or_end_date).format('D MMMM YYYY hh:mm a') }} | Total Seats: {{ $settings.total_seats }}
+                      <span ng-if="$settings.criterion == 'FCFS' && moment().isBefore($settings.start_or_end_date)">
+                        | Submission will open on {{ $settings.start_or_end_date.format('D MMMM YYYY hh:mm a') }} | Total Seats: {{ $settings.total_seats }}
                       </span>
-                      <span ng-if="$settings.criterion == 'GPA' && moment().isSameOrAfter(moment($settings.start_or_end_date))">
-                        | Submission was closed on {{ moment($settings.start_or_end_date).format('D MMMM YYYY hh:mm a') }}  | Total Seats: {{ $settings.total_seats }}
+                      <span ng-if="$settings.criterion == 'GPA' && moment().isSameOrAfter($settings.start_or_end_date)">
+                        | Submission was closed on {{ $settings.start_or_end_date.format('D MMMM YYYY hh:mm a') }}  | Total Seats: {{ $settings.total_seats }}
                       </span>
                     </span>
                   </i></small>
@@ -92,8 +92,8 @@
                           | Available: {{ $settings.available_seats }}
                         </span>
 
-                        <span ng-if="$settings.criterion == 'GPA' && moment().isBefore(moment($settings.start_or_end_date))">
-                          | Will close on {{ moment($settings.start_or_end_date).format('D MMMM YYYY hh:mm a') }}
+                        <span ng-if="$settings.criterion == 'GPA' && moment().isBefore($settings.start_or_end_date)">
+                          | Will close on {{ $settings.start_or_end_date.format('D MMMM YYYY hh:mm a') }}
                         </span>
                       </span>
                     </span>
@@ -102,11 +102,11 @@
                       <span ng-if="$settings.criterion == 'FCFS' && $settings.available_seats == 0">
                         | No available seats
                       </span>
-                      <span ng-if="$settings.criterion == 'FCFS' && moment().isBefore(moment($settings.start_or_end_date))">
-                        | Submission will open on {{ moment($settings.start_or_end_date).format('D MMMM YYYY hh:mm a') }} | Total Seats: {{ $settings.total_seats }}
+                      <span ng-if="$settings.criterion == 'FCFS' && moment().isBefore($settings.start_or_end_date)">
+                        | Submission will open on {{ $settings.start_or_end_date.format('D MMMM YYYY hh:mm a') }} | Total Seats: {{ $settings.total_seats }}
                       </span>
-                      <span ng-if="$settings.criterion == 'GPA' && moment().isSameOrAfter(moment($settings.start_or_end_date))">
-                        | Submission was closed on {{ moment($settings.start_or_end_date).format('D MMMM YYYY hh:mm a') }}  | Total Seats: {{ $settings.total_seats }}
+                      <span ng-if="$settings.criterion == 'GPA' && moment().isSameOrAfter($settings.start_or_end_date)">
+                        | Submission was closed on {{ $settings.start_or_end_date.format('D MMMM YYYY hh:mm a') }}  | Total Seats: {{ $settings.total_seats }}
                       </span>
                     </span>
                   </i></small>

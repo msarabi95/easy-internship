@@ -56,10 +56,10 @@
                   </dd>
 
                   <dt>Request date and time</dt>
-                  <dd>{{ month.current_rotation.rotation_request.submission_datetime }}</dd>
+                  <dd>{{ month.current_rotation.rotation_request.submission_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
 
                   <dt>Approval date and time</dt>
-                  <dd>{{ month.current_rotation.rotation_request.response.response_datetime }}</dd><!-- FIXME: Account for forward responses as well -->
+                  <dd>{{ month.current_rotation.rotation_request.response.response_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd><!-- FIXME: Account for forward responses as well -->
                 </dl>
               </div>
             </div>
@@ -100,7 +100,7 @@
                   </div>
 
                   <dt style="width: inherit;">Submission date and time</dt>
-                  <dd>{{ month.current_request.submission_datetime }}</dd>
+                  <dd>{{ month.current_request.submission_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
 
                   <dt>Status</dt>
                   <dd>{{ month.current_request.status }}</dd>

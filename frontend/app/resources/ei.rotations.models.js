@@ -1,7 +1,7 @@
 /**
  * Created by MSArabi on 11/23/16.
  */
-angular.module("ei.rotations.models", ["ngResource"])
+angular.module("ei.rotations.models", ["ngResource", "ei.interceptors"])
 
 .factory("Rotation", ["$resource", function($resource) {
     return $resource('/api/rotations/:id', {id: '@id'});
@@ -11,12 +11,22 @@ angular.module("ei.rotations.models", ["ngResource"])
     return $resource('/api/requested_departments/:id', {id: '@id'});
 }])
 
-.factory("RotationRequest", ["$resource", function($resource) {
+.factory("RotationRequest", ["$resource", "DateTimeFieldToMomentInterceptor", function($resource, DateTimeFieldToMomentInterceptor) {
     return $resource('/api/rotation_requests/:id', {id: '@id'}, {
+        query: {
+            method: "get",
+            isArray: true,
+            interceptor: DateTimeFieldToMomentInterceptor(["submission_datetime"])
+        },
+        get: {
+            method: "get",
+            interceptor: DateTimeFieldToMomentInterceptor(["submission_datetime"])
+        },
         query_by_department_and_month: {
             method: "get",
             url: '/api/rotation_requests/:department_id/:month_id',
-            isArray: true
+            isArray: true,
+            interceptor: DateTimeFieldToMomentInterceptor(["submission_datetime"])
         },
         respond: {
             method: "post",
@@ -35,14 +45,44 @@ angular.module("ei.rotations.models", ["ngResource"])
     });
 }])
 
-.factory("RotationRequestResponse", ["$resource", function($resource) {
-    return $resource('/api/rotation_request_responses/:id', {id: '@id'});
+.factory("RotationRequestResponse", ["$resource", "DateTimeFieldToMomentInterceptor", function($resource, DateTimeFieldToMomentInterceptor) {
+    return $resource('/api/rotation_request_responses/:id', {id: '@id'},{
+        query: {
+            method: "get",
+            isArray: true,
+            interceptor: DateTimeFieldToMomentInterceptor(["submission_datetime"])
+        },
+        get: {
+            method: "get",
+            interceptor: DateTimeFieldToMomentInterceptor(["response_datetime"])
+        }
+    });
 }])
 
-.factory("RotationRequestForward", ["$resource", function($resource) {
-    return $resource('/api/rotation_request_forwards/:key', {key: '@key'});
+.factory("RotationRequestForward", ["$resource", "DateTimeFieldToMomentInterceptor", function($resource, DateTimeFieldToMomentInterceptor) {
+    return $resource('/api/rotation_request_forwards/:key', {key: '@key'}, {
+        query: {
+            method: 'get',
+            isArray: true,
+            interceptor: DateTimeFieldToMomentInterceptor(["forward_datetime"])
+        },
+        get: {
+            method: 'get',
+            interceptor: DateTimeFieldToMomentInterceptor(["forward_datetime"])
+        }
+    });
 }])
 
-.factory("RotationRequestForwardResponse", ["$resource", function($resource) {
-    return $resource('/api/rotation_request_forward_responses/:id', {id: '@id'});
+.factory("RotationRequestForwardResponse", ["$resource", "DateTimeFieldToMomentInterceptor", function($resource, DateTimeFieldToMomentInterceptor) {
+    return $resource('/api/rotation_request_forward_responses/:id', {id: '@id'}, {
+        query: {
+            method: 'get',
+            isArray: true,
+            interceptor: DateTimeFieldToMomentInterceptor(["response_datetime"])
+        },
+        get: {
+            method: 'get',
+            interceptor: DateTimeFieldToMomentInterceptor(["response_datetime"])
+        }
+    });
 }]);
