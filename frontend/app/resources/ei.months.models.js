@@ -1,7 +1,7 @@
 /**
  * Created by MSArabi on 11/23/16.
  */
-angular.module("ei.months.models", ["ngResource"])
+angular.module("ei.months.models", ["ngResource", "ei.interceptors"])
 
 .factory("InternshipMonth", ["$resource", function($resource) {
     return $resource('/api/internship_months/:month_id', {month_id: '@month'}, {
@@ -41,18 +41,58 @@ angular.module("ei.months.models", ["ngResource"])
     return $resource('/api/freezes/:id', {id: '@id'});
 }])
 
-.factory("FreezeRequest", ["$resource", function($resource) {
-    return $resource('/api/freeze_requests/:id', {id: '@id'});
+.factory("FreezeRequest", ["$resource", "DateTimeFieldToMomentInterceptor", function($resource, DateTimeFieldToMomentInterceptor) {
+    return $resource('/api/freeze_requests/:id', {id: '@id'}, {
+        query: {
+            method: 'get',
+            isArray: true,
+            interceptor: DateTimeFieldToMomentInterceptor(["submission_datetime"])
+        },
+        get: {
+            method: 'get',
+            interceptor: DateTimeFieldToMomentInterceptor(["submission_datetime"])
+        }
+    });
 }])
 
-.factory("FreezeRequestResponse", ["$resource", function($resource) {
-    return $resource('/api/freeze_request_responses/:id', {id: '@id'});
+.factory("FreezeRequestResponse", ["$resource", "DateTimeFieldToMomentInterceptor", function($resource, DateTimeFieldToMomentInterceptor) {
+    return $resource('/api/freeze_request_responses/:id', {id: '@id'}, {
+        query: {
+            method: 'get',
+            isArray: true,
+            interceptor: DateTimeFieldToMomentInterceptor(["response_datetime"])
+        },
+        get: {
+            method: 'get',
+            interceptor: DateTimeFieldToMomentInterceptor(["response_datetime"])
+        }
+    });
 }])
 
-.factory("FreezeCancelRequest", ["$resource", function($resource) {
-    return $resource('/api/freeze_cancel_requests/:id', {id: '@id'});
+.factory("FreezeCancelRequest", ["$resource", "DateTimeFieldToMomentInterceptor", function($resource, DateTimeFieldToMomentInterceptor) {
+    return $resource('/api/freeze_cancel_requests/:id', {id: '@id'}, {
+        query: {
+            method: 'get',
+            isArray: true,
+            interceptor: DateTimeFieldToMomentInterceptor(["submission_datetime"])
+        },
+        get: {
+            method: 'get',
+            interceptor: DateTimeFieldToMomentInterceptor(["submission_datetime"])
+        }
+    });
 }])
 
-.factory("FreezeCancelRequestResponse", ["$resource", function($resource) {
-    return $resource('/api/freeze_cancel_request_reponses/:id', {id: '@id'});
+.factory("FreezeCancelRequestResponse", ["$resource", "DateTimeFieldToMomentInterceptor", function($resource, DateTimeFieldToMomentInterceptor) {
+    return $resource('/api/freeze_cancel_request_reponses/:id', {id: '@id'}, {
+        query: {
+            method: 'get',
+            isArray: true,
+            interceptor: DateTimeFieldToMomentInterceptor(["response_datetime"])
+        },
+        get: {
+            method: 'get',
+            interceptor: DateTimeFieldToMomentInterceptor(["response_datetime"])
+        }
+    });
 }]);

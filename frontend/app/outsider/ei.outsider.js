@@ -40,7 +40,7 @@ app.config(["$httpProvider", "$routeProvider", "$resourceProvider",
             controller: "IndexCtrl"
         })
         .when("/forward/:key/", {
-            templateUrl: "static/partials/outsider/rotations/rotation-request-forward-detail.html",
+            templateUrl: "static/partials/outsider/rotations/rotation-request-forward-detail.html?v=0001",
             controller: "MyCtrl"
         });
 

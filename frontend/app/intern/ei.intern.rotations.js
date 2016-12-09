@@ -13,7 +13,7 @@ angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.r
             controller: "RotationRequestCreateCtrl"
         })
         .when("/planner/:month_id/history/", {
-            templateUrl: "static/partials/intern/rotations/rotation-request-history.html?v=0001",
+            templateUrl: "static/partials/intern/rotations/rotation-request-history.html?v=0002",
             controller: "RotationRequestHistoryCtrl"
         })
         .when("/planner/:month_id/cancel/", {

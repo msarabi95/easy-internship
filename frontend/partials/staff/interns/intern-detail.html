@@ -218,7 +218,7 @@
                     </div>
 
                     <dt style="width: inherit;">Submission date and time</dt>
-                    <dd>{{ request.submission_datetime }}</dd>
+                    <dd>{{ request.submission_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
                   </dl>
 
                   <hr>
@@ -344,7 +344,7 @@
                   </div>
 
                   <dt style="width: inherit;">Submission date and time</dt>
-                  <dd>{{ request.submission_datetime }}</dd>
+                  <dd>{{ request.submission_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
                 </dl>
 
                 <div class="box box-solid" style="margin-bottom: 0;">
@@ -360,7 +360,7 @@
                       </dd>
 
                       <dt>Response date and time</dt>
-                      <dd>{{ request.response.response_datetime }}</dd>
+                      <dd>{{ request.response.response_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
 
                       <dt>Comments</dt>
                       <dd>

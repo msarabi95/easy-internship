@@ -22,7 +22,6 @@ class RequestedDepartmentSerializer(serializers.ModelSerializer):
 
 class RotationRequestSerializer(serializers.ModelSerializer):
     month = serializers.SerializerMethodField()
-    submission_datetime = serializers.DateTimeField(format="%A, %-d %B %Y, %-I:%M %p")
     status = serializers.CharField(source='get_status', required=False)
 
     def get_month(self, obj):
@@ -36,7 +35,6 @@ class RotationRequestSerializer(serializers.ModelSerializer):
 
 
 class RotationRequestResponseSerializer(serializers.ModelSerializer):
-    response_datetime = serializers.DateTimeField(format="%A, %-d %B %Y, %-I:%M %p")
 
     class Meta:
         model = RotationRequestResponse
