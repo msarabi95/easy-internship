@@ -53,9 +53,9 @@ angular.module("ei.staff.accounts", ["ei.months.models", "ei.accounts.models",
 
 .controller("InternDetailCtrl", ["$scope", "$routeParams", "$timeout", "$q", "loadWithRelated", "Internship", "Intern", "Profile", "User", "InternshipMonth",
     "RotationRequest", "RequestedDepartment", "Specialty", "Department", "Hospital", "RotationRequestResponse", "RotationRequestForward",
-    "RotationRequestForwardResponse", "Rotation",
+    "Rotation",
     function ($scope, $routeParams, $timeout, $q, loadWithRelated, Internship, Intern, Profile, User, InternshipMonth, RotationRequest, RequestedDepartment,
-              Specialty, Department, Hospital, RotationRequestResponse, RotationRequestForward, RotationRequestForwardResponse, Rotation) {
+              Specialty, Department, Hospital, RotationRequestResponse, RotationRequestForward, Rotation) {
         $scope.internship = loadWithRelated($routeParams.id, Internship, [
             [{intern: Intern}, [
                 [{profile: Profile}, [

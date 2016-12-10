@@ -15,10 +15,10 @@ from rest_framework.response import Response
 from accounts.permissions import IsStaff
 from rotations.forms import RotationRequestForm
 from rotations.models import Rotation, RequestedDepartment, RotationRequest, RotationRequestResponse, \
-    RotationRequestForward, RotationRequestForwardResponse
+    RotationRequestForward
 from hospitals.models import Department, AcceptanceSetting
 from rotations.serializers import RotationSerializer, RequestedDepartmentSerializer, RotationRequestSerializer, \
-    RotationRequestResponseSerializer, RotationRequestForwardSerializer, RotationRequestForwardResponseSerializer
+    RotationRequestResponseSerializer, RotationRequestForwardSerializer
 
 
 class RotationViewSet(viewsets.ReadOnlyModelViewSet):
@@ -199,14 +199,3 @@ class RotationRequestForwardViewSet(viewsets.ReadOnlyModelViewSet):
             comments=request.data.get("comments", ""),
         )
         return Response({"status": RotationRequest.REVIEWED_STATUS, "is_approved": request.data.get("is_approved")})
-
-
-class RotationRequestForwardResponseViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = RotationRequestForwardResponseSerializer
-    queryset = RotationRequestForwardResponse.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        if self.request.user.has_perm("rotations.rotation_request_forward_response.view_all"):
-            return self.queryset.all()
-        return self.queryset.filter(forward__rotation_request__internship__intern__profile__user=self.request.user)

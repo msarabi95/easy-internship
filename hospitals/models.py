@@ -94,6 +94,9 @@ class Department(models.Model):
     phone = models.CharField(max_length=128)
     extension = models.CharField(max_length=16)
 
+    requires_memo = models.BooleanField(default=True)
+    memo_handed_by_intern = models.BooleanField(default=True)
+
     has_requirement = models.BooleanField("Has special requirements?", default=False)
     requirement_description = models.TextField(blank=True, null=True)
     requirement_file = models.FileField(upload_to='hospital_requirements', blank=True, null=True)

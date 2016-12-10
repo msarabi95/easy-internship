@@ -9,22 +9,21 @@ class HospitalSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Hospital
-        fields = ('id', 'name', 'abbreviation', 'is_kamc', 'departments')
+        fields = '__all__'
 
 
 class SpecialtySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Specialty
-        fields = ('id', 'name', 'abbreviation', 'required_months', 'parent_specialty')
+        fields = '__all__'
 
 
 class DepartmentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Department
-        fields = ('id', 'hospital', 'parent_department', 'name', 'specialty', 'contact_name', 'contact_position',
-                  'email', 'phone', 'extension')
+        fields = '__all__'
 
 
 class GlobalSettingsSerializer(serializers.ModelSerializer):

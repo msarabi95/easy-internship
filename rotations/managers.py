@@ -33,20 +33,20 @@ class RotationRequestQuerySet(models.QuerySet):
         """
         Return rotation requests that have been forwarded but are awaiting response.
         """
-        return self.filter(forward__isnull=False, forward__response__isnull=True)
+        return self.filter(forward__isnull=False, response__isnull=True)
 
     def open(self):
         """
-        Return rotation requests that don't yet have a response nor a forward response.
+        Return rotation requests that don't yet have a response.
         Equivalent to `unreviewed` + `forwarded_unreviewed`.
         """
-        return self.filter(response__isnull=True, forward__response__isnull=True)
+        return self.filter(response__isnull=True)
 
     def closed(self):
         """
         Return rotation requests that have received either a response or a forward response.
         """
-        return self.exclude(response__isnull=True, forward__response__isnull=True)
+        return self.exclude(response__isnull=True, forward__isnull=True)
 
     def current_for_month(self, month):
         """
