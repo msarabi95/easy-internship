@@ -9,3 +9,7 @@ class ForwardExists(Exception):
 
 class ForwardExpected(Exception):
     pass
+
+
+class ForwardNotExpected(Exception):
+    pass

@@ -13,7 +13,7 @@ from rest_framework.decorators import detail_route, list_route
 from rest_framework.response import Response
 
 from accounts.permissions import IsStaff
-from rotations.exceptions import ResponseExists, ForwardExists
+from rotations.exceptions import ResponseExists, ForwardExists, ForwardExpected, ForwardNotExpected
 from rotations.forms import RotationRequestForm
 from rotations.models import Rotation, RequestedDepartment, RotationRequest, RotationRequestResponse, \
     RotationRequestForward
@@ -58,11 +58,15 @@ class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
         is_approved = bool(int(request.query_params.get("is_approved")))
         comments = request.query_params.get("comments", "")
 
+        # Checks
+
         if hasattr(rotation_request, 'response'):
             raise ResponseExists("This rotation request has already been responded to.")
         
-        # If forward expected and not present, raise exception
-        
+        department_requires_memo = rotation_request.requested_department.get_department().requires_memo
+        if department_requires_memo and not hasattr(rotation_request, 'forward'):
+            raise ForwardExpected("This rotation request can't be responded to without forwarding it first.")
+
         RotationRequestResponse.objects.create(
             rotation_request=rotation_request,
             is_approved=is_approved,
@@ -118,8 +122,14 @@ class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
         """
         rotation_request = self.get_queryset().get(pk=pk)
 
+        # Checks
+
         if hasattr(rotation_request, 'forward'):
             raise ForwardExists("This rotation request has already been forwarded.")
+
+        department_requires_memo = rotation_request.requested_department.get_department().requires_memo
+        if not department_requires_memo:
+            raise ForwardNotExpected("This rotation request does not require a forward.")
 
         RotationRequestForward.objects.create(
             rotation_request=rotation_request,
