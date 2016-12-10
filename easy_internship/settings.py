@@ -54,6 +54,7 @@ INSTALLED_APPS = (
     'guardian',
     'easy_thumbnails',
     'post_office',
+    'protractor',
 )
 
 MIDDLEWARE_CLASSES = (
