@@ -13,6 +13,7 @@ from rest_framework.decorators import detail_route, list_route
 from rest_framework.response import Response
 
 from accounts.permissions import IsStaff
+from rotations.exceptions import ResponseExists, ForwardExists
 from rotations.forms import RotationRequestForm
 from rotations.models import Rotation, RequestedDepartment, RotationRequest, RotationRequestResponse, \
     RotationRequestForward
@@ -50,9 +51,61 @@ class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
 
     @detail_route(methods=["post"])
     def respond(self, request, pk=None):
-        rr = RotationRequest.objects.get(pk=pk)
-        rr.respond(bool(int(request.query_params.get("is_approved"))), request.query_params.get("comments", ""))
+        """
+        Respond to rotation request.
+        """
+        rotation_request = self.get_queryset().get(pk=pk)
+        is_approved = bool(int(request.query_params.get("is_approved")))
+        comments = request.query_params.get("comments", "")
 
+        if hasattr(rotation_request, 'response'):
+            raise ResponseExists("This rotation request has already been responded to.")
+        
+        # If forward expected and not present, raise exception
+        
+        RotationRequestResponse.objects.create(
+            rotation_request=rotation_request,
+            is_approved=is_approved,
+            comments=comments,
+        )
+        
+        if is_approved:
+            # Remove any previous rotation in the request's month
+            rotation_request.internship.rotations.filter(month=rotation_request.month).delete()
+
+            # Unless this is a delete, request, add a new rotation object for the current month
+            if not rotation_request.is_delete:
+                # If the requested department is not in the database, add it.
+                # FIXME: This shouldn't be default behavior
+                if not rotation_request.requested_department.is_in_database:
+                    rotation_request.requested_department.add_to_database()
+
+                rotation_request.internship.rotations.create(
+                    month=rotation_request.month,
+                    specialty=rotation_request.specialty,
+                    department=rotation_request.requested_department.get_department(),
+                    is_elective=rotation_request.is_elective,
+                    rotation_request=rotation_request,
+                )
+                
+                # --notifications--
+
+                notify(
+                    "Rotation request %d for %s has been approved." % (rotation_request.id, rotation_request.month.first_day().strftime("%B %Y")),
+                    "rotation_request_approved",
+                    target_object=rotation_request,
+                    url="/planner/%d/" % int(rotation_request.month),
+                )
+            else:
+
+                # --notifications--
+                notify(
+                    "Rotation request %d for %s has been declined." % (rotation_request.id, rotation_request.month.first_day().strftime("%B %Y")),
+                    "rotation_request_declined",
+                    target_object=rotation_request,
+                    url="/planner/%d/history/" % int(rotation_request.month),
+                )
+        
         if not request.query_params.get("suppress_message"):
             messages.success(request._request, "Your response has been recorded.")
 
@@ -60,8 +113,21 @@ class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
 
     @detail_route(methods=["post"])
     def forward(self, request, pk=None):
-        rr = RotationRequest.objects.get(pk=pk)
-        rr.forward_request()
+        """
+        Forward the rotation request.
+        """
+        rotation_request = self.get_queryset().get(pk=pk)
+
+        if hasattr(rotation_request, 'forward'):
+            raise ForwardExists("This rotation request has already been forwarded.")
+
+        RotationRequestForward.objects.create(
+            rotation_request=rotation_request,
+        )
+
+        if not request.query_params.get("suppress_message"):
+            messages.success(request._request, "Your response has been recorded.")
+
         return Response({"status": RotationRequest.FORWARDED_STATUS})
 
 

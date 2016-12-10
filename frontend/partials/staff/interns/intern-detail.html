@@ -181,11 +181,11 @@
                   <h5 class="box-title">Request #{{ request.id }}</h5>
 
                   <div class="box-tools" ng-show="request.$promise.$$state.status == 1">
-                    <button type="button" class="btn btn-sm btn-block btn-flat btn-warning" ng-if="!flags['forwardFlag' + $index]" ng-click="flag('forwardFlag' + $index)">
+                    <button type="button" class="btn btn-sm btn-block btn-flat btn-warning" ng-if="!flags['forwardFlag' + request.id]" ng-click="flag('forwardFlag' + request.id)">
                       <i class="fa fa-mail-forward"></i>
                       Forward
                     </button>
-                    <button type="button" class="btn btn-sm btn-block btn-flat btn-danger" ng-if="flags['forwardFlag' + $index]" ng-click="forward(request)">
+                    <button type="button" class="btn btn-sm btn-block btn-flat btn-danger" ng-if="flags['forwardFlag' + request.id]" ng-click="forward(request)">
                       Confirm
                     </button>
                   </div ng-show=>
@@ -228,27 +228,27 @@
                   <div class="row">
                     <div class="col-xs-12">
                       <div class="form-group">
-                        <textarea class="form-control" rows="3" placeholder="Comment (optional)" ng-model="response['comments' + $index]"></textarea>
+                        <textarea class="form-control" rows="3" placeholder="Comment (optional)" ng-model="response['comments' + request.id]"></textarea>
                       </div>
                     </div>
                   </div>
 
                   <div class="row">
                     <div class="col-md-6">
-                      <button type="button" class="btn btn-block btn-flat btn-success" ng-if="!flags['approveFlag' + $index]" ng-click="flag('approveFlag' + $index)">
+                      <button type="button" class="btn btn-block btn-flat btn-success" ng-if="!flags['approveFlag' + request.id]" ng-click="flag('approveFlag' + request.id)">
                         <i class="fa fa-check"></i>
                         Approve
                       </button>
-                      <button type="button" class="btn btn-block btn-flat btn-warning" ng-if="flags['approveFlag' + $index]" ng-click="respond(request, 1, response['comments' + $index])">
+                      <button type="button" class="btn btn-block btn-flat btn-warning" ng-if="flags['approveFlag' + request.id]" ng-click="respond(request, 1, response['comments' + request.id])">
                         Confirm
                       </button>
                     </div>
                     <div class="col-md-6">
-                      <button type="button" class="btn btn-block btn-flat btn-danger" ng-if="!flags['declineFlag' + $index]" ng-click="flag('declineFlag' + $index)">
+                      <button type="button" class="btn btn-block btn-flat btn-danger" ng-if="!flags['declineFlag' + request.id]" ng-click="flag('declineFlag' + request.id)">
                         <i class="fa fa-remove"></i>
                         Decline
                       </button>
-                      <button type="button" class="btn btn-block btn-flat btn-warning" ng-if="flags['declineFlag' + $index]" ng-click="respond(request, 0, response['comments' + $index])">
+                      <button type="button" class="btn btn-block btn-flat btn-warning" ng-if="flags['declineFlag' + request.id]" ng-click="respond(request, 0, response['comments' + request.id])">
                         Confirm
                       </button>
                     </div>
