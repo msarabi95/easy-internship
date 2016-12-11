@@ -1,18 +1,23 @@
 import json
+import cStringIO as StringIO
+from wsgiref.util import FileWrapper
 
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError, NON_FIELD_ERRORS
 from django.http import Http404, HttpResponse
 
 # Create your views here.
+from django.shortcuts import get_object_or_404
 from django.views import generic as django_generics
 from django_nyt.utils import subscribe, notify
+from docxtpl import DocxTemplate
 from month import Month
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.response import Response
 
 from accounts.permissions import IsStaff
+from misc.models import DocumentTemplate
 from rotations.exceptions import ResponseExists, ForwardExists, ForwardExpected, ForwardNotExpected
 from rotations.forms import RotationRequestForm
 from rotations.models import Rotation, RequestedDepartment, RotationRequest, RotationRequestResponse, \
@@ -64,8 +69,13 @@ class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
             raise ResponseExists("This rotation request has already been responded to.")
         
         department_requires_memo = rotation_request.requested_department.get_department().requires_memo
+        memo_handed_by_intern = rotation_request.requested_department.get_department().memo_handed_by_intern
         if department_requires_memo and not hasattr(rotation_request, 'forward'):
             raise ForwardExpected("This rotation request can't be responded to without forwarding it first.")
+
+        # TODO: Check that the appropriate person is recording the response
+        if department_requires_memo and memo_handed_by_intern:
+            pass
 
         RotationRequestResponse.objects.create(
             rotation_request=rotation_request,
@@ -256,7 +266,6 @@ class RotationRequestResponseViewSet(viewsets.ReadOnlyModelViewSet):
 class RotationRequestForwardViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = RotationRequestForwardSerializer
     queryset = RotationRequestForward.objects.all()
-    lookup_field = 'key'
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
@@ -264,14 +273,46 @@ class RotationRequestForwardViewSet(viewsets.ReadOnlyModelViewSet):
             return self.queryset.all()
         return self.queryset.filter(rotation_request__internship__intern__profile__user=self.request.user)
 
-    @list_route(methods=["post"])
-    def respond(self, request):
-        key = request.data.get("key")
-        f = RotationRequestForward.objects.get(key=key)
-        f.respond(
-            is_approved=bool(int(request.data.get("is_approved"))),
-            response_memo=request.data.get("response_memo"),
-            respondent_name=request.data.get("respondent_name"),
-            comments=request.data.get("comments", ""),
+    @detail_route(methods=['get'], permission_classes=[permissions.IsAuthenticated, IsStaff])
+    def memo_docx(self, request, pk=None):
+        forward = get_object_or_404(RotationRequestForward, pk=pk)
+        rotation_request = forward.rotation_request
+        department = rotation_request.requested_department.get_department()
+        intern = rotation_request.internship.intern
+
+        template = DocumentTemplate.objects.get(codename="outside_request")
+        docx = DocxTemplate(template.template_file)
+        context = {
+            'contact_name': department.contact_name,
+            'contact_position': department.contact_position,
+            'hospital': department.hospital.name,
+            'intern_name': intern.profile.get_en_full_name(),
+            'specialty': rotation_request.specialty.name,
+            'month': rotation_request.month.first_day().strftime("%B"),
+            'year': rotation_request.month.year,
+            'badge_number': intern.badge_number,
+            'mobile_number': intern.mobile_number,
+            'email': intern.profile.user.email,
+        }
+        docx.render(context)
+        docx_file = StringIO.StringIO()
+        docx.save(docx_file)
+        docx_file.flush()
+        docx_file.seek(0)
+
+        file_name = "Memo - %s - %s %s" % (
+            intern.profile.get_en_full_name(),
+            rotation_request.month.first_day().strftime("%B"),
+            rotation_request.month.year,
         )
-        return Response({"status": RotationRequest.REVIEWED_STATUS, "is_approved": request.data.get("is_approved")})
+
+        response = HttpResponse(
+            FileWrapper(docx_file),
+            content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        )
+        response['Content-Disposition'] = 'attachment; filename=%s.docx' % file_name
+        return response
+
+    @detail_route(methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    def memo_pdf(self, request, pk=None):
+        pass  # TODO

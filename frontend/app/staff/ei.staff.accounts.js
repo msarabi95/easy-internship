@@ -13,7 +13,7 @@ angular.module("ei.staff.accounts", ["ei.months.models", "ei.accounts.models",
             controller: "InternListCtrl"
         })
         .when("/interns/:id/", {
-            templateUrl: "static/partials/staff/interns/intern-detail.html?v=0002",
+            templateUrl: "static/partials/staff/interns/intern-detail.html?v=0003",
             controller: "InternDetailCtrl"
         });
 }])
@@ -150,6 +150,10 @@ angular.module("ei.staff.accounts", ["ei.months.models", "ei.accounts.models",
                                 {hospital: Hospital}
                             ]]
                         ], true);
+                        if (!!rotation_request.forward) {
+                            rotation_request.forward = RotationRequestForward.get({id: rotation_request.forward});
+                            promises.push(rotation_request.forward.$promise);
+                        }
 
                         promises.push(rotation_request.response.$promise);
                         promises.push(rotation_request.specialty.$promise);
@@ -163,8 +167,16 @@ angular.module("ei.staff.accounts", ["ei.months.models", "ei.accounts.models",
 
                     } else if (!!rotation_request.forward) {
                         rotation_request.forward = RotationRequestForward.get({id: rotation_request.forward});
+                        rotation_request.specialty = Specialty.get({id: rotation_request.specialty});
+                        rotation_request.requested_department = loadWithRelated(rotation_request.requested_department, RequestedDepartment, [
+                            [{department: Department}, [
+                                {hospital: Hospital}
+                            ]]
+                        ], true);
 
                         promises.push(rotation_request.forward.$promise);
+                        promises.push(rotation_request.specialty.$promise);
+                        promises.push(rotation_request.requested_department.$promise);
 
                         rotation_request.$promise = rotation_request.$promise.then(function () {
                             return $q.all(promises);
@@ -204,7 +216,12 @@ angular.module("ei.staff.accounts", ["ei.months.models", "ei.accounts.models",
             request.$respond({is_approved: response, comments: comments}, function (data) {
                 // Move request to *closed* requests
                 var index = $scope.internship.unreviewed_rotation_requests.indexOf(request);  // WARNING: indexOf not supported in all browsers (IE7 & 8)
-                $scope.internship.unreviewed_rotation_requests.splice(index, 1);
+                if (index > -1) {
+                    $scope.internship.unreviewed_rotation_requests.splice(index, 1);
+                } else {
+                    index = $scope.internship.forwarded_rotation_requests.indexOf(request);
+                    $scope.internship.forwarded_rotation_requests.splice(index, 1);
+                }
                 $scope.internship.closed_rotation_requests.push(request);
             }, function (error) {
                 toastr.error(error);
@@ -217,7 +234,7 @@ angular.module("ei.staff.accounts", ["ei.months.models", "ei.accounts.models",
                 var index = $scope.internship.unreviewed_rotation_requests.indexOf(request);  // WARNING: indexOf not supported in all browsers (IE7 & 8)
                 $scope.internship.unreviewed_rotation_requests.splice(index, 1);
 
-                $scope.internship.forwarded_unreviewed_rotation_requests.push(request);
+                $scope.internship.forwarded_rotation_requests.push(request);
             }, function (error) {
                 toastr.error(error);
             });
@@ -226,8 +243,8 @@ angular.module("ei.staff.accounts", ["ei.months.models", "ei.accounts.models",
         $scope.getStatus = function (request) {
             if (!!request.response) {
                 return request.response.is_approved ? "Approved" : "Declined";
-            } else if (!!request.forward && !!request.forward.response) {
-                return request.forward.response.is_approved ? "Approved" : "Declined";
+            } else if (!!request.forward) {
+                return "Forwarded";
             }
         };
 

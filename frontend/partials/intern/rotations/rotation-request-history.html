@@ -62,6 +62,22 @@
                             <dd>{{ rotation_request.submission_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
                           </dl>
 
+                          <div class="box box-solid" ng-if="!!rotation_request.forward">
+                            <div class="box-body bg-warning">
+
+                              <dl class="dl-horizontal" style="margin-bottom: 0;">
+                                <dt>Forward date and time</dt>
+                                <dd>{{ rotation_request.forward.forward_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
+
+                                <dt>Forward memo</dt>
+                                <dd>
+                                  <a href="/api/rotation_request_forwards/{{ rotation_request.forward.id }}/memo_pdf/" class="btn btn-xs btn-danger disabled">As PDF <span class="badge bg-yellow">Soon</span></a>
+                                </dd>
+                              </dl>
+
+                            </div>
+                          </div>
+
                           <div class="box box-solid" style="margin-bottom: 0;">
                             <div class="box-body" ng-class="{'bg-success': rotation_request.response.is_approved, 'bg-danger': rotation_request.response.is_approved == false}">
 
