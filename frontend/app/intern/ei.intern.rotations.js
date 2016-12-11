@@ -13,7 +13,7 @@ angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.r
             controller: "RotationRequestCreateCtrl"
         })
         .when("/planner/:month_id/history/", {
-            templateUrl: "static/partials/intern/rotations/rotation-request-history.html?v=0002",
+            templateUrl: "static/partials/intern/rotations/rotation-request-history.html?v=0003",
             controller: "RotationRequestHistoryCtrl"
         })
         .when("/planner/:month_id/cancel/", {
@@ -144,8 +144,8 @@ angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.r
 
 }])
 
-.controller("RotationRequestHistoryCtrl", ["$scope", "$routeParams", "loadWithRelated", "InternshipMonth", "RotationRequest", "RotationRequestResponse", "Specialty", "RequestedDepartment", "Department", "Hospital",
-    function ($scope, $routeParams, loadWithRelated, InternshipMonth, RotationRequest, RotationRequestResponse, Specialty, RequestedDepartment, Department, Hospital) {
+.controller("RotationRequestHistoryCtrl", ["$scope", "$routeParams", "loadWithRelated", "InternshipMonth", "RotationRequest", "RotationRequestResponse", "RotationRequestForward", "Specialty", "RequestedDepartment", "Department", "Hospital",
+    function ($scope, $routeParams, loadWithRelated, InternshipMonth, RotationRequest, RotationRequestResponse, RotationRequestForward, Specialty, RequestedDepartment, Department, Hospital) {
         $scope.month = InternshipMonth.get({month_id: $routeParams.month_id});
 
         $scope.month.$promise.then(function (month) {
@@ -159,6 +159,15 @@ angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.r
                     ]]
                 ]]
             ]);
+
+            $scope.month.request_history.$promise.then(function (requests) {
+                angular.forEach(requests, function (request, index) {
+                    console.log(request.forward);
+                    if (!!request.forward) {
+                        request.forward = RotationRequestForward.get({id: request.forward});
+                    }
+                });
+            });
 
         });
 }])

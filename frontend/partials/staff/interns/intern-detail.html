@@ -179,16 +179,6 @@
                 <div class="box-header">
                   <img src="/static/loading.gif" height="20" ng-hide="request.$promise.$$state.status == 1" />
                   <h5 class="box-title">Request #{{ request.id }}</h5>
-
-                  <div class="box-tools" ng-show="request.$promise.$$state.status == 1">
-                    <button type="button" class="btn btn-sm btn-block btn-flat btn-warning" ng-if="!flags['forwardFlag' + $index]" ng-click="flag('forwardFlag' + $index)">
-                      <i class="fa fa-mail-forward"></i>
-                      Forward
-                    </button>
-                    <button type="button" class="btn btn-sm btn-block btn-flat btn-danger" ng-if="flags['forwardFlag' + $index]" ng-click="forward(request)">
-                      Confirm
-                    </button>
-                  </div ng-show=>
                 </div>
                 <div class="box-body" ng-show="request.$promise.$$state.status == 1">
 
@@ -228,27 +218,38 @@
                   <div class="row">
                     <div class="col-xs-12">
                       <div class="form-group">
-                        <textarea class="form-control" rows="3" placeholder="Comment (optional)" ng-model="response['comments' + $index]"></textarea>
+                        <textarea class="form-control" rows="3" placeholder="Comment (optional)" ng-model="response['comments' + request.id]"></textarea>
                       </div>
                     </div>
                   </div>
 
                   <div class="row">
-                    <div class="col-md-6">
-                      <button type="button" class="btn btn-block btn-flat btn-success" ng-if="!flags['approveFlag' + $index]" ng-click="flag('approveFlag' + $index)">
+                    <div class="col-md-6" ng-if="request.requested_department.department.requires_memo == false">
+                      <button type="button" class="btn btn-block btn-flat btn-success" ng-if="!flags['approveFlag' + request.id]" ng-click="flag('approveFlag' + request.id)">
                         <i class="fa fa-check"></i>
                         Approve
                       </button>
-                      <button type="button" class="btn btn-block btn-flat btn-warning" ng-if="flags['approveFlag' + $index]" ng-click="respond(request, 1, response['comments' + $index])">
+                      <button type="button" class="btn btn-block btn-flat btn-warning" ng-if="flags['approveFlag' + request.id]" ng-click="respond(request, 1, response['comments' + request.id])">
                         Confirm
                       </button>
                     </div>
+
+                    <div class="col-md-6" ng-if="request.requested_department.department.requires_memo == true">
+                      <button type="button" class="btn btn-block btn-flat btn-warning" ng-if="!flags['forwardFlag' + request.id]" ng-click="flag('forwardFlag' + request.id)">
+                        <i class="fa fa-mail-forward"></i>
+                        Forward
+                      </button>
+                      <button type="button" class="btn btn-block btn-flat btn-danger" ng-if="flags['forwardFlag' + request.id]" ng-click="forward(request)">
+                        Confirm
+                      </button>
+                    </div>
+
                     <div class="col-md-6">
-                      <button type="button" class="btn btn-block btn-flat btn-danger" ng-if="!flags['declineFlag' + $index]" ng-click="flag('declineFlag' + $index)">
+                      <button type="button" class="btn btn-block btn-flat btn-danger" ng-if="!flags['declineFlag' + request.id]" ng-click="flag('declineFlag' + request.id)">
                         <i class="fa fa-remove"></i>
                         Decline
                       </button>
-                      <button type="button" class="btn btn-block btn-flat btn-warning" ng-if="flags['declineFlag' + $index]" ng-click="respond(request, 0, response['comments' + $index])">
+                      <button type="button" class="btn btn-block btn-flat btn-warning" ng-if="flags['declineFlag' + request.id]" ng-click="respond(request, 0, response['comments' + request.id])">
                         Confirm
                       </button>
                     </div>
@@ -262,12 +263,118 @@
               </p>
 
               <h5 class="text-bold">Forwarded</h5>
-              <p ng-if="internship.forwarded_unreviewed_rotation_requests.length > 0">
+              <p ng-if="internship.forwarded_rotation_requests.length > 0">
                 These requests have been forwarded and await the respective departments' response.
               </p>
-              <p ng-if="internship.forwarded_unreviewed_rotation_requests.length == 0">
+              <p ng-if="internship.forwarded_rotation_requests.length == 0">
                 {{ internship.intern.profile.en_full_name }} doesn't have any forwarded requests currently.
               </p>
+
+              <uib-accordion>
+                <div uib-accordion-group template-url="accordion-template.html"
+                     ng-repeat="request in internship.forwarded_rotation_requests" class="panel-info">
+                  <uib-accordion-heading>
+                    <img ng-hide="request.$promise.$$state.status == 1" src="/static/loading.gif" height="20px" />
+                    <span class="text-light-blue">#{{ request.id }} - <span class="text-bold">{{ getStatus(request) }}</span> |
+                      <span ng-if="request.is_delete == false">{{ request.specialty.abbreviation }} @ {{ request.requested_department.department.hospital.abbreviation }}</span>
+                      <span ng-if="request.is_delete == true">Cancellation</span>
+                      (<i>for</i> {{ request.month.label }})</span>
+                  </uib-accordion-heading>
+
+                  <dl class="dl-horizontal">
+                    <dt>Request #</dt>
+                    <dd>{{ request.id }}</dd>
+
+                    <dt>Month</dt>
+                    <dd>{{ request.month.label }}</dd>
+
+                    <div ng-if="!request.is_delete">
+                      <dt>Specialty</dt>
+                      <dd class="text-bold text-light-blue">{{ request.specialty.name }}</dd>
+
+                      <dt>Hospital</dt>
+                      <dd class="text-bold text-light-blue">{{ request.requested_department.department.hospital.name }}</dd>
+
+                      <dt>Elective?</dt>
+                      <dd>
+                        <span ng-if="request.is_elective == true" class="text-bold text-light-blue">
+                          Yes
+                        </span>
+                        <span ng-if="request.is_elective == false">No</span>
+                      </dd>
+                    </div>
+                    <div ng-if="request.is_delete">
+                      <dt>Description</dt>
+                      <dd class="text-bold text-red">Cancellation of rotation</dd>
+                    </div>
+
+                    <dt style="width: inherit;">Submission date and time</dt>
+                    <dd>{{ request.submission_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
+                  </dl>
+
+                  <div class="box box-solid" style="margin-bottom: 0;">
+                    <div class="box-body bg-info">
+
+                      <dl class="dl-horizontal" style="margin-bottom: 0;">
+                        <dt>Forward date and time</dt>
+                        <dd>{{ request.forward.forward_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
+
+                        <dt>Download memo</dt>
+                        <dd>
+                          <a href="/api/rotation_request_forwards/{{ request.forward.id }}/memo_docx/" class="btn btn-xs btn-primary">As Microsoft Word</a>
+                          <a href="/api/rotation_request_forwards/{{ request.forward.id }}/memo_pdf/" class="btn btn-xs btn-danger disabled">As PDF <span class="badge bg-yellow">Soon</span></a>
+                        </dd>
+                      </dl>
+
+                    </div>
+                  </div>
+
+                  <div>
+                  <br>
+
+                    <div class="box box-solid" style="margin-bottom: 0;">
+                      <div class="box-body bg-warning" ng-if="request.requested_department.department.memo_handed_by_intern == false">
+
+                        <p>Please record response below once received from the requested department.</p>
+
+                        <dl class="dl-horizontal">
+                          <dt>Response</dt>
+                          <dd>
+                            <div class="checkbox-inline">
+                              <label>
+                                <input type="radio" name="isApproved" value="1" ng-model="response['isApproved' + request.id]" /> <span class="text-green"> Approved</span>
+                              </label>
+                            </div>
+
+                            <div class="checkbox-inline">
+                              <label>
+                                <input type="radio" name="isApproved" value="0" ng-model="response['isApproved' + request.id]" /> <span class="text-red">Declined</span>
+                              </label>
+                            </div>
+                          </dd>
+
+                          <dt>Comments</dt>
+                          <dd>
+                            <textarea class="form-control" rows="1" placeholder="Optional" ng-model="response['comments' + request.id]"></textarea>
+                          </dd>
+                        </dl>
+
+                        <button class="btn btn-xs btn-warning btn-flat pull-right"
+                                ng-click="respond(request, response['isApproved' + request.id], response['comments' + request.id])">
+                          Submit
+                        </button>
+
+                      </div>
+
+                      <div class="box-body bg-warning" ng-if="request.requested_department.department.memo_handed_by_intern == true">
+                        <p>Response by the requested department, once received, will be recorded by the intern.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              </uib-accordion>
+
             </div>
 
             <hr>
@@ -346,6 +453,21 @@
                   <dt style="width: inherit;">Submission date and time</dt>
                   <dd>{{ request.submission_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
                 </dl>
+
+                <div class="box box-solid" ng-if="!!request.forward">
+                  <div class="box-body bg-warning">
+                    <dl class="dl-horizontal" style="margin-bottom: 0;">
+                      <dt>Forward date and time</dt>
+                      <dd>{{ request.forward.forward_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
+
+                      <dt>Forward memo</dt>
+                      <dd>
+                        <a href="/api/rotation_request_forwards/{{ request.forward.id }}/memo_docx/" class="btn btn-xs btn-primary">As Microsoft Word</a>
+                        <a href="/api/rotation_request_forwards/{{ request.forward.id }}/memo_pdf/" class="btn btn-xs btn-danger disabled">As PDF <span class="badge bg-yellow">Soon</span></a>
+                      </dd>
+                    </dl>
+                  </div>
+                </div>
 
                 <div class="box box-solid" style="margin-bottom: 0;">
                   <div class="box-body" ng-class="{'bg-success': request.response.is_approved, 'bg-danger': request.response.is_approved == false}">

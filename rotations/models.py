@@ -246,7 +246,7 @@ class RotationRequest(models.Model):
         The status of a rotation request is one of 3:
         (1) Pending: if the request hasn't received a repsonse
         (2) Forwarded: if the request has been forwarded but hasn't received a response yet
-        (3) Reviewed: if either the request or the request forward has received a response
+        (3) Reviewed: if the request has received a response
         """
         # Set the three booleans `has_response`, `has_forward`, and `forward_has_response`
         # to reflect the status of the request
@@ -260,12 +260,6 @@ class RotationRequest(models.Model):
             self.forward
             has_forward = True
 
-            try:
-                self.forward.response
-                forward_has_response = True
-            except ObjectDoesNotExist:
-                forward_has_response = False
-
         except ObjectDoesNotExist:
             has_forward = False
 
@@ -274,99 +268,11 @@ class RotationRequest(models.Model):
         if not has_response and not has_forward:
             return self.PENDING_STATUS
 
-        elif has_forward and not forward_has_response:
+        elif has_forward and not has_response:
             return self.FORWARDED_STATUS
 
-        elif has_response or \
-            (has_forward and forward_has_response):
+        elif has_response:
             return self.REVIEWED_STATUS
-
-    def respond(self, is_approved, comments=""):
-        """
-        Respond to the rotation request; raise an error if it's already responded to.
-        """
-        try:
-            self.response
-        except ObjectDoesNotExist:
-            RotationRequestResponse.objects.create(
-                rotation_request=self,
-                is_approved=is_approved,
-                comments=comments,
-            )
-
-            # TODO: Test
-            if is_approved:
-                # Remove any previous rotation in the current month
-                self.internship.rotations.filter(month=self.month).delete()
-
-                # Unless this is a delete, request, add a new rotation object for the current month
-                if not self.is_delete:
-                    # If the requested department is not in the database, add it.
-                    # FIXME: This shouldn't be default behavior
-                    if not self.requested_department.is_in_database:
-                        self.requested_department.add_to_database()
-
-                    self.internship.rotations.create(
-                        month=self.month,
-                        specialty=self.specialty,
-                        department=self.requested_department.get_department(),
-                        is_elective=self.is_elective,
-                        rotation_request=self,
-                    )
-
-            # Notify intern
-            if is_approved:
-
-                # --notifications--
-
-                notify(
-                    "Rotation request %d for %s has been approved." % (self.id, self.month.first_day().strftime("%B %Y")),
-                    "rotation_request_approved",
-                    target_object=self,
-                    url="/planner/%d/" % int(self.month),
-                )
-            else:
-
-                # --notifications--
-                notify(
-                    "Rotation request %d for %s has been declined." % (self.id, self.month.first_day().strftime("%B %Y")),
-                    "rotation_request_declined",
-                    target_object=self,
-                    url="/planner/%d/history/" % int(self.month),
-                )
-        else:
-            raise Exception("This rotation request has already been responded to.")
-
-    def forward_request(self):
-        """
-        Forward the rotation request; raise an error if it's already forwarded.
-        """
-        try:
-            self.forward
-        except ObjectDoesNotExist:
-            # TODO: Add department to database if it's not there already
-
-            RotationRequestForward.objects.create(
-                rotation_request=self,
-            )
-
-            # TODO: Notify
-            # --notifications--
-        else:
-            raise Exception("This rotation request has already been forwarded.")
-
-    def get_response(self):
-        """
-        Return the request response if it exists, or the forward's response if it exists;
-        otherwise raise a RelatedObjectDoesNotExist error.
-        """
-        try:
-            return self.response
-        except ObjectDoesNotExist:
-            try:
-                return self.forward.response
-            except ObjectDoesNotExist:
-                raise ObjectDoesNotExist("RotationRequest has no response or forward response.")
 
     def __unicode__(self):
         return "Request for %s rotation at %s (%s)" % (self.specialty.name,
@@ -388,85 +294,8 @@ class RotationRequestResponse(models.Model):
 
 
 class RotationRequestForward(models.Model):
-    key = models.CharField(max_length=20, unique=True)
     rotation_request = models.OneToOneField(RotationRequest, related_name="forward")
     forward_datetime = models.DateTimeField(auto_now_add=True)
 
-    def respond(self, is_approved, response_memo, respondent_name, comments=""):
-        try:
-            self.response
-        except ObjectDoesNotExist:
-            RotationRequestForwardResponse.objects.create(
-                forward=self,
-                is_approved=is_approved,
-                response_memo=response_memo,
-                comments=comments,
-                respondent_name=respondent_name,
-            )
-
-            # TODO: Test
-            if is_approved:
-                # Remove any previous rotation in the current month
-                self.rotation_request.internship.rotations.filter(month=self.rotation_request.month).delete()
-
-                # Unless this is a delete request, add a new rotation object for the current month
-                if not self.rotation_request.is_delete:
-                    self.rotation_request.internship.rotations.create(
-                        month=self.rotation_request.month,
-                        specialty=self.rotation_request.specialty,
-                        department=self.rotation_request.requested_department.get_department(),
-                        is_elective=self.rotation_request.is_elective,
-                        rotation_request=self.rotation_request,
-                    )
-
-            # Close the plan request if this is the last rotation request within it
-            self.rotation_request.check_closure()
-
-            # Notify intern
-            if is_approved:
-                # --notifications--
-                notify(
-                    "Rotation request %d for %s has been approved." % (self.id, self.month.first_day().strftime("%B %Y")),
-                    "rotation_request_approved",
-                    target_object=self.rotation_request,
-                    url="/planner/%d/" % int(self.month),
-                )
-            else:
-                # --notifications--
-                notify(
-                    "Rotation request %d for %s has been declined." % (self.id, self.month.first_day().strftime("%B %Y")),
-                    "rotation_request_declined",
-                    target_object=self.rotation_request,
-                    url="/planner/%d/history/" % int(self.month),
-                )
-
-        else:
-            raise Exception("This rotation request has already been responded to.")
-
-    def save(self, *args, **kwargs):
-
-        # TODO: Test
-        # Generate a random string to represent
-        if self.key is None or self.key == "":
-            # Choose a unique key for the rotation request forward
-            self.key = get_random_string(length=20)
-
-            while self.__class__.objects.filter(key=self.key).exists():
-                self.key = get_random_string(length=20)
-
-        super(RotationRequestForward, self).save(*args, **kwargs)
-
     def __unicode__(self):
         return "Forward of request #%d" % self.rotation_request.id
-
-
-class RotationRequestForwardResponse(models.Model):
-    forward = models.OneToOneField(RotationRequestForward, related_name="response")
-    is_approved = models.BooleanField()
-    response_memo = models.FileField(upload_to="forward_response_memos")
-    comments = models.TextField()
-    respondent_name = models.CharField(max_length=128)
-    response_datetime = models.DateTimeField(auto_now_add=True)
-
-    def __unicode__(self):
-        return "Response to forward #%d (for request #%d)" % (self.forward.id, self.forward.rotation_request.id)

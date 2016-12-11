@@ -60,7 +60,7 @@ angular.module("ei.rotations.models", ["ngResource", "ei.interceptors"])
 }])
 
 .factory("RotationRequestForward", ["$resource", "DateTimeFieldToMomentInterceptor", function($resource, DateTimeFieldToMomentInterceptor) {
-    return $resource('/api/rotation_request_forwards/:key', {key: '@key'}, {
+    return $resource('/api/rotation_request_forwards/:id', {id: '@id'}, {
         query: {
             method: 'get',
             isArray: true,
@@ -69,20 +69,6 @@ angular.module("ei.rotations.models", ["ngResource", "ei.interceptors"])
         get: {
             method: 'get',
             interceptor: DateTimeFieldToMomentInterceptor(["forward_datetime"])
-        }
-    });
-}])
-
-.factory("RotationRequestForwardResponse", ["$resource", "DateTimeFieldToMomentInterceptor", function($resource, DateTimeFieldToMomentInterceptor) {
-    return $resource('/api/rotation_request_forward_responses/:id', {id: '@id'}, {
-        query: {
-            method: 'get',
-            isArray: true,
-            interceptor: DateTimeFieldToMomentInterceptor(["response_datetime"])
-        },
-        get: {
-            method: 'get',
-            interceptor: DateTimeFieldToMomentInterceptor(["response_datetime"])
         }
     });
 }]);
