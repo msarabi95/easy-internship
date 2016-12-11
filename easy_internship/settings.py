@@ -50,6 +50,7 @@ INSTALLED_APPS = (
     'rotations.apps.RotationsConfig',
     'leaves.apps.LeavesConfig',
     'accounts.apps.AccountsConfig',
+    'misc.apps.MiscConfig',
     'userena',  # Userena should be kept at the end in order to overwrite the 'base.html' template it has
     'guardian',
     'easy_thumbnails',
@@ -75,7 +76,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            os.path.join(BASE_DIR, 'templates'),
+            os.path.join(BASE_DIR, 'easy_internship/templates'),
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -127,7 +128,7 @@ USE_TZ = True
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'frontend'),
-    os.path.join(BASE_DIR, 'static'),
+    os.path.join(BASE_DIR, 'easy_internship/static'),
 ]
 STATIC_URL = '/static/'
 STATIC_ROOT = secrets.STATIC_ROOT
@@ -140,7 +141,7 @@ MEDIA_ROOT = secrets.MEDIA_ROOT
 # Fixtures
 
 FIXTURE_DIRS = [
-    os.path.join(BASE_DIR, 'fixtures'),
+    os.path.join(BASE_DIR, 'easy_internship/fixtures'),
 ]
 
 # Messages
