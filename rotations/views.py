@@ -22,7 +22,7 @@ from rotations.exceptions import ResponseExists, ForwardExists, ForwardExpected,
 from rotations.forms import RotationRequestForm
 from rotations.models import Rotation, RequestedDepartment, RotationRequest, RotationRequestResponse, \
     RotationRequestForward
-from hospitals.models import Department, AcceptanceSetting
+from hospitals.models import Department, AcceptanceSetting, Hospital, Specialty
 from rotations.serializers import RotationSerializer, RequestedDepartmentSerializer, RotationRequestSerializer, \
     RotationRequestResponseSerializer, RotationRequestForwardSerializer
 
@@ -204,6 +204,36 @@ class RotationRequestFormView(django_generics.FormView):
             raise PermissionDenied("There is a rotation request for this month already.")
 
         # TODO: Check that month is not frozen or disabled
+
+        new_hospital_name = data.get("new_hospital_name")
+        new_hospital_abbrev = data.get("new_hospital_abbreviation")
+        if data.get("department_hospital") == -1:
+            new_hospital = Hospital.objects.create(
+                name=new_hospital_name,
+                abbreviation=new_hospital_abbrev,
+                contact_name=data.get("new_hospital_contact_name", ""),
+                contact_position=data.get("new_hospital_contact_position", ""),
+                email=data.get("new_hospital_email", ""),
+                phone=data.get("new_hospital_phone", ""),
+                extension=data.get("new_hospital_extension", ""),
+            )
+
+            raw_specialty = Specialty.objects.get(id=int(data.get("department_specialty")))
+
+            new_department = Department.objects.create(
+                hospital=new_hospital,
+                specialty=raw_specialty,
+                name="Department of %s" % raw_specialty.name,
+                contact_name="",
+                contact_position="",
+                email="",
+                phone="",
+                extension="",
+            )
+
+            data['department_hospital'] = new_hospital.id
+            data['department'] = new_department.id
+            data['is_in_database'] = True
 
         form = self.form_class(data=data)
         if form.is_valid():
