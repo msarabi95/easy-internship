@@ -77,6 +77,8 @@ class DepartmentMonthSettingsSerializer(serializers.ModelSerializer):
 
 
 class AcceptanceSettingSerializer(serializers.Serializer):
+    month = MonthField()
+    department = serializers.PrimaryKeyRelatedField(read_only=True)
     type = serializers.CharField()
     criterion = serializers.CharField()
     start_or_end_date = serializers.DateTimeField()

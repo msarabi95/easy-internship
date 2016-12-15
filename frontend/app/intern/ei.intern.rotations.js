@@ -2,7 +2,7 @@
  * Created by MSArabi on 11/23/16.
  */
 angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.rotations.models", "ei.leaves.models",
-                              "ei.utils", "djng.forms", "ngResource", "ngRoute", "ngSanitize",
+                              "ei.utils", "djng.forms", "ngResource", "ngRoute", "ngSanitize", "ngAnimate",
                               "ui.bootstrap", "ui.select"])
 
 .config(["$routeProvider", function ($routeProvider) {
