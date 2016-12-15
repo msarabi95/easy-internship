@@ -48,8 +48,8 @@
                           | Available: {{ $settings.available_seats }}
                         </span>
 
-                        <span ng-if="$settings.criterion == 'GPA' && moment().isBefore(moment($settings.start_or_end_date))">
-                          | Will close on {{ moment($settings.start_or_end_date).format('D MMMM YYYY hh:mm a') }}
+                        <span ng-if="$settings.criterion == 'GPA' && moment().isBefore($settings.start_or_end_date)">
+                          | Will close on {{ $settings.start_or_end_date.format('D MMMM YYYY hh:mm a') }}
                         </span>
                       </span>
                     </span>
@@ -58,11 +58,11 @@
                       <span ng-if="$settings.criterion == 'FCFS' && $settings.available_seats == 0">
                         | No available seats
                       </span>
-                      <span ng-if="$settings.criterion == 'FCFS' && moment().isBefore(moment($settings.start_or_end_date))">
-                        | Submission will open on {{ moment($settings.start_or_end_date).format('D MMMM YYYY hh:mm a') }} | Total Seats: {{ $settings.total_seats }}
+                      <span ng-if="$settings.criterion == 'FCFS' && moment().isBefore($settings.start_or_end_date)">
+                        | Submission will open on {{ $settings.start_or_end_date.format('D MMMM YYYY hh:mm a') }} | Total Seats: {{ $settings.total_seats }}
                       </span>
-                      <span ng-if="$settings.criterion == 'GPA' && moment().isSameOrAfter(moment($settings.start_or_end_date))">
-                        | Submission was closed on {{ moment($settings.start_or_end_date).format('D MMMM YYYY hh:mm a') }}  | Total Seats: {{ $settings.total_seats }}
+                      <span ng-if="$settings.criterion == 'GPA' && moment().isSameOrAfter($settings.start_or_end_date)">
+                        | Submission was closed on {{ $settings.start_or_end_date.format('D MMMM YYYY hh:mm a') }}  | Total Seats: {{ $settings.total_seats }}
                       </span>
                     </span>
                   </i></small>
@@ -92,8 +92,8 @@
                           | Available: {{ $settings.available_seats }}
                         </span>
 
-                        <span ng-if="$settings.criterion == 'GPA' && moment().isBefore(moment($settings.start_or_end_date))">
-                          | Will close on {{ moment($settings.start_or_end_date).format('D MMMM YYYY hh:mm a') }}
+                        <span ng-if="$settings.criterion == 'GPA' && moment().isBefore($settings.start_or_end_date)">
+                          | Will close on {{ $settings.start_or_end_date.format('D MMMM YYYY hh:mm a') }}
                         </span>
                       </span>
                     </span>
@@ -102,11 +102,11 @@
                       <span ng-if="$settings.criterion == 'FCFS' && $settings.available_seats == 0">
                         | No available seats
                       </span>
-                      <span ng-if="$settings.criterion == 'FCFS' && moment().isBefore(moment($settings.start_or_end_date))">
-                        | Submission will open on {{ moment($settings.start_or_end_date).format('D MMMM YYYY hh:mm a') }} | Total Seats: {{ $settings.total_seats }}
+                      <span ng-if="$settings.criterion == 'FCFS' && moment().isBefore($settings.start_or_end_date)">
+                        | Submission will open on {{ $settings.start_or_end_date.format('D MMMM YYYY hh:mm a') }} | Total Seats: {{ $settings.total_seats }}
                       </span>
-                      <span ng-if="$settings.criterion == 'GPA' && moment().isSameOrAfter(moment($settings.start_or_end_date))">
-                        | Submission was closed on {{ moment($settings.start_or_end_date).format('D MMMM YYYY hh:mm a') }}  | Total Seats: {{ $settings.total_seats }}
+                      <span ng-if="$settings.criterion == 'GPA' && moment().isSameOrAfter($settings.start_or_end_date)">
+                        | Submission was closed on {{ $settings.start_or_end_date.format('D MMMM YYYY hh:mm a') }}  | Total Seats: {{ $settings.total_seats }}
                       </span>
                     </span>
                   </i></small>
@@ -122,6 +122,24 @@
 
             <div class="has-feedback form-group"><label class="checkbox-inline"><input id="id_is_elective" name="is_elective" ng-model="rotationRequestData[&#39;is_elective&#39;]" type="checkbox" /> <span class="text-bold">This is an elective.</span> (Check this box if this is an elective rotation.)</label><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.is_elective.$dirty" ng-cloak><li ng-show="rotationRequestForm['is_elective'].$valid" class="valid"></li></ul><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.is_elective.$pristine" ng-cloak><li ng-show="rotationRequestForm.is_elective.$message" class="invalid" ng-bind="rotationRequestForm.is_elective.$message"></li></ul>
 
+            <div ng-if="showHospitalFields">
+
+              <hr>
+
+              <p>
+                Please enter the details of the new hospital below.
+              </p>
+
+              <div class="has-feedback form-group"><label class="control-label" for="id_new_hospital_name">New Hospital Name</label><input class="form-control" id="id_new_hospital_name" maxlength="128" name="new_hospital_name" ng-maxlength="128" ng-model="rotationRequestData[&#39;new_hospital_name&#39;]" type="text" /><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.new_hospital_name.$dirty" ng-cloak><li ng-show="rotationRequestForm['new_hospital_name'].$error.maxlength" class="invalid">Ensure this value has at most 128 characters</li><li ng-show="rotationRequestForm['new_hospital_name'].$valid" class="valid"></li></ul><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.new_hospital_name.$pristine" ng-cloak><li ng-show="rotationRequestForm.new_hospital_name.$message" class="invalid" ng-bind="rotationRequestForm.new_hospital_name.$message"></li></ul></div>
+              <div class="has-feedback form-group"><label class="control-label" for="id_new_hospital_abbreviation">New Hospital Abbreviation</label><input class="form-control" id="id_new_hospital_abbreviation" placeholder="e.g. KAMC, KASCH, etc." maxlength="128" name="new_hospital_abbreviation" ng-maxlength="128" ng-model="rotationRequestData[&#39;new_hospital_abbreviation&#39;]" type="text" /><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.new_hospital_abbreviation.$dirty" ng-cloak><li ng-show="rotationRequestForm['new_hospital_abbreviation'].$error.maxlength" class="invalid">Ensure this value has at most 128 characters</li><li ng-show="rotationRequestForm['new_hospital_abbreviation'].$valid" class="valid"></li></ul><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.new_hospital_abbreviation.$pristine" ng-cloak><li ng-show="rotationRequestForm.new_hospital_abbreviation.$message" class="invalid" ng-bind="rotationRequestForm.new_hospital_abbreviation.$message"></li></ul></div>
+              <div class="has-feedback form-group"><label class="control-label" for="id_new_hospital_contact_name">Name of contact person in new hospital</label><input class="form-control" id="id_new_hospital_contact_name" placeholder="Optional" maxlength="128" name="new_hospital_contact_name" ng-maxlength="128" ng-model="rotationRequestData[&#39;new_hospital_contact_name&#39;]" type="text" /><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.new_hospital_contact_name.$dirty" ng-cloak><li ng-show="rotationRequestForm['new_hospital_contact_name'].$error.maxlength" class="invalid">Ensure this value has at most 128 characters</li><li ng-show="rotationRequestForm['new_hospital_contact_name'].$valid" class="valid"></li></ul><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.new_hospital_contact_name.$pristine" ng-cloak><li ng-show="rotationRequestForm.new_hospital_contact_name.$message" class="invalid" ng-bind="rotationRequestForm.new_hospital_contact_name.$message"></li></ul></div>
+              <div class="has-feedback form-group"><label class="control-label" for="id_new_hospital_contact_position">Position of contact person in new hospital</label><input class="form-control" id="id_new_hospital_contact_position" placeholder="Optional" maxlength="128" name="new_hospital_contact_position" ng-maxlength="128" ng-model="rotationRequestData[&#39;new_hospital_contact_position&#39;]" type="text" /><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.new_hospital_contact_position.$dirty" ng-cloak><li ng-show="rotationRequestForm['new_hospital_contact_position'].$error.maxlength" class="invalid">Ensure this value has at most 128 characters</li><li ng-show="rotationRequestForm['new_hospital_contact_position'].$valid" class="valid"></li></ul><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.new_hospital_contact_position.$pristine" ng-cloak><li ng-show="rotationRequestForm.new_hospital_contact_position.$message" class="invalid" ng-bind="rotationRequestForm.new_hospital_contact_position.$message"></li></ul></div>
+              <div class="has-feedback form-group"><label class="control-label" for="id_new_hospital_email">Email</label><input class="form-control" email-pattern="(^[-!#$%&amp;&#39;*+/=?^_`{}|~0-9A-Z]+(\.[-!#$%&amp;&#39;*+/=?^_`{}|~0-9A-Z]+)*@|^&quot;([\001-\010\013\014\016-\037!#-\[\]-\177]|\\[\001-\011\013\014\016-\177])*&quot;@)(localhost$|((?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+)(?:[A-Z0-9-]{2,63})$)" id="id_new_hospital_email" placeholder="Optional" maxlength="128" name="new_hospital_email" ng-maxlength="128" ng-model="rotationRequestData[&#39;new_hospital_email&#39;]" type="text" /><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.new_hospital_email.$dirty" ng-cloak><li ng-show="rotationRequestForm['new_hospital_email'].$error.maxlength" class="invalid">Ensure this value has at most 128 characters</li><li ng-show="rotationRequestForm['new_hospital_email'].$valid" class="valid"></li></ul><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.new_hospital_email.$pristine" ng-cloak><li ng-show="rotationRequestForm.new_hospital_email.$message" class="invalid" ng-bind="rotationRequestForm.new_hospital_email.$message"></li></ul></div>
+              <div class="has-feedback form-group"><label class="control-label" for="id_new_hospital_phone">Phone</label><input class="form-control" id="id_new_hospital_phone" placeholder="Optional" maxlength="128" name="new_hospital_phone" ng-maxlength="128" ng-model="rotationRequestData[&#39;new_hospital_phone&#39;]" type="text" /><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.new_hospital_phone.$dirty" ng-cloak><li ng-show="rotationRequestForm['new_hospital_phone'].$error.maxlength" class="invalid">Ensure this value has at most 128 characters</li><li ng-show="rotationRequestForm['new_hospital_phone'].$valid" class="valid"></li></ul><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.new_hospital_phone.$pristine" ng-cloak><li ng-show="rotationRequestForm.new_hospital_phone.$message" class="invalid" ng-bind="rotationRequestForm.new_hospital_phone.$message"></li></ul></div>
+              <div class="has-feedback form-group"><label class="control-label" for="id_new_hospital_extension">Extension</label><input class="form-control" id="id_new_hospital_extension" placeholder="Optional" maxlength="128" name="new_hospital_extension" ng-maxlength="128" ng-model="rotationRequestData[&#39;new_hospital_extension&#39;]" type="text" /><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.new_hospital_extension.$dirty" ng-cloak><li ng-show="rotationRequestForm['new_hospital_extension'].$error.maxlength" class="invalid">Ensure this value has at most 128 characters</li><li ng-show="rotationRequestForm['new_hospital_extension'].$valid" class="valid"></li></ul><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.new_hospital_extension.$pristine" ng-cloak><li ng-show="rotationRequestForm.new_hospital_extension.$message" class="invalid" ng-bind="rotationRequestForm.new_hospital_extension.$message"></li></ul></div>
+            </div>
+              
+              
             <div ng-if="rotationRequestData.is_in_database == false">
 
               <hr>

@@ -44,7 +44,7 @@
 
           <hr>
 
-          <div ng-if="!request.delete">
+          <div ng-if="!request.is_delete">
             <dt>Specialty</dt>
             <dd class="text-yellow text-bold">{{ request.specialty.name }}</dd>
 
@@ -58,13 +58,13 @@
             </dd>
           </div>
 
-          <div ng-if="request.delete">
+          <div ng-if="request.is_delete">
             <dt>Description</dt>
             <dd>{{ internship.intern.profile.en_full_name}} requested <span class="text-red text-bold">cancellation of the rotation</span> during this month.</dd>
           </div>
 
           <dt style="width: inherit;">Submission date and time</dt>
-          <dd>{{ request.submission_datetime }}</dd>
+          <dd>{{ request.submission_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
         </dl>
 
         <hr>

@@ -9,7 +9,6 @@ api_urls = (
     (r'rotation_requests/(?P<department_id>\d+)/(?P<month_id>\d+)', views.RotationRequestByDepartmentAndMonth, 'rotationrequest-by-d-and-m'),
     (r'rotation_request_responses', views.RotationRequestResponseViewSet),
     (r'rotation_request_forwards', views.RotationRequestForwardViewSet),
-    (r'rotation_request_forward_responses', views.RotationRequestForwardResponseViewSet),
 )
 
 urlpatterns = [

@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 from django.contrib.auth.models import User
-from django.core.exceptions import ValidationError, ObjectDoesNotExist
+from django.core.exceptions import ValidationError, ObjectDoesNotExist, NON_FIELD_ERRORS
 from django.db import models
 from django_nyt.utils import notify
 
@@ -71,6 +71,9 @@ class Internship(models.Model):
     intern = models.OneToOneField(Intern)
     start_month = MonthField()
 
+    def __unicode__(self):
+        return "Internship of %s (%s)" % (self.intern.profile.get_en_full_name(), self.intern.profile.user.username)
+
     def get_months(self):
         months = []
         for add in range(15):
@@ -80,7 +83,7 @@ class Internship(models.Model):
 
     months = property(get_months)
 
-    def clean(self):
+    def validate_internship_plan(self):
         """
         Checks that:
         1- The internship plan doesn't exceed 12 months.
@@ -115,7 +118,9 @@ class Internship(models.Model):
                                           params=(2, "electives")))
 
         if errors:
-            raise ValidationError(errors)
+            raise ValidationError({
+                NON_FIELD_ERRORS: errors,
+            })
 
 
 class Freeze(models.Model):

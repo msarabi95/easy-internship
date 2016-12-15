@@ -24,7 +24,7 @@
                 {{ request.internship.intern.gpa }}
               </dd>
 
-              <div ng-if="!request.delete">
+              <div ng-if="!request.is_delete">
                 <dt>Elective?</dt>
                 <dd>
                   <span ng-if="request.is_elective == true" class="text-yellow text-bold">Yes</span>
@@ -32,14 +32,14 @@
                 </dd>
               </div>
 
-              <div ng-if="request.delete">
+              <div ng-if="request.is_delete">
                 <dt>Description</dt>
                 <dd>{{ internship.intern.profile.en_full_name}} requested <span class="text-red text-bold">cancellation of the rotation</span> during this month.</dd>
               </div>
 
               <dt style="width: inherit;">Submission date and time</dt>
               <dd ng-class="{'text-bold text-green': setting.criterion == 'FCFS'}">
-                {{ request.submission_datetime }}
+                {{ request.submission_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}
               </dd>
             </dl>
 
@@ -89,7 +89,7 @@
                 {{ request.internship.intern.gpa }}
               </dd>
 
-              <div ng-if="!request.delete">
+              <div ng-if="!request.is_delete">
                 <dt>Elective?</dt>
                 <dd>
                   <span ng-if="request.is_elective == true" class="text-yellow text-bold">Yes</span>
@@ -97,14 +97,14 @@
                 </dd>
               </div>
 
-              <div ng-if="request.delete">
+              <div ng-if="request.is_delete">
                 <dt>Description</dt>
                 <dd>{{ internship.intern.profile.en_full_name}} requested <span class="text-red text-bold">cancellation of the rotation</span> during this month.</dd>
               </div>
 
               <dt style="width: inherit;">Submission date and time</dt>
               <dd ng-class="{'text-bold text-gray': setting.criterion == 'FCFS'}">
-                {{ request.submission_datetime }}
+                {{ request.submission_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}
               </dd>
             </dl>
 

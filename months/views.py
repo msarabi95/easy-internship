@@ -1,8 +1,8 @@
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.shortcuts import get_object_or_404
+from django.views import generic as django_generics
 
-# Create your views here.
 from django_nyt.utils import subscribe, notify
 from month import Month
 from rest_framework import viewsets, permissions
@@ -12,12 +12,18 @@ from rest_framework.status import HTTP_201_CREATED
 
 from accounts.models import Profile
 from accounts.permissions import IsIntern, IsStaff
+from months.forms import FreezeRequestForm
 from rotations.models import RotationRequest
 from months.models import Internship, Freeze, FreezeRequest, FreezeRequestResponse, FreezeCancelRequest, \
     FreezeCancelRequestResponse
 from months.serializers import InternshipMonthSerializer, InternshipSerializer, FreezeSerializer, \
     FreezeRequestSerializer, FreezeRequestResponseSerializer, FreezeCancelRequestSerializer, \
     FreezeCancelRequestResponseSerializer
+
+
+class FreezeRequestFormView(django_generics.FormView):
+    template_name = "months/intern/freeze-request-create.html"
+    form_class = FreezeRequestForm
 
 
 class InternshipMonthViewSet(viewsets.ReadOnlyModelViewSet):
@@ -58,7 +64,7 @@ class InternshipMonthViewSet(viewsets.ReadOnlyModelViewSet):
             month=month,
             specialty=requested_department.department_specialty,
             requested_department=requested_department,
-            delete=True,
+            is_delete=True,
         )
 
         # --notifications--
@@ -78,34 +84,38 @@ class InternshipMonthViewSet(viewsets.ReadOnlyModelViewSet):
 
         return Response(status=HTTP_201_CREATED)
 
-    @detail_route(methods=["post"])
+    @detail_route(methods=["get", "post"])
     def request_freeze(self, request, month=None):
-        month = Month.from_int(int(month))
-        intern = self.request.user
+        if request.method == "POST":
+            month = Month.from_int(int(month))
+            intern = self.request.user
 
-        if intern.freeze_requests.current_for_month(month):
-            raise PermissionDenied("There is a pending freeze request for this month already.")
+            # TODO: Check that month is not frozen or disabled or there is a freeze request
+            # TODO: Check that month has not current rotation or rotation request
 
-        # TODO: Check that month is not disabled
-        # TODO: Check that month has not current rotation or rotation request
+            form = FreezeRequestForm(data=request.data, instance=FreezeRequest(intern=intern, month=month))
 
-        freeze_request = FreezeRequest.objects.create(intern=intern, month=month)
+            if form.is_valid():
 
-        # Subscribe user to receive update notifications on the request
-        subscribe(intern.settings_set.first(), "freeze_request_approved", object_id=freeze_request.id)
-        subscribe(intern.settings_set.first(), "freeze_request_declined", object_id=freeze_request.id)
+                freeze_request = form.save()
 
-        # Notify medical internship unit of the request
-        notify(
-            "A new freeze request has been submitted by %s" % (request.user.profile.get_en_full_name()),
-            "freeze_request_submitted",
-            url="/planner/%d/" % freeze_request.intern.profile.intern.internship.id,
-        )
+                # Subscribe user to receive update notifications on the request
+                subscribe(intern.settings_set.first(), "freeze_request_approved", object_id=freeze_request.id)
+                subscribe(intern.settings_set.first(), "freeze_request_declined", object_id=freeze_request.id)
 
-        # Display success message to user
-        messages.success(request._request, "Your freeze request has been submitted successfully.")
+                # Notify medical internship unit of the request
+                notify(
+                    "A new freeze request has been submitted by %s" % (request.user.profile.get_en_full_name()),
+                    "freeze_request_submitted",
+                    url="/planner/%d/" % freeze_request.intern.profile.intern.internship.id,
+                )
 
-        return Response(status=HTTP_201_CREATED)
+                # Display success message to user
+                messages.success(request._request, "Your freeze request has been submitted successfully.")
+
+            response_data = {'errors': form.errors}
+            return Response(response_data)
+        return FreezeRequestFormView.as_view()(request._request, month)
 
     @detail_route(methods=["post"])
     def request_freeze_cancel(self, request, month=None):

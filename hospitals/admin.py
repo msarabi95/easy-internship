@@ -1,5 +1,5 @@
 from django.contrib import admin
-from hospitals.models import Hospital, Specialty, Department, MonthSettings, DepartmentSettings, DepartmentMonthSettings
+from hospitals.models import Hospital, Specialty, Department, MonthSettings, DepartmentSettings, DepartmentMonthSettings, AcceptanceSetting
 
 
 class HospitalAdmin(admin.ModelAdmin):
@@ -14,9 +14,12 @@ class DepartmentMonthSettingsAdmin(admin.ModelAdmin):
     list_display = ['__unicode__', 'month', 'department',
                     'total_seats', 'available_seats',
                     'acceptance_criterion', 'acceptance_start_date', 'acceptance_end_date']
+    search_fields = ['department__name', 'department__specialty__name']
+    list_filter = ['department__specialty', 'department__hospital', 'month']
 
     def available_seats(self, obj):
-        return 0  # TODO
+        settings = AcceptanceSetting(obj.department, obj.month)
+        return settings.get_available_seats()
 
 
 class SpecialtyAdmin(admin.ModelAdmin):

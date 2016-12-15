@@ -43,7 +43,7 @@
             <dd>{{ forward.rotation_request.requested_department.hospital }}</dd>
 
             <dt>Request Date/Time</dt>
-            <dd>{{ forward.forward_datetime }}</dd>
+            <dd>{{ forward.forward_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
           </dl>
         </div>
       </div>

@@ -107,12 +107,12 @@
 
                       <hr style="margin-top: 5px; margin-bottom: 5px;">
 
-                      <div ng-if="months[i].current_request.delete">
+                      <div ng-if="months[i].current_request.is_delete">
                         <h5 class="text-red text-center">Pending</h5>
                         <h6 class="text-center">Rotation to be cancelled</h6>
                       </div>
 
-                      <div ng-if="!months[i].current_request.delete">
+                      <div ng-if="!months[i].current_request.is_delete">
                         <h5 class="text-yellow text-center">
                           Pending: {{ months[i].current_request.specialty.name }}
                           <small ng-if="months[i].current_request.is_elective">(Elective)</small>

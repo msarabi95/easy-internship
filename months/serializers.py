@@ -41,13 +41,13 @@ class InternshipMonthSerializer(serializers.Serializer):
 
 
 class InternshipSerializer(serializers.ModelSerializer):
-    months = serializers.SerializerMethodField()
-    unreviewed_rotation_requests = serializers.SerializerMethodField()
-    forwarded_unreviewed_rotation_requests = serializers.SerializerMethodField()
-    closed_rotation_requests = serializers.SerializerMethodField()
-    unreviewed_request_count = serializers.SerializerMethodField()
-    latest_request_datetime = serializers.SerializerMethodField()
-    latest_response_datetime = serializers.SerializerMethodField()
+    #months = serializers.SerializerMethodField()
+    #unreviewed_rotation_requests = serializers.SerializerMethodField()
+    #forwarded_unreviewed_rotation_requests = serializers.SerializerMethodField()
+    #closed_rotation_requests = serializers.SerializerMethodField()
+    #unreviewed_request_count = serializers.SerializerMethodField()
+    #latest_request_datetime = serializers.SerializerMethodField()
+    #latest_response_datetime = serializers.SerializerMethodField()
 
     def get_months(self, obj):
         return map(lambda internship_month: int(internship_month.month), obj.months)
@@ -80,9 +80,10 @@ class InternshipSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Internship
-        fields = ('id', 'intern', 'start_month', 'months', 'unreviewed_rotation_requests',
-                  'forwarded_unreviewed_rotation_requests', 'closed_rotation_requests',
-                  'unreviewed_request_count', 'latest_request_datetime', 'latest_response_datetime')
+        fields = ('id', 'intern', 'start_month', 'rotation_requests', )
+# 'unreviewed_rotation_requests',
+#                  'forwarded_unreviewed_rotation_requests', 'closed_rotation_requests',
+#                  'unreviewed_request_count', 'latest_request_datetime', 'latest_response_datetime')
 
 
 class FreezeSerializer(serializers.ModelSerializer):

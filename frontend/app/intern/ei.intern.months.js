@@ -9,15 +9,17 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
 
     $routeProvider
         .when("/planner/", {
-            templateUrl: "static/partials/intern/months/month-list.html",
+            templateUrl: "static/partials/intern/months/month-list.html?v=0001",
             controller: "MonthListCtrl"
         })
         .when("/planner/:month_id/", {
-            templateUrl: "static/partials/intern/months/month-detail.html",
+            templateUrl: "static/partials/intern/months/month-detail.html?v=0003",
             controller: "MonthDetailCtrl"
         })
         .when("/planner/:month_id/freeze/", {
-            templateUrl: "static/partials/intern/months/freeze-request-create.html",
+            templateUrl: function (params) {
+                return "/api/internship_months/" + params[0] + "/request_freeze/";
+            },
             controller: "FreezeRequestCreateCtrl"
         })
         .when("/planner/:month_id/freeze/cancel/", {
@@ -111,8 +113,8 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
         };
 }])
 
-.controller("MonthDetailCtrl", ["$scope", "$routeParams", "loadWithRelated", "InternshipMonth", "Hospital", "Department", "Specialty", "Rotation", "RotationRequest", "RequestedDepartment", "RotationRequestResponse", "LeaveType", "Leave", "LeaveRequest", "LeaveRequestResponse", "LeaveCancelRequest",
-    function ($scope, $routeParams, loadWithRelated, InternshipMonth, Hospital, Department, Specialty, Rotation, RotationRequest, RequestedDepartment, RotationRequestResponse, LeaveType, Leave, LeaveRequest, LeaveRequestResponse, LeaveCancelRequest) {
+.controller("MonthDetailCtrl", ["$scope", "$location", "$routeParams", "loadWithRelated", "InternshipMonth", "Hospital", "Department", "Specialty", "Rotation", "RotationRequest", "RequestedDepartment", "RotationRequestResponse", "RotationRequestForward", "LeaveType", "Leave", "LeaveRequest", "LeaveRequestResponse", "LeaveCancelRequest",
+    function ($scope, $location, $routeParams, loadWithRelated, InternshipMonth, Hospital, Department, Specialty, Rotation, RotationRequest, RequestedDepartment, RotationRequestResponse, RotationRequestForward, LeaveType, Leave, LeaveRequest, LeaveRequestResponse, LeaveCancelRequest) {
         $scope.moment = moment;
 
         $scope.month = InternshipMonth.get({month_id: $routeParams.month_id});
@@ -144,6 +146,11 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
                         ]]
                     ]]
                 ]);
+                $scope.month.current_request.$promise.then(function (request) {
+                    if (!!$scope.month.current_request.forward) {
+                        $scope.month.current_request.forward = RotationRequestForward.get({id: request.forward});
+                    }
+                });
             }
 
             // Load current leaves, leave requests, and leave cancel requests
@@ -151,20 +158,41 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
             $scope.month.current_leave_requests = loadWithRelated($scope.month.current_leave_requests, LeaveRequest, [{type: LeaveType}]);
             $scope.month.current_leave_cancel_requests = loadWithRelated($scope.month.current_leave_cancel_requests, LeaveCancelRequest);
 
-        })
+        });
+
+        $scope.record_response = function (is_approved, comments) {
+            $scope.month.current_request.$respond({is_approved: is_approved, comments: comments}, function () {
+                $location.path("/planner/" + $scope.month.month + "/history/");
+            }, function (error) {
+                toastr.error(error);
+            });
+        };
 
 }])
 
-.controller("FreezeRequestCreateCtrl", ["$scope", "$routeParams", "$location", "InternshipMonth", function ($scope, $routeParams, $location, InternshipMonth) {
+.controller("FreezeRequestCreateCtrl", ["$scope", "$http", "$routeParams", "$location", "djangoForm", "InternshipMonth", function ($scope, $http, $routeParams, $location, djangoForm, InternshipMonth) {
     $scope.month = InternshipMonth.get({month_id: $routeParams.month_id});
 
     $scope.submit = function () {
 
-        $scope.month.$request_freeze({}, function (data) {
-            $location.path("/planner");
-        }, function (error) {
-            toastr.error(error.statusText);
-        });
+        if ($scope.freezeRequestData) {
+
+            $scope.freezeRequestData.month = $routeParams.month_id;
+
+            $http.post(
+                "/api/internship_months/" + $scope.month.month + "/request_freeze/",
+                $scope.freezeRequestData
+            ).success(function (out_data) {
+                if (!djangoForm.setErrors($scope.freezeRequestForm, out_data.errors)) {
+                    $location.path("/planner");
+                }
+            }).error(function (error) {
+                console.log(error);
+                toastr.error(error);
+            });
+        }
+
+        return false;
 
     };
 }])
