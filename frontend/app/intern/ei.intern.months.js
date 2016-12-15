@@ -2,7 +2,7 @@
  * Created by MSArabi on 11/23/16.
  */
 angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rotations.models", "ei.leaves.models",
-                              "ei.utils", "djng.forms", "ngResource", "ngRoute", "ngSanitize",
+                              "ei.utils", "djng.forms", "ngAnimate", "ngResource", "ngRoute", "ngSanitize",
                               "ui.bootstrap", "ui.select"])
 
 .config(["$routeProvider", function ($routeProvider) {
@@ -13,7 +13,7 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
             controller: "MonthListCtrl"
         })
         .when("/planner/:month_id/", {
-            templateUrl: "static/partials/intern/months/month-detail.html?v=0001",
+            templateUrl: "static/partials/intern/months/month-detail.html?v=0003",
             controller: "MonthDetailCtrl"
         })
         .when("/planner/:month_id/freeze/", {
@@ -113,8 +113,8 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
         };
 }])
 
-.controller("MonthDetailCtrl", ["$scope", "$routeParams", "loadWithRelated", "InternshipMonth", "Hospital", "Department", "Specialty", "Rotation", "RotationRequest", "RequestedDepartment", "RotationRequestResponse", "LeaveType", "Leave", "LeaveRequest", "LeaveRequestResponse", "LeaveCancelRequest",
-    function ($scope, $routeParams, loadWithRelated, InternshipMonth, Hospital, Department, Specialty, Rotation, RotationRequest, RequestedDepartment, RotationRequestResponse, LeaveType, Leave, LeaveRequest, LeaveRequestResponse, LeaveCancelRequest) {
+.controller("MonthDetailCtrl", ["$scope", "$location", "$routeParams", "loadWithRelated", "InternshipMonth", "Hospital", "Department", "Specialty", "Rotation", "RotationRequest", "RequestedDepartment", "RotationRequestResponse", "RotationRequestForward", "LeaveType", "Leave", "LeaveRequest", "LeaveRequestResponse", "LeaveCancelRequest",
+    function ($scope, $location, $routeParams, loadWithRelated, InternshipMonth, Hospital, Department, Specialty, Rotation, RotationRequest, RequestedDepartment, RotationRequestResponse, RotationRequestForward, LeaveType, Leave, LeaveRequest, LeaveRequestResponse, LeaveCancelRequest) {
         $scope.moment = moment;
 
         $scope.month = InternshipMonth.get({month_id: $routeParams.month_id});
@@ -146,6 +146,11 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
                         ]]
                     ]]
                 ]);
+                $scope.month.current_request.$promise.then(function (request) {
+                    if (!!$scope.month.current_request.forward) {
+                        $scope.month.current_request.forward = RotationRequestForward.get({id: request.forward});
+                    }
+                });
             }
 
             // Load current leaves, leave requests, and leave cancel requests
@@ -153,7 +158,15 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
             $scope.month.current_leave_requests = loadWithRelated($scope.month.current_leave_requests, LeaveRequest, [{type: LeaveType}]);
             $scope.month.current_leave_cancel_requests = loadWithRelated($scope.month.current_leave_cancel_requests, LeaveCancelRequest);
 
-        })
+        });
+
+        $scope.record_response = function (is_approved, comments) {
+            $scope.month.current_request.$respond({is_approved: is_approved, comments: comments}, function () {
+                $location.path("/planner/" + $scope.month.month + "/history/");
+            }, function (error) {
+                toastr.error(error);
+            });
+        };
 
 }])
 

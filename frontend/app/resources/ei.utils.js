@@ -63,7 +63,7 @@ angular.module("ei.utils", ["ngRoute", "ngResource"])
     }
 }])
 
-.controller("NotificationCtrl", ["$scope", "$http", "$filter", "$timeout", "$location", function ($scope, $http, $filter, $timeout, $location) {
+.controller("NotificationCtrl", ["$scope", "$http", "$filter", "$interval", "$location", function ($scope, $http, $filter, $interval, $location) {
     // An angularized version of http://django-nyt.readthedocs.io/en/latest/javascript.html#example-ui-js
     $scope.nyt_update_timeout = 30000;
     $scope.nyt_update_timout_adjust = 1.2;  // factor to adjust between each timeout.
@@ -81,8 +81,8 @@ angular.module("ei.utils", ["ngRoute", "ngResource"])
     }
 
     function update_timeout() {
-        $timeout(nyt_update, $scope.nyt_update_timeout);
-        $timeout(update_timeout, $scope.nyt_update_timeout);
+        $interval(nyt_update, $scope.nyt_update_timeout, 1);
+        $interval(update_timeout, $scope.nyt_update_timeout, 1);
         $scope.nyt_update_timeout *= $scope.nyt_update_timout_adjust;
     }
 

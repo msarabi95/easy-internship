@@ -9,22 +9,21 @@ class HospitalSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Hospital
-        fields = ('id', 'name', 'abbreviation', 'is_kamc', 'departments')
+        fields = '__all__'
 
 
 class SpecialtySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Specialty
-        fields = ('id', 'name', 'abbreviation', 'required_months', 'parent_specialty')
+        fields = '__all__'
 
 
 class DepartmentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Department
-        fields = ('id', 'hospital', 'parent_department', 'name', 'specialty', 'contact_name', 'contact_position',
-                  'email', 'phone', 'extension')
+        fields = '__all__'
 
 
 class GlobalSettingsSerializer(serializers.ModelSerializer):
@@ -36,8 +35,8 @@ class GlobalSettingsSerializer(serializers.ModelSerializer):
 
 class MonthSettingsSerializer(serializers.ModelSerializer):
     month = MonthField()
-    acceptance_start_date = serializers.DateTimeField(format="%A, %-d %B %Y, %-I:%M %p", required=False, allow_null=True)
-    acceptance_end_date = serializers.DateTimeField(format="%A, %-d %B %Y, %-I:%M %p", required=False, allow_null=True)
+    acceptance_start_date = serializers.DateTimeField(required=False, allow_null=True)
+    acceptance_end_date = serializers.DateTimeField(required=False, allow_null=True)
 
     class Meta:
         model = MonthSettings
@@ -78,6 +77,8 @@ class DepartmentMonthSettingsSerializer(serializers.ModelSerializer):
 
 
 class AcceptanceSettingSerializer(serializers.Serializer):
+    month = MonthField()
+    department = serializers.PrimaryKeyRelatedField(read_only=True)
     type = serializers.CharField()
     criterion = serializers.CharField()
     start_or_end_date = serializers.DateTimeField()

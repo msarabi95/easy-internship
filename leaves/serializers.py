@@ -8,14 +8,14 @@ class LeaveTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LeaveType
-        fields = ('id', 'codename', 'name', 'max_days')
+        fields = '__all__'
 
 
 class LeaveSettingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LeaveSetting
-        fields = ('id', 'intern', 'type', 'max_days')
+        fields = '__all__'
 
 
 class LeaveRequestSerializer(serializers.ModelSerializer):
@@ -31,7 +31,7 @@ class LeaveRequestResponseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LeaveRequestResponse
-        fields = ('id', 'request', 'is_approved', 'comments', 'response_datetime')
+        fields = '__all__'
 
 
 class LeaveSerializer(serializers.ModelSerializer):
@@ -39,7 +39,7 @@ class LeaveSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Leave
-        fields = ('id', 'intern', 'month', 'type', 'start_date', 'end_date', 'request')
+        fields = '__all__'
 
 
 class LeaveCancelRequestSerializer(serializers.ModelSerializer):
@@ -47,11 +47,11 @@ class LeaveCancelRequestSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LeaveCancelRequest
-        fields = ('id', 'intern', 'month', 'leave_request', 'submission_datetime', 'rotation_request')
+        fields = '__all__'
 
 
 class LeaveCancelRequestResponseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LeaveCancelRequestResponse
-        fields = ('id', 'request', 'is_approved', 'comments', 'response_datetime')
+        fields = '__all__'

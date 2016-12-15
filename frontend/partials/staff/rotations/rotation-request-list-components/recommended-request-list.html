@@ -39,7 +39,7 @@
 
               <dt style="width: inherit;">Submission date and time</dt>
               <dd ng-class="{'text-bold text-green': setting.criterion == 'FCFS'}">
-                {{ request.submission_datetime }}
+                {{ request.submission_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}
               </dd>
             </dl>
 
@@ -104,7 +104,7 @@
 
               <dt style="width: inherit;">Submission date and time</dt>
               <dd ng-class="{'text-bold text-gray': setting.criterion == 'FCFS'}">
-                {{ request.submission_datetime }}
+                {{ request.submission_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}
               </dd>
             </dl>
 

@@ -56,10 +56,10 @@
                   </dd>
 
                   <dt>Request date and time</dt>
-                  <dd>{{ month.current_rotation.rotation_request.submission_datetime }}</dd>
+                  <dd>{{ month.current_rotation.rotation_request.submission_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
 
                   <dt>Approval date and time</dt>
-                  <dd>{{ month.current_rotation.rotation_request.response.response_datetime }}</dd><!-- FIXME: Account for forward responses as well -->
+                  <dd>{{ month.current_rotation.rotation_request.response.response_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd><!-- FIXME: Account for forward responses as well -->
                 </dl>
               </div>
             </div>
@@ -100,10 +100,7 @@
                   </div>
 
                   <dt style="width: inherit;">Submission date and time</dt>
-                  <dd>{{ month.current_request.submission_datetime }}</dd>
-
-                  <dt>Status</dt>
-                  <dd>{{ month.current_request.status }}</dd>
+                  <dd>{{ month.current_request.submission_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
                 </dl>
 
 
@@ -137,6 +134,70 @@
                   </div>
                 </div>
 
+                <div class="box box-solid" style="margin-top: 10px; margin-bottom: 0;" ng-if="!!month.current_request.forward">
+                  <div class="box-header bg-green">
+                    <h5 class="text-bold" style="margin-top: 0; margin-bottom: 0;">
+                      Details of your request's forward
+                    </h5>
+                  </div>
+                  <div class="box-body bg-success">
+                    <dl class="dl-horizontal" style="margin-bottom: 0;">
+                      <p>Your request has been forwarded by the medical internship unit to the requested department.</p>
+
+                      <dt>Forward date and time</dt>
+                      <dd>{{ month.current_request.forward.forward_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
+
+                      <div ng-if="month.current_request.requested_department.department.memo_handed_by_intern == true">
+                        <dt>Download memo</dt>
+                        <dd>
+                          <a href="/api/rotation_request_forwards/{{ request.forward.id }}/memo_pdf/" class="btn btn-xs btn-danger disabled">As PDF <span class="badge bg-yellow">Soon</span></a>
+                        </dd>
+                      </div>
+                    </dl>
+
+                  </div>
+                </div>
+
+                <div class="box box-solid" style="margin-top: 10px; margin-bottom: 0;" ng-if="!!month.current_request.forward && month.current_request.requested_department.department.memo_handed_by_intern == true">
+                  <div class="box-header bg-aqua">
+                    <h5 class="text-bold" style="margin-top: 0; margin-bottom: 0;">
+                      Department Response
+                    </h5>
+                  </div>
+                  <div class="box-body bg-info">
+                    <dl class="dl-horizontal">
+                      <p>Please record the response of the department here once you receive it.</p>
+
+                      <dt>Response</dt>
+                      <dd>
+                        <div class="checkbox-inline">
+                          <label>
+                            <input type="radio" name="isApproved" value="1" ng-model="response.is_approved" /> <span class="text-green"> Approved</span>
+                          </label>
+                        </div>
+
+                        <div class="checkbox-inline">
+                          <label>
+                            <input type="radio" name="isApproved" value="0" ng-model="response.is_approved" /> <span class="text-red">Declined</span>
+                          </label>
+                        </div>
+                      </dd>
+
+                      <dt>Comments</dt>
+                      <dd>
+                        <textarea class="form-control" rows="1" placeholder="Optional" ng-model="response.comments"></textarea>
+                      </dd>
+
+                    </dl>
+
+                    <button class="btn btn-block btn-flat btn-primary"
+                            ng-click="record_response(response.is_approved, response.comments)">
+                      Submit
+                    </button>
+
+                  </div>
+                </div>
+
               </div>
             </div>
           </div>
@@ -162,10 +223,10 @@
                     <dd>{{ moment(leave.end_date).format('Do of MMMM') }}</dd>
 
                     <dt>Request date and time</dt>
-                    <dd>{{ moment(leave.request.submission_datetime).format('dddd, d MMMM YYYY, hh:mm a') }}</dd>
+                    <dd>{{ moment(leave.request.submission_datetime).format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
 
                     <dt>Approval date and time</dt>
-                    <dd>{{ moment(leave.request.response.response_datetime).format('dddd, d MMMM YYYY, hh:mm a') }}</dd>
+                    <dd>{{ moment(leave.request.response.response_datetime).format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
                   </dl>
                   <a class="btn btn-xs btn-flat btn-danger pull-right" href="#/planner/{{ month.month }}/leaves/{{ leave.id }}/cancel/">Cancel this leave</a>
                 </div>
@@ -187,7 +248,7 @@
                     <dd>{{ moment(leave_request.end_date).format('Do of MMMM') }}</dd>
 
                     <dt>Request date and time</dt>
-                    <dd>{{ moment(leave_request.submission_datetime).format('dddd, d MMMM YYYY, hh:mm a') }}</dd>
+                    <dd>{{ moment(leave_request.submission_datetime).format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
                   </dl>
                 </div>
               </div>

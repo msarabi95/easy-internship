@@ -227,7 +227,7 @@ angular.module("ei.staff.hospitals", ["ei.hospitals.models", "ei.months.models",
             var momentMonth = $scope.getMomentFromMonthId(month);
             return momentMonth.subtract(setting.acceptance_start_date_interval, 'days').format("D MMM");
         } else if (settingType == 'DM' || settingType == 'M') {
-            return moment(setting.acceptance_start_date).format("D MMM");
+            return setting.acceptance_start_date.format("D MMM");
         }
     };
 
@@ -239,7 +239,7 @@ angular.module("ei.staff.hospitals", ["ei.hospitals.models", "ei.months.models",
             var momentMonth = $scope.getMomentFromMonthId(month);
             return momentMonth.subtract(setting.acceptance_end_date_interval, 'days').format("D MMM");
         } else if (settingType == 'DM' || settingType == 'M') {
-            return moment(setting.acceptance_end_date).format("D MMM");
+            return setting.acceptance_end_date.format("D MMM");
         }
     };
 
@@ -411,8 +411,8 @@ angular.module("ei.staff.hospitals", ["ei.hospitals.models", "ei.months.models",
         $scope.dmSetting = dmSetting;
 
         if (dmSetting) {
-            $scope.dmSetting.acceptance_start_date_asDate = moment($scope.dmSetting.acceptance_start_date).toDate();
-            $scope.dmSetting.acceptance_end_date_asDate = moment($scope.dmSetting.acceptance_end_date).toDate();
+            $scope.dmSetting.acceptance_start_date_asDate = $scope.dmSetting.acceptance_start_date.toDate();
+            $scope.dmSetting.acceptance_end_date_asDate = $scope.dmSetting.acceptance_end_date.toDate();
         }
 
         $scope.dpOptions = {
@@ -485,8 +485,8 @@ angular.module("ei.staff.hospitals", ["ei.hospitals.models", "ei.months.models",
         $scope.mSetting = mSetting;
 
         if (mSetting) {
-            $scope.mSetting.acceptance_start_date_asDate = moment($scope.mSetting.acceptance_start_date).toDate();
-            $scope.mSetting.acceptance_end_date_asDate = moment($scope.mSetting.acceptance_end_date).toDate();
+            $scope.mSetting.acceptance_start_date_asDate = $scope.mSetting.acceptance_start_date.toDate();
+            $scope.mSetting.acceptance_end_date_asDate = $scope.mSetting.acceptance_end_date.toDate();
         }
 
         $scope.dpOptions = {
