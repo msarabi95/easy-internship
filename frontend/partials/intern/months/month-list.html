@@ -1,12 +1,12 @@
 <section class="content-header">
-  <h1 class="animated fadeIn">
+  <h1>
     Internship Planner
   </h1>
   <br>
 
   <div class="row">
     <div class="col-md-12">
-      <div class="box box-solid animated fadeIn">
+      <div class="box box-solid">
         <div class="box-header">
           <h5 class="box-title"><b>Welcome to the Internship Planner!</b></h5>
         </div>
@@ -46,9 +46,9 @@
       <!-- http://stackoverflow.com/a/25838091 -->
       <div class="row" ng-repeat="month in months track by $index" ng-if="$index % 5 == 0">
 
-        <div class="col-md-2" ng-class="{'col-md-offset-1': $index % 5 == 0}" ng-repeat="i in [$index, $index + 1, $index + 2, $index + 3, $index + 4]" ng-animate="'internship-month'">
+        <div class="col-md-2" ng-class="{'col-md-offset-1': $index % 5 == 0}" ng-repeat="i in [$index, $index + 1, $index + 2, $index + 3, $index + 4]">
 
-          <div class="box direct-chat direct-chat-primary internship-month animated fadeIn" ng-class="['box-' + getTileClass(months[i]), {'text-gray': months[i].disabled}]">
+          <div class="box direct-chat direct-chat-primary internship-month" ng-class="['box-' + getTileClass(months[i]), {'text-gray': months[i].disabled}]">
             <div class="box-header with-border">
               <h3 class="box-title">{{ months[i].label }}</h3>
               <div class="box-tools pull-right">
