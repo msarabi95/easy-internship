@@ -2,14 +2,30 @@
 <section class="content-header">
   <h1>
     King Abdulaziz Medical City Seats
-    <!--<span class="pull-right">
+    <small>
+      <a class="text-bold" href="" uib-popover-template="'how-to-use.html'" popover-placement="bottom" popover-title="How to use this page">
+        <i class="fa fa-question-circle-o"></i>
+        Using this page
+      </a>
+    </small>
+    <span class="pull-right">
       <input type="text" class="form-control" placeholder="Search" ng-model="search" />
-    </span>-->
+    </span>
   </h1>
 </section>
 
 <!-- Main content -->
 <section class="content">
+
+  <style>
+    [ng-repeat].ng-enter {
+      animation: fadeIn 1s;
+    }
+
+    [ng-repeat].ng-leave {
+      animation: fadeOut 0.25s;
+    }
+  </style>
   <script type="text/ng-template" id="department-month-setting-tooltip.html">
     <h4>{{ department.name }} ({{ getMomentFromMonthId(month).format("MMMM YYYY") }})</h4>
     <dl style="text-align: left;">
@@ -64,7 +80,7 @@
               <th ng-repeat="label in monthLabels">{{ label }}</th>
             </thead>
             <tbody>
-              <tr ng-repeat="row in settings"> <!-- | filter: filterByDepartment -->
+              <tr ng-repeat="row in settings | filter: search">
                 <td>
                   <img src="/static/loading.gif" height="20" ng-hide="row[0].department.$promise.$$state.status == 1" />
                   {{ row[0].department.name }}
@@ -114,3 +130,42 @@
   </div>
 
 </section>
+
+<script type="text/ng-template" id="how-to-use.html">
+  <div>
+    <!--<div style="width: 75px; height: 70px; font-size: 1.3em;" class="text-center">
+      <table class="two-by-two" style="border-collapse: collapse;">
+        <tr>
+          <td colspan="3" style="height: 33px;">
+            <span style="font-size: 1.3em;">27</span>
+          </td>
+        </tr>
+        <tr>
+          <td style="width: 33%; border-top: dotted 1px gray;">
+            <span style="font-size: 0.7em;" class="text-light-blue">
+              <span>13</span>
+            </span>
+          </td>
+          <td style="width: 33%;">
+            <span style="font-size: 0.7em;" class="text-yellow">
+              <span>6</span>
+            </span>
+          </td>
+          <td style="width: 33%;">
+            <span style="font-size: 0.7em;" class="text-green">
+              <span>8</span>
+            </span>
+          </td>
+        </tr>
+      </table>
+    </div>-->
+
+    <p>For any particular department and month, 4 numbers are shown:</p>
+    <ul>
+      <li><span class="text-bold text-black">black</span> = <span class="text-bold text-black">total seats</span> offered by the department</li>
+      <li><span class="text-bold text-light-blue">blue</span> = <span class="text-bold text-light-blue">occupied seats</span> (requested by interns and <span class="text-light-blue">confirmed</span> by the medical internship unit)</li>
+      <li><span class="text-bold text-yellow">yellow</span> = <span class="text-bold text-yellow">booked seats</span> (requested by interns but <span class="text-yellow">not yet confirmed</span> by the medical internship unit)</li>
+      <li><span class="text-bold text-green">green</span> = <span class="text-bold text-green">available seats</span></li>
+    </ul>
+  </div>
+</script>
