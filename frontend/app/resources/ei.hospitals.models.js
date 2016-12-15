@@ -38,6 +38,11 @@ angular.module("ei.hospitals.models", ["ngResource", "ei.interceptors"])
         get: {
             method: 'get',
             interceptor: DateTimeFieldToMomentInterceptor(["start_or_end_date"])
+        },
+        as_table: {  // TODO: interceptor?
+            method: 'get',
+            url: '/api/acceptance_settings/as_table/',
+            isArray: true
         }
     });
 }])

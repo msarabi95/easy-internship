@@ -9,6 +9,7 @@ from django.utils import timezone
 from month import Month
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import list_route
+from rest_framework.exceptions import ParseError
 from rest_framework.response import Response
 
 from hospitals.models import Hospital, Specialty, Department, MonthSettings, DepartmentSettings, \
@@ -162,6 +163,37 @@ class DepartmentMonthSettingsViewSet(SettingsMessagesMixin, viewsets.ModelViewSe
     @list_route(methods=['get'], url_path='starting_month')
     def get_display_starting_month(self, request):
         return Response({'id': int(Month.from_date(datetime(timezone.now().year, 1, 1)))})
+
+
+class AcceptanceSettingViewSet(viewsets.ViewSet):
+    serializer_class = AcceptanceSettingSerializer
+
+    @list_route(methods=['get'])
+    def as_table(self, request, *args, **kwargs):
+
+        if len(request.query_params.keys()) == 0:
+            raise ParseError(detail="No query parameters were specified.")  # FIXME: Is this the most accurate error?
+
+        year = request.query_params.get('year')
+        hospital = request.query_params.get('hospital')
+
+        if year is None or hospital is None:
+            raise ParseError(detail="Both `year` and `hospital` query parameters should be specified.")
+
+        months = [Month(int(year), month) for month in range(1, 13)]
+        departments = Department.objects.filter(hospital__id=hospital)
+
+        settings = []
+
+        for department in departments:
+            dept_settings = []
+            for month in months:
+                dept_settings.append(
+                    self.serializer_class(AcceptanceSetting(department, month)).data
+                )
+            settings.append(dept_settings)
+
+        return Response(settings)
 
 
 class AcceptanceSettingsByDepartmentAndMonth(viewsets.ViewSet):
