@@ -94,3 +94,18 @@ class AcceptanceSettingSerializer(serializers.Serializer):
 
     def update(self, instance, validated_data):
         pass
+
+
+class SeatSettingSerializer(serializers.Serializer):
+    month = MonthField()
+    department = serializers.PrimaryKeyRelatedField(read_only=True)
+    total_seats = serializers.IntegerField()
+    occupied_seats = serializers.IntegerField()
+    booked_seats = serializers.IntegerField()
+    available_seats = serializers.IntegerField()
+
+    def create(self, validated_data):
+        pass
+
+    def update(self, instance, validated_data):
+        pass

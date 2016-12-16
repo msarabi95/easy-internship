@@ -6,14 +6,14 @@ angular.module("ei.hospitals", ["ngRoute", "ei.hospitals.models", "ui.bootstrap"
 .config(["$routeProvider", function ($routeProvider) {
     $routeProvider
         .when("/seats/", {
-            templateUrl: "static/partials/intern/hospitals/acceptance-setting-list.html?v=0001",
-            controller: "AcceptanceSettingListCtrl"
+            templateUrl: "static/partials/intern/hospitals/seat-setting-list.html",
+            controller: "SeatSettingListCtrl"
         })
 
 }])
 
-.controller("AcceptanceSettingListCtrl", ["$scope", "$q", "Department", "DepartmentMonthSettings", "AcceptanceSettings",
-    function ($scope, $q, Department, DepartmentMonthSettings, AcceptanceSettings) {
+.controller("SeatSettingListCtrl", ["$scope", "$q", "Department", "DepartmentMonthSettings", "SeatSettings",
+    function ($scope, $q, Department, DepartmentMonthSettings, SeatSettings) {
         $scope.monthLabels = {
             0: "January",
             1: "February",
@@ -33,7 +33,7 @@ angular.module("ei.hospitals", ["ngRoute", "ei.hospitals.models", "ui.bootstrap"
             $scope.startMonth = newValue * 12;
             $scope.months = Array.apply(null, Array(12)).map(function (_, i) {return $scope.startMonth + i;});
 
-            $scope.settings = AcceptanceSettings.as_table({year: newValue, hospital: 1});
+            $scope.settings = SeatSettings.as_table({year: newValue, hospital: 1});
             $scope.settings.$promise.then(function (settingsTable) {
                 var promises = [];
                 for (var i = 0; i < settingsTable.length; i++) {

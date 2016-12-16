@@ -385,3 +385,55 @@ class AcceptanceSetting(object):
                 else:
                     return False
                     #raise ValueError("Unexpected value of available seats.")
+
+
+class SeatSetting(object):
+    """
+    An object that contains the seat counts for a particular month and department.
+    This class is optimized to minimize database calls when seat counts are required in bulk (e.g. when
+     display a list of all seat counts for all departments). The passed department should have
+     its `monthly_settings`, `rotations`, and `department_requests__rotationrequest__response` prefetched
+     for optimal performance.
+    """
+    def __init__(self, department, month):
+        self.department = department
+        self.month = month
+
+        department_month_settings = \
+            filter(lambda dms: dms.month == self.month, self.department.monthly_settings.all())
+        self.dms = department_month_settings[0] if len(department_month_settings) > 0 else None
+        # Is it better to raise an exception rather than set self.dms to None?
+
+    def get_total_seats(self):
+        if self.dms is None:
+            return None
+        return self.dms.total_seats
+
+    def get_occupied_seats(self):
+        if self.dms is None:
+            return None
+        rotas = filter(lambda r: r.month == self.month, self.department.rotations.all())
+        return len(rotas)
+
+    def get_booked_seats(self):
+        if self.dms is None:
+            return None
+        requests = filter(
+            lambda rd: hasattr(rd, 'rotationrequest')
+                       and rd.rotationrequest.month == self.month
+                       and rd.rotationrequest.is_delete == False
+                       and not hasattr(rd.rotationrequest, 'response'),
+            self.department.department_requests.all()
+        )
+        return len(requests)
+
+    def get_available_seats(self):
+        if self.dms is None:
+            return None
+        seats = self.total_seats - (self.occupied_seats + self.booked_seats)
+        return seats if seats >= 0 else 0
+
+    total_seats = property(get_total_seats)
+    occupied_seats = property(get_occupied_seats)
+    booked_seats = property(get_booked_seats)
+    available_seats = property(get_available_seats)
