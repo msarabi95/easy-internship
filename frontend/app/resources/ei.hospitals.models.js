@@ -25,28 +25,6 @@ angular.module("ei.hospitals.models", ["ngResource", "ei.interceptors"])
     });
 }])
 
-.factory("AcceptanceSettings", ["$resource", "DateTimeFieldToMomentInterceptor", function($resource, DateTimeFieldToMomentInterceptor) {
-    return $resource('/api/acceptance_settings/:department_id/:month_id', {
-        month_id: '@month',
-        department_id: '@department'
-    }, {
-        query: {
-            method: 'get',
-            isArray: true,
-            interceptor: DateTimeFieldToMomentInterceptor(["start_or_end_date"])
-        },
-        get: {
-            method: 'get',
-            interceptor: DateTimeFieldToMomentInterceptor(["start_or_end_date"])
-        },
-        as_table: {  // TODO: interceptor?
-            method: 'get',
-            url: '/api/acceptance_settings/as_table/',
-            isArray: true
-        }
-    });
-}])
-
 .factory("GlobalSettings", ["$resource", function($resource) {
     // The resource itself does nothing (nothing at the endpoint). But the resource methods are what matter.
     return $resource('/api/global_settings/:id', {id: '@id'}, {
@@ -121,6 +99,39 @@ angular.module("ei.hospitals.models", ["ngResource", "ei.interceptors"])
         },
         update: {
             method: 'put'
+        }
+    });
+}])
+
+
+.factory("AcceptanceSettings", ["$resource", "DateTimeFieldToMomentInterceptor", function($resource, DateTimeFieldToMomentInterceptor) {
+    return $resource('/api/acceptance_settings/:department_id/:month_id', {
+        month_id: '@month',
+        department_id: '@department'
+    }, {
+        query: {
+            method: 'get',
+            isArray: true,
+            interceptor: DateTimeFieldToMomentInterceptor(["start_or_end_date"])
+        },
+        get: {
+            method: 'get',
+            interceptor: DateTimeFieldToMomentInterceptor(["start_or_end_date"])
+        },
+        as_table: {  // TODO: interceptor?
+            method: 'get',
+            url: '/api/acceptance_settings/as_table/',
+            isArray: true
+        }
+    });
+}])
+
+.factory("SeatSettings", ["$resource", function($resource) {
+    return $resource('/api/seat_settings/', {}, {
+        as_table: {  // TODO: interceptor?
+            method: 'get',
+            url: '/api/seat_settings/as_table/',
+            isArray: true
         }
     });
 }]);
