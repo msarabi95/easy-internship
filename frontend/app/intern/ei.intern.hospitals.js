@@ -6,7 +6,7 @@ angular.module("ei.hospitals", ["ngRoute", "ei.hospitals.models", "ui.bootstrap"
 .config(["$routeProvider", function ($routeProvider) {
     $routeProvider
         .when("/seats/", {
-            templateUrl: "static/partials/intern/hospitals/seat-setting-list.html",
+            templateUrl: "static/partials/intern/hospitals/seat-setting-list.html?v=0001",
             controller: "SeatSettingListCtrl"
         })
 

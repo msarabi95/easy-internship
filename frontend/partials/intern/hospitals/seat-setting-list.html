@@ -79,13 +79,13 @@
 
                       <table class="two-by-two">
                         <tr>
-                          <td colspan="3" style="height: 33px;">
+                          <td style="height: 33px;">
                             <span ng-if="setting.total_seats" style="font-size: 1.3em;">{{ setting.total_seats }}</span>
                             <span ng-if="!setting.total_seats" class="text-gray" style="font-size: 0.9em;"><i>N/A</i></span>
                           </td>
                         </tr>
                         <tr>
-                          <td style="width: 33%;">
+                          <!--<td style="width: 33%;">
                             <span style="font-size: 0.7em;" class="text-light-blue">
                               <span ng-if="setting.occupied_seats !== null">{{ setting.occupied_seats }}</span>
                               <span ng-if="setting.occupied_seats == null">—</span>
@@ -96,7 +96,7 @@
                               <span ng-if="setting.booked_seats !== null">{{ setting.booked_seats }}</span>
                               <span ng-if="setting.booked_seats == null">—</span>
                             </span>
-                          </td>
+                          </td>-->
                           <td style="width: 33%;">
                             <span style="font-size: 0.7em;" class="text-green">
                               <span ng-if="setting.available_seats !== null">{{ setting.available_seats }}</span>
@@ -148,11 +148,11 @@
       </table>
     </div>-->
 
-    <p>For any particular department and month, 4 numbers are shown:</p>
+    <p>For any particular department and month, 2 numbers are shown:</p>
     <ul>
       <li><span class="text-bold text-black">black</span> = <span class="text-bold text-black">total seats</span> offered by the department</li>
-      <li><span class="text-bold text-light-blue">blue</span> = <span class="text-bold text-light-blue">occupied seats</span> (requested by interns and <span class="text-light-blue">confirmed</span> by the medical internship unit)</li>
-      <li><span class="text-bold text-yellow">yellow</span> = <span class="text-bold text-yellow">booked seats</span> (requested by interns but <span class="text-yellow">not yet confirmed</span> by the medical internship unit)</li>
+      <!--<li><span class="text-bold text-light-blue">blue</span> = <span class="text-bold text-light-blue">occupied seats</span> (requested by interns and <span class="text-light-blue">confirmed</span> by the medical internship unit)</li>
+      <li><span class="text-bold text-yellow">yellow</span> = <span class="text-bold text-yellow">booked seats</span> (requested by interns but <span class="text-yellow">not yet confirmed</span> by the medical internship unit)</li>-->
       <li><span class="text-bold text-green">green</span> = <span class="text-bold text-green">available seats</span></li>
     </ul>
   </div>
