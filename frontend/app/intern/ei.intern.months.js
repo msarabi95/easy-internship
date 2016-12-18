@@ -2,14 +2,14 @@
  * Created by MSArabi on 11/23/16.
  */
 angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rotations.models", "ei.leaves.models",
-                              "ei.utils", "djng.forms", "ngResource", "ngRoute", "ngSanitize",
+                              "ei.utils", "djng.forms", "ngAnimate", "ngResource", "ngRoute", "ngSanitize",
                               "ui.bootstrap", "ui.select"])
 
 .config(["$routeProvider", function ($routeProvider) {
 
     $routeProvider
         .when("/planner/", {
-            templateUrl: "static/partials/intern/months/month-list.html?v=0001",
+            templateUrl: "static/partials/intern/months/month-list.html?v=0002",
             controller: "MonthListCtrl"
         })
         .when("/planner/:month_id/", {

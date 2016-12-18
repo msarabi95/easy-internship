@@ -77,6 +77,8 @@ class DepartmentMonthSettingsSerializer(serializers.ModelSerializer):
 
 
 class AcceptanceSettingSerializer(serializers.Serializer):
+    month = MonthField()
+    department = serializers.PrimaryKeyRelatedField(read_only=True)
     type = serializers.CharField()
     criterion = serializers.CharField()
     start_or_end_date = serializers.DateTimeField()
@@ -86,6 +88,21 @@ class AcceptanceSettingSerializer(serializers.Serializer):
     unoccupied_seats = serializers.IntegerField(allow_null=True, source='get_unoccupied_seats')
     available_seats = serializers.IntegerField(allow_null=True, source='get_available_seats')
     can_submit_requests = serializers.BooleanField()
+
+    def create(self, validated_data):
+        pass
+
+    def update(self, instance, validated_data):
+        pass
+
+
+class SeatSettingSerializer(serializers.Serializer):
+    month = MonthField()
+    department = serializers.PrimaryKeyRelatedField(read_only=True)
+    total_seats = serializers.IntegerField()
+    occupied_seats = serializers.IntegerField()
+    booked_seats = serializers.IntegerField()
+    available_seats = serializers.IntegerField()
 
     def create(self, validated_data):
         pass

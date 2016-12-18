@@ -1,0 +1,159 @@
+<!-- Content Header (Page header) -->
+<section class="content-header">
+  <h1>
+    King Abdulaziz Medical City Seats
+    <small>
+      <a class="text-bold" href="" uib-popover-template="'how-to-use.html'" popover-placement="bottom" popover-title="How to use this page">
+        <i class="fa fa-question-circle-o"></i>
+        Using this page
+      </a>
+    </small>
+    <span class="pull-right">
+      <input type="text" class="form-control" placeholder="Search" ng-model="search" />
+    </span>
+  </h1>
+</section>
+
+<!-- Main content -->
+<section class="content">
+
+  <style>
+    [ng-repeat].ng-enter {
+      animation: fadeIn 1s;
+    }
+
+    [ng-repeat].ng-leave {
+      animation: fadeOut 0.25s;
+    }
+  </style>
+
+  <div class="row">
+    <div class="col-xs-12">
+      <div class="box box-solid">
+        <div class="box-header with-border">
+          <h4 class="box-title">Seat Count By Department and Month for {{ displayYear }}</h4>
+          <div class="box-tools">
+            <div class="btn-group btn-group-sm">
+              <a class="btn btn-sm btn-primary" ng-click="loadPreviousYear()">
+                <i class="fa fa-angle-double-left"></i>
+                Show {{ displayYear - 1}}
+              </a>
+              <a class="btn btn-sm btn-primary" ng-click="loadNextYear()">
+                Show {{ displayYear + 1 }}
+                <i class="fa fa-angle-double-right"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <style>
+          table.two-by-two {
+            width: 100%;
+            border-collapse: separate;
+          }
+          table.two-by-two tr:first-child td {
+            border-bottom: 1px dotted gray;
+          }
+        </style>
+
+        <div class="box-body no-padding">
+
+          <div ng-hide="settings.$promise.$$state.status == 1" style="height: 150px;">
+            <img src="/static/loading.gif" height="50" style="position: absolute; top: 50%; left: 50%; margin-left: -15px; margin-top: -15px;" />
+          </div>
+
+          <table class="table table-striped table-condensed" ng-show="settings.$promise.$$state.status == 1">
+            <thead>
+              <th>Department</th>
+              <th ng-repeat="label in monthLabels">{{ label }}</th>
+            </thead>
+            <tbody>
+              <tr ng-repeat="row in settings | filter: search">
+                <td>
+                  <img src="/static/loading.gif" height="20" ng-hide="row[0].department.$promise.$$state.status == 1" />
+                  {{ row[0].department.name }}
+                </td>
+                <td ng-repeat="setting in row track by $index" style="width: 75px; height: 70px;">
+                  <div>
+                    <div class="text-center" style="font-size: 1.3em;">
+
+                      <table class="two-by-two">
+                        <tr>
+                          <td style="height: 33px;">
+                            <span ng-if="setting.total_seats" style="font-size: 1.3em;">{{ setting.total_seats }}</span>
+                            <span ng-if="!setting.total_seats" class="text-gray" style="font-size: 0.9em;"><i>N/A</i></span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <!--<td style="width: 33%;">
+                            <span style="font-size: 0.7em;" class="text-light-blue">
+                              <span ng-if="setting.occupied_seats !== null">{{ setting.occupied_seats }}</span>
+                              <span ng-if="setting.occupied_seats == null">—</span>
+                            </span>
+                          </td>
+                          <td style="width: 33%;">
+                            <span style="font-size: 0.7em;" class="text-yellow">
+                              <span ng-if="setting.booked_seats !== null">{{ setting.booked_seats }}</span>
+                              <span ng-if="setting.booked_seats == null">—</span>
+                            </span>
+                          </td>-->
+                          <td style="width: 33%;">
+                            <span style="font-size: 0.7em;" class="text-green">
+                              <span ng-if="setting.available_seats !== null">{{ setting.available_seats }}</span>
+                              <span ng-if="setting.available_seats == null">—</span>
+                            </span>
+                          </td>
+                        </tr>
+                      </table>
+                    </div>
+
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<script type="text/ng-template" id="how-to-use.html">
+  <div>
+    <!--<div style="width: 75px; height: 70px; font-size: 1.3em;" class="text-center">
+      <table class="two-by-two" style="border-collapse: collapse;">
+        <tr>
+          <td colspan="3" style="height: 33px;">
+            <span style="font-size: 1.3em;">27</span>
+          </td>
+        </tr>
+        <tr>
+          <td style="width: 33%; border-top: dotted 1px gray;">
+            <span style="font-size: 0.7em;" class="text-light-blue">
+              <span>13</span>
+            </span>
+          </td>
+          <td style="width: 33%;">
+            <span style="font-size: 0.7em;" class="text-yellow">
+              <span>6</span>
+            </span>
+          </td>
+          <td style="width: 33%;">
+            <span style="font-size: 0.7em;" class="text-green">
+              <span>8</span>
+            </span>
+          </td>
+        </tr>
+      </table>
+    </div>-->
+
+    <p>For any particular department and month, 2 numbers are shown:</p>
+    <ul>
+      <li><span class="text-bold text-black">black</span> = <span class="text-bold text-black">total seats</span> offered by the department</li>
+      <!--<li><span class="text-bold text-light-blue">blue</span> = <span class="text-bold text-light-blue">occupied seats</span> (requested by interns and <span class="text-light-blue">confirmed</span> by the medical internship unit)</li>
+      <li><span class="text-bold text-yellow">yellow</span> = <span class="text-bold text-yellow">booked seats</span> (requested by interns but <span class="text-yellow">not yet confirmed</span> by the medical internship unit)</li>-->
+      <li><span class="text-bold text-green">green</span> = <span class="text-bold text-green">available seats</span></li>
+    </ul>
+  </div>
+</script>

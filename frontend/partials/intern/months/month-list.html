@@ -1,14 +1,8 @@
 <section class="content-header">
   <h1>
-    <!--<i class="fa fa-calendar"></i> -->Internship Planner
+    Internship Planner
   </h1>
   <br>
-
-  <div ng-repeat="message in messages" class="callout callout-{{ message.tags }}">
-    <!-- <h4>I am a danger callout!</h4> -->
-    <p>{{ message.message }}</p>
-  </div>
-
 
   <div class="row">
     <div class="col-md-12">
@@ -44,13 +38,22 @@
       margin-left: -110px;
     }
   }
+
+  [ng-repeat].ng-enter {
+    animation: fadeIn 1s;
+  }
 </style>
-  
+
+
+<div ng-hide="months.$promise.$$state.status == 1" style="height: 150px;">
+  <img src="/static/loading.gif" height="50" style="position: absolute; top: 50%; left: 50%; margin-left: -15px; margin-top: -15px;" />
+</div>
+
 <div id="grid-container">
 
       <!-- Check out: -->
       <!-- http://stackoverflow.com/a/25838091 -->
-      <div class="row" ng-repeat="month in months track by $index" ng-if="$index % 5 == 0">
+      <div class="row" ng-repeat="month in months track by $index" ng-if="$index % 5 == 0" ng-animate-children>
 
         <div class="col-md-2" ng-class="{'col-md-offset-1': $index % 5 == 0}" ng-repeat="i in [$index, $index + 1, $index + 2, $index + 3, $index + 4]">
 

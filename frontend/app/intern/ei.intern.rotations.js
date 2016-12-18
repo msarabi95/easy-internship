@@ -2,7 +2,7 @@
  * Created by MSArabi on 11/23/16.
  */
 angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.rotations.models", "ei.leaves.models",
-                              "ei.utils", "djng.forms", "ngResource", "ngRoute", "ngSanitize",
+                              "ei.utils", "djng.forms", "ngResource", "ngRoute", "ngSanitize", "ngAnimate",
                               "ui.bootstrap", "ui.select"])
 
 .config(["$routeProvider", function ($routeProvider) {
@@ -17,7 +17,7 @@ angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.r
             controller: "RotationRequestHistoryCtrl"
         })
         .when("/planner/:month_id/cancel/", {
-            templateUrl: "static/partials/intern/rotations/rotation-cancel-request-create.html",
+            templateUrl: "static/partials/intern/rotations/rotation-cancel-request-create.html?v=0001",
             controller: "DeletionRequestCtrl"
         })
 
@@ -29,6 +29,7 @@ angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.r
     function ($scope, $routeParams, $location, Specialty, Hospital, Department, RequestedDepartment, RotationRequest, InternshipMonth, djangoForm, $http, $compile, AcceptanceSettings) {
         $scope.internshipMonth = InternshipMonth.get({month_id: $routeParams.month_id});
 
+        $scope.showHospitalFields = false;
         $scope.disableHospitalMenu = true;
         $scope.rotationRequestData = {};
         $scope.specialties = Specialty.query();
@@ -83,6 +84,8 @@ angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.r
 
                 });
 
+                $scope.hospitals.push({id: -1, name: "Other", abbreviation: "OTHER"});
+
                 $scope.disableHospitalMenu = false;
             });
         };
@@ -90,25 +93,31 @@ angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.r
         $scope.$watch('rotationRequestData.department_hospital', function (newValue, oldValue) {
             // Show or hide department detail fields based on whether department info is present in db or not
             if (newValue !== undefined && newValue !== oldValue) {
-                var hospital = $scope.hospitals.find(function (obj, index) {
-                    return obj.id == newValue;
-                });
+                if (newValue !== -1) {
+                    $scope.showHospitalFields = false;
 
-                console.log(hospital);
+                    var hospital = $scope.hospitals.find(function (obj, index) {
+                        return obj.id == newValue;
+                    });
 
-                if (hospital.specialty_departments.length == 1) {
-                    $scope.showDepartmentMenu = false;
-                    var department = hospital.specialty_departments[0];
-                    $scope.rotationRequestData.department = department.id;
-                    $scope.rotationRequestData.is_in_database = true;
-                } else if (hospital.specialty_departments.length > 1) {
-                    $scope.showDepartmentMenu = true;
-                    $scope.rotationRequestData.is_in_database = true;
-                    $scope.departmentMenuHospital = hospital;
+                    if (hospital.specialty_departments.length == 1) {
+                        $scope.showDepartmentMenu = false;
+                        var department = hospital.specialty_departments[0];
+                        $scope.rotationRequestData.department = department.id;
+                        $scope.rotationRequestData.is_in_database = true;
+                    } else if (hospital.specialty_departments.length > 1) {
+                        $scope.showDepartmentMenu = true;
+                        $scope.rotationRequestData.is_in_database = true;
+                        $scope.departmentMenuHospital = hospital;
+                    } else {
+                        $scope.showDepartmentMenu = false;
+                        $scope.rotationRequestData.is_in_database = false;
+                    }
                 } else {
-                    $scope.showDepartmentMenu = false;
-                    $scope.rotationRequestData.is_in_database = false;
+                    $scope.rotationRequestData.is_in_database = true;
+                    $scope.showHospitalFields = true;
                 }
+
             }
         });
 
