@@ -2,7 +2,7 @@
  * Created by MSArabi on 12/4/16.
  */
 angular.module("ei.staff.accounts", ["ei.months.models", "ei.accounts.models",
-                                     "ei.utils", "ngRoute",
+                                     "ei.utils", "ei.rotations.directives", "ngRoute",
                                      "datatables", "datatables.bootstrap",
                                      "ui.bootstrap", "ui.select"])
 
@@ -205,39 +205,24 @@ angular.module("ei.staff.accounts", ["ei.months.models", "ei.accounts.models",
 
         });
 
-        $scope.flag = function (flagName) {
-            $scope.flags = {};  // reset all flags
-            $scope.flags[flagName] = true;
-
-            $timeout(function () {try {$scope.flags[flagName] = false;} catch(e) {/* Do nothing */}},  5000);
-        };
-
-        $scope.respond = function (request, response, comments) {
-            request.$respond({is_approved: response, comments: comments}, function (data) {
-                // Move request to *closed* requests
-                var index = $scope.internship.unreviewed_rotation_requests.indexOf(request);  // WARNING: indexOf not supported in all browsers (IE7 & 8)
-                if (index > -1) {
-                    $scope.internship.unreviewed_rotation_requests.splice(index, 1);
-                } else {
-                    index = $scope.internship.forwarded_rotation_requests.indexOf(request);
-                    $scope.internship.forwarded_rotation_requests.splice(index, 1);
-                }
-                $scope.internship.closed_rotation_requests.push(request);
-            }, function (error) {
-                toastr.error(error);
-            });
-        };
-
-        $scope.forward = function (request) {
-            request.$forward({}, function (data) {
-                // Move request to *forwarded* requests
-                var index = $scope.internship.unreviewed_rotation_requests.indexOf(request);  // WARNING: indexOf not supported in all browsers (IE7 & 8)
+        $scope.moveToPastRequests = function (request) {
+            // Move request to *closed* requests
+            var index = $scope.internship.unreviewed_rotation_requests.indexOf(request);  // WARNING: indexOf not supported in all browsers (IE7 & 8)
+            if (index > -1) {
                 $scope.internship.unreviewed_rotation_requests.splice(index, 1);
+            } else {
+                index = $scope.internship.forwarded_rotation_requests.indexOf(request);
+                $scope.internship.forwarded_rotation_requests.splice(index, 1);
+            }
+            $scope.internship.closed_rotation_requests.push(request);
+        };
 
-                $scope.internship.forwarded_rotation_requests.push(request);
-            }, function (error) {
-                toastr.error(error);
-            });
+        $scope.moveToForwardedRequests = function (request) {
+            // Move request to *forwarded* requests
+            var index = $scope.internship.unreviewed_rotation_requests.indexOf(request);  // WARNING: indexOf not supported in all browsers (IE7 & 8)
+            $scope.internship.unreviewed_rotation_requests.splice(index, 1);
+
+            $scope.internship.forwarded_rotation_requests.push(request);
         };
 
         $scope.getStatus = function (request) {

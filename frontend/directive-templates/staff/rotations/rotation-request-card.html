@@ -1,0 +1,83 @@
+<div class="box box-solid box-warning">
+  <div class="box-header">
+    <img src="/static/loading.gif" height="20" ng-hide="request.$promise.$$state.status == 1" />
+    <h5 class="box-title">Request #{{ request.id }}</h5>
+  </div>
+  <div class="box-body" ng-show="request.$promise.$$state.status == 1">
+
+    <dl class="dl-horizontal">
+      <dt>Month</dt>
+      <dd>{{ request.month.label }}</dd>
+
+      <hr>
+
+      <div ng-if="!request.is_delete">
+        <dt>Specialty</dt>
+        <dd class="text-yellow text-bold">{{ request.specialty.name }}</dd>
+
+        <dt>Hospital</dt>
+        <dd class="text-yellow text-bold">{{ request.requested_department.department.hospital.name }}</dd>
+
+        <dt>Elective?</dt>
+        <dd>
+          <span ng-if="request.is_elective == true" class="text-yellow text-bold">Yes</span>
+          <span ng-if="request.is_elective == false">No</span>
+        </dd>
+      </div>
+
+      <div ng-if="request.is_delete">
+        <dt>Description</dt>
+        <dd>{{ internship.intern.profile.en_full_name}} requested <span class="text-red text-bold">cancellation of the rotation</span> during this month.</dd>
+      </div>
+
+      <dt style="width: inherit;">Submission date and time</dt>
+      <dd>{{ request.submission_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
+    </dl>
+
+    <hr>
+
+    <h4>Response</h4>
+
+    <div class="row">
+      <div class="col-xs-12">
+        <div class="form-group">
+          <textarea class="form-control" rows="3" placeholder="Comment (optional)" ng-model="response['comments' + request.id]"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-6" ng-if="request.requested_department.department.requires_memo == false">
+        <button type="button" class="btn btn-block btn-flat btn-success" ng-if="!flags['approveFlag']" ng-click="flag('approveFlag')">
+          <i class="fa fa-check"></i>
+          Approve
+        </button>
+        <button type="button" class="btn btn-block btn-flat btn-warning" ng-if="flags['approveFlag']" ng-click="respond(request, 1, response['comments' + request.id])">
+          Confirm
+        </button>
+      </div>
+
+      <div class="col-md-6" ng-if="request.requested_department.department.requires_memo == true">
+        <button type="button" class="btn btn-block btn-flat btn-warning" ng-if="!flags['forwardFlag']" ng-click="flag('forwardFlag')">
+          <i class="fa fa-mail-forward"></i>
+          Forward
+        </button>
+        <button type="button" class="btn btn-block btn-flat btn-danger" ng-if="flags['forwardFlag']" ng-click="forward(request)">
+          Confirm
+        </button>
+      </div>
+
+      <div class="col-md-6">
+        <button type="button" class="btn btn-block btn-flat btn-danger" ng-if="!flags['declineFlag']" ng-click="flag('declineFlag')">
+          <i class="fa fa-remove"></i>
+          Decline
+        </button>
+        <button type="button" class="btn btn-block btn-flat btn-warning" ng-if="flags['declineFlag']" ng-click="respond(request, 0, response['comments' + request.id])">
+          Confirm
+        </button>
+      </div>
+    </div>
+
+
+  </div>
+</div>
