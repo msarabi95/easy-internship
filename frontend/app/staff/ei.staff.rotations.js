@@ -2,22 +2,86 @@
  * Created by MSArabi on 12/4/16.
  */
 angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models", "ei.rotations.models", "ei.accounts.models",
-                                     "ei.utils", "ngRoute", "ngResource", "ngSanitize",
+                                     "ei.utils", "ngRoute", "ngResource", "ngSanitize", "ngAnimate",
                                      "datatables", "datatables.bootstrap", "ngHandsontable", "ngScrollbars",
                                      "ui.bootstrap", "ui.select"])
 
 .config(["$routeProvider", function ($routeProvider) {
 
     $routeProvider
-        .when("/requests/:department_id?/:month_id?/", {
-            templateUrl: "static/partials/staff/rotations/rotation-request-list.html",
+        .when("/requests/:page?/", {
+            templateUrl: "static/partials/staff/rotations/rotation-request-list.html?v=0001",
             controller: "RotationRequestListCtrl"
         });
 
 }])
 
-.controller("RotationRequestListCtrl", ["$scope", "$filter", "$q", "$routeParams", "$location", "$timeout", "Department", "AcceptanceSettings", "Internship", "InternshipMonth", "Intern", "Profile", "RotationRequest", "RequestedDepartment", "Specialty", "Hospital",
-    function ($scope, $filter, $q, $routeParams, $location, $timeout, Department, AcceptanceSettings, Internship, InternshipMonth, Intern, Profile, RotationRequest, RequestedDepartment, Specialty, Hospital) {
+.controller("RotationRequestListCtrl", ["$scope", "$filter", "$q", "$routeParams", "$location", "$timeout", "loadWithRelated", "Department", "AcceptanceSettings", "Internship", "InternshipMonth", "Intern", "Profile", "RotationRequest", "RequestedDepartment", "Specialty", "Hospital",
+    function ($scope, $filter, $q, $routeParams, $location, $timeout, loadWithRelated, Department, AcceptanceSettings, Internship, InternshipMonth, Intern, Profile, RotationRequest, RequestedDepartment, Specialty, Hospital) {
+
+        $scope.page = $routeParams.page;
+
+        function loadRequestInfo(requests) {
+            angular.forEach(requests, function (request, index) {
+                request.month = InternshipMonth.get_by_internship_and_id({month_id: request.month, internship_id: request.internship});
+                request.requested_department = loadWithRelated(request.requested_department, RequestedDepartment, [
+                    [{department: Department}, [
+                        {hospital: Hospital}
+                    ]]
+                ], true);
+                request.specialty = Specialty.get({id: request.specialty});
+                request.internship = loadWithRelated(request.internship, Internship, [
+                    [{intern: Intern}, [
+                        {profile: Profile}
+                    ]]
+                ], true);
+                request.$promise = $q.all([
+                    request.month.$promise,
+                    request.requested_department.$promise,
+                    request.specialty.$promise,
+                    request.internship.$promise,
+                ])
+            });
+        }
+
+        switch ($scope.page) {
+            case 'kamc-nomemo':
+                $scope.requests = RotationRequest.kamc_no_memo(loadRequestInfo);
+                break;
+            case 'kamc-memo':
+                $scope.requests = RotationRequest.kamc_memo(loadRequestInfo);
+                break;
+            case 'outside':
+                $scope.requests = RotationRequest.non_kamc(loadRequestInfo);
+                break;
+            case 'cancellation':
+                $scope.requests = RotationRequest.cancellation(loadRequestInfo);
+                break;
+        }
+
+        $scope.reverseOptions = [
+            {label: "Ascending", value: false},
+            {label: "Descending", value: true}
+        ];
+
+        $scope.orderingOptions = [
+            {label: "Submission date and time", value: function (request) {return request.submission_datetime.toDate();}},
+            {label: "GPA", value: function (request) {return parseFloat(request.internship.intern.gpa)}},
+            {label: "Name", value: function (request) {return request.internship.intern.profile.en_full_name;}}
+        ];
+        $scope.ordering = {
+            option: $scope.orderingOptions[0].value,
+            reverse: false
+        };
+
+        $scope.removeRequest = function (request) {
+            var index = $scope.requests.indexOf(request);
+            if (index > -1) {
+                $scope.requests.splice(index, 1);
+            }
+        };
+
+        /* =============== */
 
     $scope.monthFilter = function (selection) {
         // return a filter predicate function that filters months using the typed search value

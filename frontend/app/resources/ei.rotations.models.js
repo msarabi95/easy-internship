@@ -28,6 +28,30 @@ angular.module("ei.rotations.models", ["ngResource", "ei.interceptors"])
             isArray: true,
             interceptor: DateTimeFieldToMomentInterceptor(["submission_datetime"])
         },
+        kamc_no_memo: {
+            method: 'get',
+            url: '/api/rotation_requests/kamc_no_memo/',
+            isArray: true,
+            interceptor: DateTimeFieldToMomentInterceptor(["submission_datetime"])
+        },
+        kamc_memo: {
+            method: 'get',
+            url: '/api/rotation_requests/kamc_memo/',
+            isArray: true,
+            interceptor: DateTimeFieldToMomentInterceptor(["submission_datetime"])
+        },
+        non_kamc: {
+            method: 'get',
+            url: '/api/rotation_requests/non_kamc/',
+            isArray: true,
+            interceptor: DateTimeFieldToMomentInterceptor(["submission_datetime"])
+        },
+        cancellation: {
+            method: 'get',
+            url: '/api/rotation_requests/cancellation/',
+            isArray: true,
+            interceptor: DateTimeFieldToMomentInterceptor(["submission_datetime"])
+        },
         respond: {
             method: "post",
             url: '/api/rotation_requests/:id/respond/',

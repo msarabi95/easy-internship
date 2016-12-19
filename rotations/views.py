@@ -54,6 +54,35 @@ class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
             return self.queryset.all()
         return self.queryset.filter(internship__intern__profile__user=self.request.user)
 
+    @list_route(methods=['get'], permission_classes=[permissions.IsAuthenticated, IsStaff])
+    def kamc_no_memo(self, request):
+        requests = self.get_queryset().unreviewed().filter(is_delete=False)\
+            .filter(requested_department__department__requires_memo=False)
+        serialized = self.get_serializer(requests, many=True)
+        return Response(serialized.data)
+
+    @list_route(methods=['get'], permission_classes=[permissions.IsAuthenticated, IsStaff])
+    def kamc_memo(self, request):
+        requests = self.get_queryset().unreviewed().filter(is_delete=False)\
+            .filter(requested_department__department__hospital__is_kamc=True)\
+            .filter(requested_department__department__requires_memo=True)
+        serialized = self.get_serializer(requests, many=True)
+        return Response(serialized.data)
+
+    @list_route(methods=['get'], permission_classes=[permissions.IsAuthenticated, IsStaff])
+    def non_kamc(self, request):
+        requests = self.get_queryset().unreviewed().filter(is_delete=False)\
+            .filter(requested_department__department__hospital__is_kamc=False)\
+            .filter(requested_department__department__requires_memo=True)
+        serialized = self.get_serializer(requests, many=True)
+        return Response(serialized.data)
+
+    @list_route(methods=['get'], permission_classes=[permissions.IsAuthenticated, IsStaff])
+    def cancellation(self, request):
+        requests = self.get_queryset().unreviewed().filter(is_delete=True)
+        serialized = self.get_serializer(requests, many=True)
+        return Response(serialized.data)
+
     @detail_route(methods=["post"])
     def respond(self, request, pk=None):
         """
@@ -70,8 +99,8 @@ class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
         
         department_requires_memo = rotation_request.requested_department.get_department().requires_memo
         memo_handed_by_intern = rotation_request.requested_department.get_department().memo_handed_by_intern
-        if department_requires_memo and not hasattr(rotation_request, 'forward'):
-            raise ForwardExpected("This rotation request can't be responded to without forwarding it first.")
+        if department_requires_memo and not hasattr(rotation_request, 'forward') and is_approved:
+            raise ForwardExpected("This rotation request can't be approved without forwarding it first.")
 
         # TODO: Check that the appropriate person is recording the response
         if department_requires_memo and memo_handed_by_intern:

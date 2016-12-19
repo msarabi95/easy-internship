@@ -54,9 +54,11 @@
     }
   }
 
-  [ng-view].ng-enter {
-    animation: fadeIn 0.5s;
-  }
+  {% if role == 'intern' %}
+    [ng-view].ng-enter {
+      animation: fadeIn 0.5s;
+    }
+  {% endif %}
 
 </style>
 
