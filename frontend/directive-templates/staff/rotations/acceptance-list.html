@@ -1,0 +1,89 @@
+<hr style="border-color: lightgray;">
+<h4 class="text-bold">{{ list.department.name }} | {{ list.month.format('MMMM YYYY') }}</h4>
+<h4><small>
+  <span class="text-bold">Acceptance criterion:</span> {{ list.acceptance_criterion }} |
+  <span class="text-bold">Total seats:</span> {{ list.total_seats }} |
+  <span class="text-bold">Unoccupied seats:</span> {{ list.unoccupied_seats }}
+</small></h4>
+<div class="row">
+  <div class="col-md-10">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="box box-success">
+              <div class="box-header text-center" style="padding-top: 2px; padding-bottom: 3px;">
+                <h7 class="text-bold text-green" style="margin-top: 0; margin-bottom: 0;">
+                  To Accept
+                  <span ng-if="list.auto_accepted.length > 0">({{ list.auto_accepted.length }})</span>
+                </h7>
+              </div>
+              <div class="box-body" ng-if="list.auto_accepted.length == 0">
+                <div class="text-center">
+                  <h7><i>No requests to be accepted</i></h7>
+                </div>
+              </div>
+              <table class="table" ng-if="list.auto_accepted.length > 0">
+                <thead>
+                  <th>Name</th>
+                  <th>Submitted</th>
+                  <th></th>
+                </thead>
+                <tbody>
+                  <tr ng-repeat="request in list.auto_accepted">
+                    <td>{{ request.intern_name }}</td>
+                    <td>{{ request.submission_datetime.format('D-MMM-YYYY, hh:mm a') }}</td>
+                    <td><a href="#/interns/{{ request.internship_id }}/"><i class="fa fa-info-circle"></i></a></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="box box-danger">
+              <div class="box-header text-center" style="padding-top: 2px; padding-bottom: 3px;">
+                <h7 class="text-bold text-red" style="margin-top: 0; margin-bottom: 0;">
+                  To Decline
+                  <span ng-if="list.auto_declined.length > 0">({{ list.auto_declined.length }})</span>
+                </h7>
+              </div>
+              <div class="box-body" ng-if="list.auto_declined.length == 0">
+                <div class="text-center">
+                  <h7><i>No requests to be declined</i></h7>
+                </div>
+              </div>
+              <table class="table" ng-if="list.auto_declined.length > 0">
+                <thead>
+                  <th>Name</th>
+                  <th>Submitted</th>
+                  <th></th>
+                </thead>
+                <tbody>
+                  <tr ng-repeat="request in list.auto_declined">
+                    <td>{{ request.intern_name }}</td>
+                    <td>{{ request.submission_datetime.format('D-MMM-YYYY, hh:mm a') }}</td>
+                    <td><a href="#/interns/{{ request.internship_id }}/"><i class="fa fa-info-circle"></i></a></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  <div class="col-md-2">
+    <button class="btn btn-success"
+            ng-hide="loading == true"
+            ng-click="respondAll()"
+            style="border-radius: 50%; width: 40px; height: 40px;">
+      <i class="fa fa-check"></i>
+    </button>
+    <button class="btn disabled"
+            ng-show="loading == true"
+            style="border-radius: 50%; width: 40px; height: 40px; padding: 0;">
+      <img src="/static/loading.gif" height="20" style="position: relative; margin: auto;" />
+    </button>
+  </div>
+</div>

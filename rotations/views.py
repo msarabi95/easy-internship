@@ -14,17 +14,20 @@ from docxtpl import DocxTemplate
 from month import Month
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import detail_route, list_route
+from rest_framework.exceptions import ParseError
 from rest_framework.response import Response
+from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK
 
 from accounts.permissions import IsStaff
 from misc.models import DocumentTemplate
 from rotations.exceptions import ResponseExists, ForwardExists, ForwardExpected, ForwardNotExpected
 from rotations.forms import RotationRequestForm
 from rotations.models import Rotation, RequestedDepartment, RotationRequest, RotationRequestResponse, \
-    RotationRequestForward
-from hospitals.models import Department, AcceptanceSetting, Hospital, Specialty
+    RotationRequestForward, AcceptanceList
+from hospitals.models import Department, AcceptanceSetting, Hospital, Specialty, DepartmentMonthSettings, MonthSettings, \
+    DepartmentSettings, GlobalSettings
 from rotations.serializers import RotationSerializer, RequestedDepartmentSerializer, RotationRequestSerializer, \
-    RotationRequestResponseSerializer, RotationRequestForwardSerializer
+    RotationRequestResponseSerializer, RotationRequestForwardSerializer, AcceptanceListSerializer
 
 
 class RotationViewSet(viewsets.ReadOnlyModelViewSet):
@@ -375,3 +378,68 @@ class RotationRequestForwardViewSet(viewsets.ReadOnlyModelViewSet):
     @detail_route(methods=['get'], permission_classes=[permissions.IsAuthenticated])
     def memo_pdf(self, request, pk=None):
         pass  # TODO
+
+
+class AcceptanceListViewSet(viewsets.ViewSet):
+    # permission_classes = [permissions.IsAuthenticated, IsStaff]
+
+    def acceptance_list_factory(self, departments, months, rotation_requests, acceptance_settings):
+        return [AcceptanceList(department, month, rotation_requests, acceptance_settings) for department in departments for month in months]
+
+    def acceptance_setting_factory(self, departments, months,
+                                   department_month_settings=None, month_settings=None,
+                                   department_settings=None, global_settings=None):
+        return [AcceptanceSetting(department, month,
+                                  department_month_settings, month_settings,
+                                  department_settings, global_settings) for department in departments for month in months]
+
+    def list(self, request, *args, **kwargs):
+        rotation_requests = RotationRequest.objects.unreviewed()\
+            .filter(is_delete=False)\
+            .filter(requested_department__department__hospital__is_kamc=True)\
+            .filter(requested_department__department__requires_memo=False)
+        department_ids = rotation_requests.values_list('requested_department__department', flat=True)
+        departments = Department.objects.filter(id__in=department_ids)
+        months = rotation_requests.values_list('month', flat=True)
+
+        dms = DepartmentMonthSettings.objects.filter(department__in=departments, month__in=months)
+        ms = MonthSettings.objects.filter(month__in=months)
+        ds = DepartmentSettings.objects.filter(department__in=departments)
+
+        from hospitals.utils import get_global_settings
+        gs = get_global_settings()
+
+        acceptance_settings = self.acceptance_setting_factory(departments, months, dms, ms, ds, gs)
+
+        acceptance_lists = self.acceptance_list_factory(departments, months, rotation_requests\
+            .prefetch_related('internship__intern'), acceptance_settings)
+
+        return Response(AcceptanceListSerializer(acceptance_lists, many=True).data)
+
+    @list_route(methods=['get'], url_path=r'(?P<department_id>\d+)/(?P<month_id>\d+)')
+    def retrieve_list(self, request, department_id=None, month_id=None, *args, **kwargs):
+        department = get_object_or_404(Department, id=department_id)
+        month = Month.from_int(int(month_id))
+
+        try:
+            acceptance_list = AcceptanceList(department, month)
+            return Response(AcceptanceListSerializer(acceptance_list).data)
+        except ValueError as e:
+            raise Http404
+
+    @list_route(methods=['post'], url_path=r'(?P<department_id>\d+)/(?P<month_id>\d+)/respond')
+    def respond(self, request, department_id=None, month_id=None, *args, **kwargs):
+        department = get_object_or_404(Department, id=department_id)
+        month = Month.from_int(int(month_id))
+
+        try:
+            acceptance_list = AcceptanceList(department, month)
+        except ValueError as e:
+            raise Http404
+
+        # (1) Verify that all manually accepted or declined requests have comments attached to them
+        #     Raise a BAD_REQUEST if not satisfied
+
+        # (2) Accept the accepted requests, and declined the declined requests
+
+        return Response(status=HTTP_200_OK)

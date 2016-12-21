@@ -95,4 +95,36 @@ angular.module("ei.rotations.models", ["ngResource", "ei.interceptors"])
             interceptor: DateTimeFieldToMomentInterceptor(["forward_datetime"])
         }
     });
+}])
+
+.factory("AcceptanceList", ["$resource", function ($resource) {
+    return $resource('/api/acceptance_lists/:department_id/:month_id/', {
+        department_id: '@department.id',
+        month_id: '@month'
+    }, {
+        query: {
+            method: 'get',
+            isArray: true,
+            interceptor: {
+                response: function (response) {
+                    for (var x = 0; x < response.resource.length; x++) {
+                        var list = response.resource[x];
+                        var monthId = list.month;
+                        response.resource[x].month = moment({year: Math.floor(monthId / 12), month: (monthId % 12), monthId: monthId});
+                        for (var i = 0; i < list.auto_accepted.length; i++) {
+                            response.resource[x].auto_accepted[i].submission_datetime = moment(response.resource[x].auto_accepted[i].submission_datetime);
+                        }
+                    }
+                    return response.resource;
+                }
+            }
+        },
+        respond: {
+            method: 'post',
+            url: '/api/acceptance_lists/:department_id/:month_id/respond/',
+            params: {
+                month_id: '@month._i.monthId'
+            }
+        }
+    });
 }]);

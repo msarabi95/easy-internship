@@ -299,3 +299,63 @@ class RotationRequestForward(models.Model):
 
     def __unicode__(self):
         return "Forward of request #%d" % self.rotation_request.id
+
+
+class AcceptanceList(object):
+    def __init__(self, department, month, rotation_requests=None, acceptance_settings=None):
+        self.department = department
+        self.month = month
+        ##################################
+        # (1) Filter the rotation requests
+        ##################################
+
+        if rotation_requests:
+            self.requests = filter(lambda rr: rr.requested_department.department == department and rr.month == month, rotation_requests)
+            request_count = len(self.requests)
+        else:
+            self.requests = RotationRequest.objects.unreviewed().filter(is_delete=False)\
+                .filter(requested_department__department=department, month=month)
+            request_count = self.requests.count()
+
+        if request_count == 0:
+            raise ValueError("There are no requests to construct an acceptance list.")
+
+        ################################
+        # (2) Get the acceptance setting
+        ################################
+
+        from hospitals.models import AcceptanceSetting, FCFS_ACCEPTANCE, GPA_ACCEPTANCE
+
+        try:
+            if not acceptance_settings:
+                raise IndexError  # FIXME ???
+            self.acceptance_setting = filter(
+                lambda setting: setting.department == department and setting.month == month,
+                acceptance_settings
+            )[0]
+        except IndexError:
+            self.acceptance_setting = AcceptanceSetting(department, month)
+
+        ##########################################
+        # (3) Check a number of seats is specified
+        ##########################################
+
+        if not self.acceptance_setting.total_seats:
+            raise ValueError("Acceptance Lists only apply when there is a specific number of seats specified.")
+
+        #################################################
+        # (4) Sort requests based on acceptance criterion
+        #################################################
+
+        if self.acceptance_setting.criterion == FCFS_ACCEPTANCE:
+            self.requests = sorted(self.requests, key=lambda request: request.submission_datetime)
+        elif self.acceptance_setting.criterion == GPA_ACCEPTANCE:
+            self.requests = sorted(self.requests, key=lambda request: request.internship.intern.gpa)
+
+        unoccupied_seats = self.acceptance_setting.get_unoccupied_seats()
+
+        self.auto_accepted = self.requests[:unoccupied_seats]
+        self.auto_declined = self.requests[unoccupied_seats:]
+
+        self.manual_accepted = []
+        self.manual_declined = []

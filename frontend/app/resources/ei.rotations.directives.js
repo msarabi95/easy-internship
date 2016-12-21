@@ -37,4 +37,27 @@ angular.module("ei.rotations.directives", ["ei.utils"])
             };
         }
     }
+}])
+
+.directive("acceptanceList", ["$timeout", function ($timeout) {
+    return {
+        restrict: 'E',
+        scope: {
+            list: "=list",
+            removeFromList: "&onResponse"
+        },
+        templateUrl: "/static/directive-templates/staff/rotations/acceptance-list.html",
+        link: function (scope, element, attrs) {
+            scope.respondAll = function () {
+                scope.loading = true;
+                scope.list.$respond({}, function () {
+                    scope.loading = false;
+                    scope.removeFromList({list: scope.list});
+                });
+                //$timeout(function() {
+                //
+                //}, 2000);
+            };
+        }
+    }
 }]);

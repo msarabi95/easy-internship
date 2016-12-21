@@ -10,14 +10,14 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
 
     $routeProvider
         .when("/requests/:page?/", {
-            templateUrl: "static/partials/staff/rotations/rotation-request-list.html?v=0001",
+            templateUrl: "static/partials/staff/rotations/rotation-request-list.html?v=0002",
             controller: "RotationRequestListCtrl"
         });
 
 }])
 
-.controller("RotationRequestListCtrl", ["$scope", "$filter", "$q", "$routeParams", "$location", "$timeout", "loadWithRelated", "Department", "AcceptanceSettings", "Internship", "InternshipMonth", "Intern", "Profile", "RotationRequest", "RequestedDepartment", "Specialty", "Hospital",
-    function ($scope, $filter, $q, $routeParams, $location, $timeout, loadWithRelated, Department, AcceptanceSettings, Internship, InternshipMonth, Intern, Profile, RotationRequest, RequestedDepartment, Specialty, Hospital) {
+.controller("RotationRequestListCtrl", ["$scope", "$filter", "$q", "$routeParams", "$location", "$timeout", "loadWithRelated", "AcceptanceList", "Department", "AcceptanceSettings", "Internship", "InternshipMonth", "Intern", "Profile", "RotationRequest", "RequestedDepartment", "Specialty", "Hospital",
+    function ($scope, $filter, $q, $routeParams, $location, $timeout, loadWithRelated, AcceptanceList, Department, AcceptanceSettings, Internship, InternshipMonth, Intern, Profile, RotationRequest, RequestedDepartment, Specialty, Hospital) {
 
         $scope.page = $routeParams.page;
 
@@ -39,14 +39,22 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
                     request.month.$promise,
                     request.requested_department.$promise,
                     request.specialty.$promise,
-                    request.internship.$promise,
+                    request.internship.$promise
                 ])
             });
         }
 
         switch ($scope.page) {
             case 'kamc-nomemo':
-                $scope.requests = RotationRequest.kamc_no_memo(loadRequestInfo);
+                $scope.removeFromList = function (acceptanceList) {
+                    var idx = $scope.acceptance_lists.indexOf(acceptanceList);
+                    $scope.acceptance_lists.splice(idx, 1);
+                };
+
+                $scope.acceptance_lists = AcceptanceList.query(function (lists) {
+                    console.log(lists);
+                });
+                //$scope.requests = RotationRequest.kamc_no_memo(loadRequestInfo);
                 break;
             case 'kamc-memo':
                 $scope.requests = RotationRequest.kamc_memo(loadRequestInfo);
