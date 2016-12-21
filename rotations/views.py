@@ -384,14 +384,15 @@ class AcceptanceListViewSet(viewsets.ViewSet):
     # permission_classes = [permissions.IsAuthenticated, IsStaff]
 
     def acceptance_list_factory(self, departments, months, rotation_requests, acceptance_settings):
-        return [AcceptanceList(department, month, rotation_requests, acceptance_settings) for department in departments for month in months]
+        return [AcceptanceList(department, month, rotation_requests_cache=rotation_requests,
+                               acceptance_settings_cache=acceptance_settings) for department in departments for month in set(months)]
 
     def acceptance_setting_factory(self, departments, months,
                                    department_month_settings=None, month_settings=None,
                                    department_settings=None, global_settings=None):
         return [AcceptanceSetting(department, month,
                                   department_month_settings, month_settings,
-                                  department_settings, global_settings) for department in departments for month in months]
+                                  department_settings, global_settings) for department in departments for month in set(months)]
 
     def list(self, request, *args, **kwargs):
         rotation_requests = RotationRequest.objects.unreviewed()\
@@ -421,25 +422,25 @@ class AcceptanceListViewSet(viewsets.ViewSet):
         department = get_object_or_404(Department, id=department_id)
         month = Month.from_int(int(month_id))
 
-        try:
-            acceptance_list = AcceptanceList(department, month)
-            return Response(AcceptanceListSerializer(acceptance_list).data)
-        except ValueError as e:
-            raise Http404
+        acceptance_list = AcceptanceList(department, month)
+        return Response(AcceptanceListSerializer(acceptance_list).data)
 
     @list_route(methods=['post'], url_path=r'(?P<department_id>\d+)/(?P<month_id>\d+)/respond')
     def respond(self, request, department_id=None, month_id=None, *args, **kwargs):
         department = get_object_or_404(Department, id=department_id)
         month = Month.from_int(int(month_id))
 
-        try:
-            acceptance_list = AcceptanceList(department, month)
-        except ValueError as e:
-            raise Http404
+        serialized = AcceptanceListSerializer(
+            data=request.data,
+            instance=AcceptanceList(department=department, month=month)
+        )
+        serialized.is_valid(raise_exception=True)
+        acceptance_list = serialized.save()
 
+        acceptance_list.respond_all()
         # (1) Verify that all manually accepted or declined requests have comments attached to them
         #     Raise a BAD_REQUEST if not satisfied
 
         # (2) Accept the accepted requests, and declined the declined requests
 
-        return Response(status=HTTP_200_OK)
+        return Response(serialized.data)

@@ -2,8 +2,6 @@ from rest_framework import serializers
 
 from easy_internship.serializers import MonthField
 from hospitals.models import Department
-from hospitals.serializers import DepartmentSerializer
-from months.serializers import InternshipMonthSerializer
 from rotations.models import Rotation, RequestedDepartment, RotationRequest, RotationRequestResponse, \
     RotationRequestForward
 
@@ -65,10 +63,11 @@ class ShortRotationRequestResponseSerializer(serializers.ModelSerializer):
 
 
 class ShortRotationRequestSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField()
     internship_id = serializers.IntegerField(source='internship.id')
     intern_name = serializers.CharField(source='internship.intern.profile.get_en_full_name')
     gpa = serializers.FloatField(source='internship.intern.gpa')
-    response = ShortRotationRequestResponseSerializer()
+    response = ShortRotationRequestResponseSerializer(allow_null=True)
 
     class Meta:
         model = RotationRequest
@@ -78,11 +77,11 @@ class ShortRotationRequestSerializer(serializers.ModelSerializer):
 class AcceptanceListSerializer(serializers.Serializer):
     department = ShortDepartmentSerializer()
     month = MonthField()
-    # requests = ShortRotationRequestSerializer(many=True)
-    acceptance_criterion = serializers.CharField(source='acceptance_setting.criterion')
-    acceptance_start_or_end_date = serializers.CharField(source='acceptance_setting.start_or_end_date')
-    total_seats = serializers.IntegerField(source='acceptance_setting.total_seats')
-    unoccupied_seats = serializers.IntegerField(source='acceptance_setting.get_unoccupied_seats')
+    acceptance_criterion = serializers.CharField()
+    acceptance_is_open = serializers.BooleanField()
+    acceptance_start_or_end_date = serializers.DateTimeField()
+    total_seats = serializers.IntegerField()
+    unoccupied_seats = serializers.IntegerField()
     auto_accepted = ShortRotationRequestSerializer(many=True)
     auto_declined = ShortRotationRequestSerializer(many=True)
     manual_accepted = ShortRotationRequestSerializer(many=True)
@@ -92,4 +91,11 @@ class AcceptanceListSerializer(serializers.Serializer):
         pass
 
     def update(self, instance, validated_data):
-        pass
+        acceptance_list = instance
+
+        acceptance_list.auto_accepted = [RotationRequest.objects.get(id=request_data['id']) for request_data in validated_data.pop('auto_accepted')]
+        acceptance_list.auto_declined = [RotationRequest.objects.get(id=request_data['id']) for request_data in validated_data.pop('auto_declined')]
+        acceptance_list.manual_accepted = [RotationRequest.objects.get(id=request_data['id']) for request_data in validated_data.pop('manual_accepted')]
+        acceptance_list.manual_declined = [RotationRequest.objects.get(id=request_data['id']) for request_data in validated_data.pop('manual_declined')]
+
+        return acceptance_list

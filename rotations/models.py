@@ -302,60 +302,150 @@ class RotationRequestForward(models.Model):
 
 
 class AcceptanceList(object):
-    def __init__(self, department, month, rotation_requests=None, acceptance_settings=None):
+    def __init__(self, department, month,
+                 auto_accepted=None, auto_declined=None, manual_accepted=None, manual_declined=None,
+                 rotation_requests_cache=None, acceptance_settings_cache=None):
         self.department = department
         self.month = month
-        ##################################
-        # (1) Filter the rotation requests
-        ##################################
 
-        if rotation_requests:
-            self.requests = filter(lambda rr: rr.requested_department.department == department and rr.month == month, rotation_requests)
-            request_count = len(self.requests)
+        self.rotation_requests_cache = rotation_requests_cache
+        self.acceptance_settings_cache = acceptance_settings_cache
+
+        acceptance_setting = self.get_acceptance_setting()
+
+        self.acceptance_criterion = acceptance_setting.criterion
+        self.acceptance_is_open = acceptance_setting.can_submit_requests()
+        self.acceptance_start_or_end_date = acceptance_setting.start_or_end_date
+
+        self.total_seats = acceptance_setting.total_seats
+        self.unoccupied_seats = acceptance_setting.get_unoccupied_seats()
+
+        if not auto_accepted or not auto_declined:
+            requests = self.get_sorted_rotation_requests()
+
+        self.auto_accepted = requests[:self.unoccupied_seats] if not auto_accepted else auto_accepted
+        self.auto_declined = requests[self.unoccupied_seats:] if not auto_declined else auto_declined
+
+        self.manual_accepted = manual_accepted or []
+        self.manual_declined = manual_declined or []
+
+        # Verification
+        # (1) All contents should be instances of RotationRequest
+        # (2) No one request should be duplicated in any part
+        request_lists = [self.auto_accepted, self.auto_declined, self.manual_accepted, self.manual_declined]
+        for request_list in request_lists:
+            for request in request_list:
+                assert isinstance(request, RotationRequest), \
+                    "Members of an AcceptanceList should be instances of `RotationRequest`."
+                assert not any([request in rl for rl in request_lists if rl != request_list]),\
+                    "A rotation request can't be present in more than one branch of an acceptance list."
+
+    def get_acceptance_setting(self):
+        if self.acceptance_settings_cache:
+            filtered = filter(
+                lambda setting: setting.department == self.department and setting.month == self.month,
+                self.acceptance_settings_cache
+            )
+            assert len(filtered) == 1, "Unexpected number of filtered cached acceptance settings."
+            return filtered[0]
         else:
-            self.requests = RotationRequest.objects.unreviewed().filter(is_delete=False)\
-                .filter(requested_department__department=department, month=month)
-            request_count = self.requests.count()
+            from hospitals.models import AcceptanceSetting
+            return AcceptanceSetting(self.department, self.month)
 
-        if request_count == 0:
-            raise ValueError("There are no requests to construct an acceptance list.")
+    def get_sorted_rotation_requests(self):
+        from hospitals.models import FCFS_ACCEPTANCE, GPA_ACCEPTANCE
+        assert self.acceptance_criterion == FCFS_ACCEPTANCE or self.acceptance_criterion == GPA_ACCEPTANCE
 
-        ################################
-        # (2) Get the acceptance setting
-        ################################
+        if self.rotation_requests_cache:
+            rotation_requests = filter(
+                lambda rr: rr.requested_department.department == self.department and rr.month == self.month,
+                self.rotation_requests_cache,
+            )
+            rotation_requests = sorted(
+                rotation_requests,
+                key=lambda rr: rr.submission_datetime if self.acceptance_criterion == FCFS_ACCEPTANCE else rr.internship.intern.gpa,
+            )
+            return rotation_requests
+        else:
+            order_field = \
+                "submission_datetime" if self.acceptance_criterion == FCFS_ACCEPTANCE else "internship__intern__gpa"
+            return RotationRequest.objects.unreviewed().filter(is_delete=False)\
+                        .filter(requested_department__department=self.department, month=self.month)\
+                        .order_by(order_field)
 
-        from hospitals.models import AcceptanceSetting, FCFS_ACCEPTANCE, GPA_ACCEPTANCE
+    def respond_all(self):
+        """
+        Respond to all the requests in the Acceptance List appropriately.
+        """
+        # Verifications
+        # (1) All manually determined requests should have comments attached to them
+        all_requests = self.auto_accepted + self.auto_declined + self.manual_accepted + self.manual_declined
+        manual_requests = self.manual_accepted + self.manual_declined
+        for request in manual_requests:
+            assert hasattr(request, 'response'), "A manually determined request should have a comment attached."
 
-        try:
-            if not acceptance_settings:
-                raise IndexError  # FIXME ???
-            self.acceptance_setting = filter(
-                lambda setting: setting.department == department and setting.month == month,
-                acceptance_settings
-            )[0]
-        except IndexError:
-            self.acceptance_setting = AcceptanceSetting(department, month)
+        responses = list()
+        rotations = list()
+        for request in self.auto_accepted:
+            responses.append(RotationRequestResponse(
+                rotation_request=request,
+                is_approved=True,
+                comments="",  # TODO
+            ))
+            rotations.append(Rotation(
+                internship=request.internship,
+                month=request.month,
+                department=request.requested_department.department,
+                specialty=request.specialty,
+                is_elective=request.is_elective,
+                rotation_request=request,
+            ))
 
-        ##########################################
-        # (3) Check a number of seats is specified
-        ##########################################
+        for request in self.auto_declined:
+            responses.append(RotationRequestResponse(
+                rotation_request=request,
+                is_approved=False,
+                comments="",  # TODO
+            ))
 
-        if not self.acceptance_setting.total_seats:
-            raise ValueError("Acceptance Lists only apply when there is a specific number of seats specified.")
+        for request in self.manual_accepted:
+            response = request.response
+            response.is_approved = True
+            responses.append(response)
 
-        #################################################
-        # (4) Sort requests based on acceptance criterion
-        #################################################
+            rotations.append(Rotation(
+                internship=request.internship,
+                month=request.month,
+                department=request.requested_department.department,
+                specialty=request.specialty,
+                is_elective=request.is_elective,
+                rotation_request=request,
+            ))
 
-        if self.acceptance_setting.criterion == FCFS_ACCEPTANCE:
-            self.requests = sorted(self.requests, key=lambda request: request.submission_datetime)
-        elif self.acceptance_setting.criterion == GPA_ACCEPTANCE:
-            self.requests = sorted(self.requests, key=lambda request: request.internship.intern.gpa)
+        for request in self.manual_declined:
+            response = request.response
+            response.is_approved = False
+            responses.append(response)
 
-        unoccupied_seats = self.acceptance_setting.get_unoccupied_seats()
+        RotationRequestResponse.objects.bulk_create(responses)
+        Rotation.objects.bulk_create(rotations)
 
-        self.auto_accepted = self.requests[:unoccupied_seats]
-        self.auto_declined = self.requests[unoccupied_seats:]
+        for rotation_request in all_requests:
+            if rotation_request.response.is_approved:
+                notify(
+                    "Rotation request %d for %s has been approved." % (rotation_request.id, rotation_request.month.first_day().strftime("%B %Y")),
+                    "rotation_request_approved",
+                    target_object=rotation_request,
+                    url="/planner/%d/" % int(rotation_request.month),
+                )
+            else:
+                notify(
+                    "Rotation request %d for %s has been declined." % (rotation_request.id, rotation_request.month.first_day().strftime("%B %Y")),
+                    "rotation_request_declined",
+                    target_object=rotation_request,
+                    url="/planner/%d/history/" % int(rotation_request.month),
+                )
 
-        self.manual_accepted = []
-        self.manual_declined = []
+    def __repr__(self):
+        return "<%s: Acceptance List for %s during %s>" % \
+               (self.__class__.__name__, self.department.__unicode__(), self.month.first_day().strftime("%B %Y"))

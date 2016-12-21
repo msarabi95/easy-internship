@@ -124,6 +124,10 @@ angular.module("ei.rotations.models", ["ngResource", "ei.interceptors"])
             url: '/api/acceptance_lists/:department_id/:month_id/respond/',
             params: {
                 month_id: '@month._i.monthId'
+            },
+            transformRequest: function (data) {
+                data.month = data.month._i.monthId;
+                return angular.toJson(data);
             }
         }
     });
