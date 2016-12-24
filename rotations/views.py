@@ -438,9 +438,5 @@ class AcceptanceListViewSet(viewsets.ViewSet):
         acceptance_list = serialized.save()
 
         acceptance_list.respond_all()
-        # (1) Verify that all manually accepted or declined requests have comments attached to them
-        #     Raise a BAD_REQUEST if not satisfied
 
-        # (2) Accept the accepted requests, and declined the declined requests
-
-        return Response(serialized.data)
+        return Response(status=HTTP_200_OK)

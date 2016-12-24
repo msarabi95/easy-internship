@@ -114,6 +114,9 @@ angular.module("ei.rotations.models", ["ngResource", "ei.interceptors"])
                         for (var i = 0; i < list.auto_accepted.length; i++) {
                             response.resource[x].auto_accepted[i].submission_datetime = moment(response.resource[x].auto_accepted[i].submission_datetime);
                         }
+                        for (var i = 0; i < list.auto_declined.length; i++) {
+                            response.resource[x].auto_declined[i].submission_datetime = moment(response.resource[x].auto_declined[i].submission_datetime);
+                        }
                     }
                     return response.resource;
                 }

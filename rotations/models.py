@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 from copy import copy
 
+import itertools
 from django.core import validators
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
@@ -320,11 +321,15 @@ class AcceptanceList(object):
         self.total_seats = acceptance_setting.total_seats
         self.unoccupied_seats = acceptance_setting.get_unoccupied_seats()
 
-        if not auto_accepted or not auto_declined:
-            requests = self.get_sorted_rotation_requests()
+        # TODO: Verify that auto_accepted and auto_declined don't have any manually changed requests
+        assert True
 
-        self.auto_accepted = requests[:self.unoccupied_seats] if not auto_accepted else auto_accepted
-        self.auto_declined = requests[self.unoccupied_seats:] if not auto_declined else auto_declined
+        requests = self.get_sorted_rotation_requests()
+        default_auto_accepted = requests[:self.unoccupied_seats]
+        default_auto_declined = requests[self.unoccupied_seats:]
+
+        self.auto_accepted = default_auto_accepted if not auto_accepted else auto_accepted
+        self.auto_declined = default_auto_declined if not auto_declined else auto_declined
 
         self.manual_accepted = manual_accepted or []
         self.manual_declined = manual_declined or []
@@ -332,13 +337,23 @@ class AcceptanceList(object):
         # Verification
         # (1) All contents should be instances of RotationRequest
         # (2) No one request should be duplicated in any part
+        # (3) No one request is found in any place except default or opposite list
+        #     (e.g. `auto_accepted` or `manual_decline`)
         request_lists = [self.auto_accepted, self.auto_declined, self.manual_accepted, self.manual_declined]
+        opposites = [
+            {'lists': [self.auto_accepted, self.manual_declined], 'reference': default_auto_accepted},
+            {'lists': [self.auto_declined, self.manual_accepted], 'reference': default_auto_declined},
+        ]
         for request_list in request_lists:
             for request in request_list:
                 assert isinstance(request, RotationRequest), \
                     "Members of an AcceptanceList should be instances of `RotationRequest`."
                 assert not any([request in rl for rl in request_lists if rl != request_list]),\
                     "A rotation request can't be present in more than one branch of an acceptance list."
+        for combination in opposites:
+            combined = itertools.chain(*combination['lists'])
+            assert all([request in combination['reference'] for request in combined]),\
+                "Requests should only be positioned in their default or opposite lists."
 
     def get_acceptance_setting(self):
         if self.acceptance_settings_cache:
@@ -383,15 +398,22 @@ class AcceptanceList(object):
         manual_requests = self.manual_accepted + self.manual_declined
         for request in manual_requests:
             assert hasattr(request, 'response'), "A manually determined request should have a comment attached."
+            assert request.response.comments.strip(), "Comment can't be empty."
 
         responses = list()
         rotations = list()
         for request in self.auto_accepted:
-            responses.append(RotationRequestResponse(
-                rotation_request=request,
-                is_approved=True,
-                comments="",  # TODO
-            ))
+            if hasattr(request, 'response'):
+                response = request.response
+                response.is_approved = True
+            else:
+                response = RotationRequestResponse(
+                    rotation_request=request,
+                    is_approved=True,
+                    comments="",
+                )
+            responses.append(response)
+
             rotations.append(Rotation(
                 internship=request.internship,
                 month=request.month,
@@ -402,11 +424,16 @@ class AcceptanceList(object):
             ))
 
         for request in self.auto_declined:
-            responses.append(RotationRequestResponse(
-                rotation_request=request,
-                is_approved=False,
-                comments="",  # TODO
-            ))
+            if hasattr(request, 'response'):
+                response = request.response
+                response.is_approved = False
+            else:
+                response = RotationRequestResponse(
+                    rotation_request=request,
+                    is_approved=False,
+                    comments="",
+                )
+            responses.append(response)
 
         for request in self.manual_accepted:
             response = request.response

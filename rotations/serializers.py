@@ -93,9 +93,21 @@ class AcceptanceListSerializer(serializers.Serializer):
     def update(self, instance, validated_data):
         acceptance_list = instance
 
-        acceptance_list.auto_accepted = [RotationRequest.objects.get(id=request_data['id']) for request_data in validated_data.pop('auto_accepted')]
-        acceptance_list.auto_declined = [RotationRequest.objects.get(id=request_data['id']) for request_data in validated_data.pop('auto_declined')]
-        acceptance_list.manual_accepted = [RotationRequest.objects.get(id=request_data['id']) for request_data in validated_data.pop('manual_accepted')]
-        acceptance_list.manual_declined = [RotationRequest.objects.get(id=request_data['id']) for request_data in validated_data.pop('manual_declined')]
+        for x in ('auto_accepted', 'auto_declined', 'manual_accepted', 'manual_declined',):
+            request_list = list()
+            for request_data in validated_data.pop(x):
+
+                print request_data
+
+                rr = RotationRequest.objects.get(id=request_data['id'])
+                if request_data.get('response'):
+                    rr.response = RotationRequestResponse(rotation_request=rr, comments=request_data.get('response').get('comments'))
+                request_list.append(rr)
+            setattr(acceptance_list, x, request_list)
+
+        # acceptance_list.auto_accepted = [RotationRequest.objects.get(id=request_data['id']) for request_data in validated_data.pop('auto_accepted')]
+        # acceptance_list.auto_declined = [RotationRequest.objects.get(id=request_data['id']) for request_data in validated_data.pop('auto_declined')]
+        # acceptance_list.manual_accepted = [RotationRequest.objects.get(id=request_data['id']) for request_data in validated_data.pop('manual_accepted')]
+        # acceptance_list.manual_declined = [RotationRequest.objects.get(id=request_data['id']) for request_data in validated_data.pop('manual_declined')]
 
         return acceptance_list
