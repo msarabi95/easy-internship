@@ -14,17 +14,20 @@ from docxtpl import DocxTemplate
 from month import Month
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import detail_route, list_route
+from rest_framework.exceptions import ParseError
 from rest_framework.response import Response
+from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK
 
 from accounts.permissions import IsStaff
 from misc.models import DocumentTemplate
 from rotations.exceptions import ResponseExists, ForwardExists, ForwardExpected, ForwardNotExpected
 from rotations.forms import RotationRequestForm
 from rotations.models import Rotation, RequestedDepartment, RotationRequest, RotationRequestResponse, \
-    RotationRequestForward
-from hospitals.models import Department, AcceptanceSetting, Hospital, Specialty
+    RotationRequestForward, AcceptanceList
+from hospitals.models import Department, AcceptanceSetting, Hospital, Specialty, DepartmentMonthSettings, MonthSettings, \
+    DepartmentSettings, GlobalSettings
 from rotations.serializers import RotationSerializer, RequestedDepartmentSerializer, RotationRequestSerializer, \
-    RotationRequestResponseSerializer, RotationRequestForwardSerializer
+    RotationRequestResponseSerializer, RotationRequestForwardSerializer, AcceptanceListSerializer
 
 
 class RotationViewSet(viewsets.ReadOnlyModelViewSet):
@@ -54,6 +57,35 @@ class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
             return self.queryset.all()
         return self.queryset.filter(internship__intern__profile__user=self.request.user)
 
+    @list_route(methods=['get'], permission_classes=[permissions.IsAuthenticated, IsStaff])
+    def kamc_no_memo(self, request):
+        requests = self.get_queryset().unreviewed().filter(is_delete=False)\
+            .filter(requested_department__department__requires_memo=False)
+        serialized = self.get_serializer(requests, many=True)
+        return Response(serialized.data)
+
+    @list_route(methods=['get'], permission_classes=[permissions.IsAuthenticated, IsStaff])
+    def kamc_memo(self, request):
+        requests = self.get_queryset().unreviewed().filter(is_delete=False)\
+            .filter(requested_department__department__hospital__is_kamc=True)\
+            .filter(requested_department__department__requires_memo=True)
+        serialized = self.get_serializer(requests, many=True)
+        return Response(serialized.data)
+
+    @list_route(methods=['get'], permission_classes=[permissions.IsAuthenticated, IsStaff])
+    def non_kamc(self, request):
+        requests = self.get_queryset().unreviewed().filter(is_delete=False)\
+            .filter(requested_department__department__hospital__is_kamc=False)\
+            .filter(requested_department__department__requires_memo=True)
+        serialized = self.get_serializer(requests, many=True)
+        return Response(serialized.data)
+
+    @list_route(methods=['get'], permission_classes=[permissions.IsAuthenticated, IsStaff])
+    def cancellation(self, request):
+        requests = self.get_queryset().unreviewed().filter(is_delete=True)
+        serialized = self.get_serializer(requests, many=True)
+        return Response(serialized.data)
+
     @detail_route(methods=["post"])
     def respond(self, request, pk=None):
         """
@@ -70,8 +102,8 @@ class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
         
         department_requires_memo = rotation_request.requested_department.get_department().requires_memo
         memo_handed_by_intern = rotation_request.requested_department.get_department().memo_handed_by_intern
-        if department_requires_memo and not hasattr(rotation_request, 'forward'):
-            raise ForwardExpected("This rotation request can't be responded to without forwarding it first.")
+        if department_requires_memo and not hasattr(rotation_request, 'forward') and is_approved:
+            raise ForwardExpected("This rotation request can't be approved without forwarding it first.")
 
         # TODO: Check that the appropriate person is recording the response
         if department_requires_memo and memo_handed_by_intern:
@@ -346,3 +378,69 @@ class RotationRequestForwardViewSet(viewsets.ReadOnlyModelViewSet):
     @detail_route(methods=['get'], permission_classes=[permissions.IsAuthenticated])
     def memo_pdf(self, request, pk=None):
         pass  # TODO
+
+
+class AcceptanceListViewSet(viewsets.ViewSet):
+    # permission_classes = [permissions.IsAuthenticated, IsStaff]
+
+    def acceptance_list_factory(self, departments_and_months, rotation_requests, acceptance_settings, departments_cache):
+        # FIXME: A better way to get the department
+        return [AcceptanceList(filter(lambda d: d.id == department_id, departments_cache)[0], month, rotation_requests_cache=rotation_requests,
+                               acceptance_settings_cache=acceptance_settings) for department_id, month in set(departments_and_months)]
+
+    def acceptance_setting_factory(self, departments, months,
+                                   department_month_settings=None, month_settings=None,
+                                   department_settings=None, global_settings=None):
+        return [AcceptanceSetting(department, month,
+                                  department_month_settings, month_settings,
+                                  department_settings, global_settings) for department in departments for month in set(months)]
+
+    def list(self, request, *args, **kwargs):
+        rotation_requests = RotationRequest.objects.unreviewed()\
+            .filter(is_delete=False)\
+            .filter(requested_department__department__hospital__is_kamc=True)\
+            .filter(requested_department__department__requires_memo=False)
+        departments_and_months = rotation_requests.values_list('requested_department__department', 'month')
+        department_ids = rotation_requests.values_list('requested_department__department', flat=True)
+        departments = Department.objects.filter(id__in=department_ids)
+        months = rotation_requests.values_list('month', flat=True)
+
+        dms = DepartmentMonthSettings.objects.filter(department__in=departments, month__in=months)
+        ms = MonthSettings.objects.filter(month__in=months)
+        ds = DepartmentSettings.objects.filter(department__in=departments)
+
+        from hospitals.utils import get_global_settings
+        gs = get_global_settings()
+
+        acceptance_settings = self.acceptance_setting_factory(departments, months, dms, ms, ds, gs)
+
+        acceptance_lists = self.acceptance_list_factory(departments_and_months, rotation_requests\
+            .prefetch_related('internship__intern'), acceptance_settings, departments_cache=departments)
+
+        sorted_acceptance_lists = sorted(acceptance_lists, key=lambda al: (al.month, al.department.name))
+
+        return Response(AcceptanceListSerializer(sorted_acceptance_lists, many=True).data)
+
+    @list_route(methods=['get'], url_path=r'(?P<department_id>\d+)/(?P<month_id>\d+)')
+    def retrieve_list(self, request, department_id=None, month_id=None, *args, **kwargs):
+        department = get_object_or_404(Department, id=department_id)
+        month = Month.from_int(int(month_id))
+
+        acceptance_list = AcceptanceList(department, month)
+        return Response(AcceptanceListSerializer(acceptance_list).data)
+
+    @list_route(methods=['post'], url_path=r'(?P<department_id>\d+)/(?P<month_id>\d+)/respond')
+    def respond(self, request, department_id=None, month_id=None, *args, **kwargs):
+        department = get_object_or_404(Department, id=department_id)
+        month = Month.from_int(int(month_id))
+
+        serialized = AcceptanceListSerializer(
+            data=request.data,
+            instance=AcceptanceList(department=department, month=month)
+        )
+        serialized.is_valid(raise_exception=True)
+        acceptance_list = serialized.save()
+
+        acceptance_list.respond_all()
+
+        return Response(status=HTTP_200_OK)

@@ -6,6 +6,18 @@
   <div class="box-body" ng-show="request.$promise.$$state.status == 1">
 
     <dl class="dl-horizontal">
+
+      <dt>Intern</dt>
+      <dd>{{ request.internship.intern.profile.en_full_name }}</dd>
+
+      <dt>GPA</dt>
+      <dd>{{ request.internship.intern.gpa }}</dd>
+
+      <dt></dt>
+      <dd><a class="btn btn-xs btn-primary" href="#/interns/{{ request.internship.id }}"><i class="fa fa-info-circle"></i> View full details</a></dd>
+
+      <hr>
+
       <dt>Month</dt>
       <dd>{{ request.month.label }}</dd>
 
@@ -27,7 +39,7 @@
 
       <div ng-if="request.is_delete">
         <dt>Description</dt>
-        <dd>{{ internship.intern.profile.en_full_name}} requested <span class="text-red text-bold">cancellation of the rotation</span> during this month.</dd>
+        <dd>{{ request.internship.intern.profile.en_full_name}} requested <span class="text-red text-bold">cancellation of the rotation</span> during this month.</dd>
       </div>
 
       <dt style="width: inherit;">Submission date and time</dt>
