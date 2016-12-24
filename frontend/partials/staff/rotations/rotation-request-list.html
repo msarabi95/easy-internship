@@ -21,6 +21,9 @@
         </ul>
         <div class="tab-content">
           <div class="tab-pane active">
+            <div ng-hide="acceptance_lists.$promise.$$state.status == 1 || requests.$promise.$$state.status == 1" style="height: 150px;">
+              <img src="/static/loading.gif" height="50" style="position: absolute; top: 50%; left: 50%; margin-left: -15px; margin-top: -15px;" />
+            </div>
             <div class="well" ng-if="acceptance_lists.length > 0">
               <div class="row">
                 <div class="col-sm-1 col-sm-offset-1">
@@ -75,7 +78,7 @@
               </div>
             </div>
 
-            <div class="text-center" ng-if="requests.length == 0 || acceptance_lists.length == 0">
+            <div class="text-center" ng-if="requests.$promise.$$state.status == 1 && requests.length == 0 || acceptance_lists.$promise.$$state.status == 1 && acceptance_lists.length == 0">
               <h3 class="text-center">No rotation requests to review</h3>
               <br>
             </div>
