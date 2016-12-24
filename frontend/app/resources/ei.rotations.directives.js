@@ -46,7 +46,7 @@ angular.module("ei.rotations.directives", ["ei.utils", "ui.bootstrap"])
             list: "=list",
             removeFromList: "&onResponse"
         },
-        templateUrl: "/static/directive-templates/staff/rotations/acceptance-list.html?v=0001",
+        templateUrl: "/static/directive-templates/staff/rotations/acceptance-list.html?v=0002",
         link: function (scope, element, attrs) {
             var CommentModalCtrl = ["$scope", "$uibModalInstance", "request", "options", function ($scope, $uibModalInstance, request, options) {
                 $scope.request = request;
