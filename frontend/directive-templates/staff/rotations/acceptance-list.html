@@ -26,13 +26,15 @@
               <table class="table" ng-if="list.auto_accepted.length > 0">
                 <thead>
                   <th>Name</th>
-                  <th>Submitted</th>
+                  <th ng-if="list.acceptance_criterion == 'FCFS'">Submitted</th>
+                  <th ng-if="list.acceptance_criterion == 'GPA'">GPA</th>
                   <th></th>
                 </thead>
                 <tbody>
                   <tr ng-repeat="request in list.auto_accepted">
                     <td>{{ request.intern_name }}</td>
-                    <td>{{ request.submission_datetime.format('D-MMM-YYYY, hh:mm a') }}</td>
+                    <td ng-if="list.acceptance_criterion == 'FCFS'">{{ request.submission_datetime.format('D-MMM-YYYY, hh:mm a') }}</td>
+                    <td ng-if="list.acceptance_criterion == 'GPA'">{{ request.gpa }}</td>
                     <td>
                       <a href="" ng-click="comment(request)">
                         <i class="fa" ng-class="{'fa-comment-o': !request.response.comments, 'fa-comment': !!request.response.comments}"></i>
@@ -53,7 +55,8 @@
                 <tbody>
                   <tr ng-repeat="request in list.manual_accepted">
                     <td>{{ request.intern_name }}</td>
-                    <td>{{ request.submission_datetime.format('D-MMM-YYYY, hh:mm a') }}</td>
+                    <td ng-if="list.acceptance_criterion == 'FCFS'">{{ request.submission_datetime.format('D-MMM-YYYY, hh:mm a') }}</td>
+                    <td ng-if="list.acceptance_criterion == 'GPA'">{{ request.gpa }}</td>
                     <td>
                       <a href="" ng-click="comment(request)">
                         <i class="fa" ng-class="{'fa-comment-o': !request.response.comments, 'fa-comment': !!request.response.comments}"></i>
@@ -87,7 +90,8 @@
                 <thead>
                   <th></th>
                   <th>Name</th>
-                  <th>Submitted</th>
+                  <th ng-if="list.acceptance_criterion == 'FCFS'">Submitted</th>
+                  <th ng-if="list.acceptance_criterion == 'GPA'">GPA</th>
                   <th></th>
                 </thead>
                 <tbody>
@@ -96,7 +100,8 @@
                       <a href="" ng-click="moveRequest(request, 'auto_declined', 'manual_accepted')"><i class="fa fa-chevron-circle-left"></i></a>
                     </td>
                     <td>{{ request.intern_name }}</td>
-                    <td>{{ request.submission_datetime.format('D-MMM-YYYY, hh:mm a') }}</td>
+                    <td ng-if="list.acceptance_criterion == 'FCFS'">{{ request.submission_datetime.format('D-MMM-YYYY, hh:mm a') }}</td>
+                    <td ng-if="list.acceptance_criterion == 'GPA'">{{ request.gpa }}</td>
                     <td>
                       <a href="" ng-click="comment(request)">
                         <i class="fa" ng-class="{'fa-comment-o': !request.response.comments, 'fa-comment': !!request.response.comments}"></i>
@@ -119,7 +124,8 @@
                       <a href="" ng-click="moveRequest(request, 'manual_declined', 'auto_accepted')"><i class="fa fa-close"></i></a>
                     </td>
                     <td>{{ request.intern_name }}</td>
-                    <td>{{ request.submission_datetime.format('D-MMM-YYYY, hh:mm a') }}</td>
+                    <td ng-if="list.acceptance_criterion == 'FCFS'">{{ request.submission_datetime.format('D-MMM-YYYY, hh:mm a') }}</td>
+                    <td ng-if="list.acceptance_criterion == 'GPA'">{{ request.gpa }}</td>
                     <td>
                       <a href="" ng-click="comment(request)">
                         <i class="fa" ng-class="{'fa-comment-o': !request.response.comments, 'fa-comment': !!request.response.comments}"></i>

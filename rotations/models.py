@@ -378,12 +378,12 @@ class AcceptanceList(object):
             )
             rotation_requests = sorted(
                 rotation_requests,
-                key=lambda rr: rr.submission_datetime if self.acceptance_criterion == FCFS_ACCEPTANCE else rr.internship.intern.gpa,
+                key=lambda rr: rr.submission_datetime if self.acceptance_criterion == FCFS_ACCEPTANCE else -rr.internship.intern.gpa,
             )
             return rotation_requests
         else:
             order_field = \
-                "submission_datetime" if self.acceptance_criterion == FCFS_ACCEPTANCE else "internship__intern__gpa"
+                "submission_datetime" if self.acceptance_criterion == FCFS_ACCEPTANCE else "-internship__intern__gpa"
             return RotationRequest.objects.unreviewed().filter(is_delete=False)\
                         .filter(requested_department__department=self.department, month=self.month)\
                         .order_by(order_field)
