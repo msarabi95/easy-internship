@@ -322,15 +322,18 @@ class AcceptanceList(object):
         self.unoccupied_seats = acceptance_setting.get_unoccupied_seats()
 
         requests = self.get_sorted_rotation_requests()
-        default_auto_accepted = requests[:self.unoccupied_seats]
-        default_auto_declined = requests[self.unoccupied_seats:]
+        self.default_auto_accepted = requests[:self.unoccupied_seats]
+        self.default_auto_declined = requests[self.unoccupied_seats:]
 
-        self.auto_accepted = default_auto_accepted if not auto_accepted else auto_accepted
-        self.auto_declined = default_auto_declined if not auto_declined else auto_declined
+        self.auto_accepted = self.default_auto_accepted if not auto_accepted else auto_accepted
+        self.auto_declined = self.default_auto_declined if not auto_declined else auto_declined
 
         self.manual_accepted = manual_accepted or []
         self.manual_declined = manual_declined or []
 
+        self.verify()
+    
+    def verify(self):
         # Verification
         # (1) All contents should be instances of RotationRequest
         # (2) No one request should be duplicated in any part
@@ -338,8 +341,8 @@ class AcceptanceList(object):
         #     (e.g. `auto_accepted` or `manual_decline`)
         request_lists = [self.auto_accepted, self.auto_declined, self.manual_accepted, self.manual_declined]
         opposites = [
-            {'lists': [self.auto_accepted, self.manual_declined], 'reference': default_auto_accepted},
-            {'lists': [self.auto_declined, self.manual_accepted], 'reference': default_auto_declined},
+            {'lists': [self.auto_accepted, self.manual_declined], 'reference': self.default_auto_accepted},
+            {'lists': [self.auto_declined, self.manual_accepted], 'reference': self.default_auto_declined},
         ]
         for request_list in request_lists:
             for request in request_list:
@@ -390,7 +393,9 @@ class AcceptanceList(object):
         Respond to all the requests in the Acceptance List appropriately.
         """
         # Verifications
-        # (1) All manually determined requests should have comments attached to them
+        # (1) Redo general verifications to account for updates to the lists
+        self.verify()
+        # (2) All manually determined requests should have comments attached to them
         all_requests = self.auto_accepted + self.auto_declined + self.manual_accepted + self.manual_declined
         manual_requests = self.manual_accepted + self.manual_declined
         for request in manual_requests:
