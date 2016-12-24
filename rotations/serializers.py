@@ -82,6 +82,7 @@ class AcceptanceListSerializer(serializers.Serializer):
     acceptance_start_or_end_date = serializers.DateTimeField()
     total_seats = serializers.IntegerField()
     unoccupied_seats = serializers.IntegerField()
+    booked_seats = serializers.IntegerField()
     auto_accepted = ShortRotationRequestSerializer(many=True)
     auto_declined = ShortRotationRequestSerializer(many=True)
     manual_accepted = ShortRotationRequestSerializer(many=True)
@@ -104,10 +105,5 @@ class AcceptanceListSerializer(serializers.Serializer):
                     rr.response = RotationRequestResponse(rotation_request=rr, comments=request_data.get('response').get('comments'))
                 request_list.append(rr)
             setattr(acceptance_list, x, request_list)
-
-        # acceptance_list.auto_accepted = [RotationRequest.objects.get(id=request_data['id']) for request_data in validated_data.pop('auto_accepted')]
-        # acceptance_list.auto_declined = [RotationRequest.objects.get(id=request_data['id']) for request_data in validated_data.pop('auto_declined')]
-        # acceptance_list.manual_accepted = [RotationRequest.objects.get(id=request_data['id']) for request_data in validated_data.pop('manual_accepted')]
-        # acceptance_list.manual_declined = [RotationRequest.objects.get(id=request_data['id']) for request_data in validated_data.pop('manual_declined')]
 
         return acceptance_list

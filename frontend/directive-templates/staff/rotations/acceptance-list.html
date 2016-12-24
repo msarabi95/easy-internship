@@ -1,5 +1,6 @@
 <hr style="border-color: lightgray;">
-<h4 class="text-bold">{{ list.department.name }} | {{ list.month.format('MMMM YYYY') }}</h4>
+<h4 class="text-bold">{{ list.department.name }} | {{ list.month.format('MMMM YYYY') }}
+  <small>(<ng-pluralize count="list.booked_seats" when="{1: '{} request', 'other': '{} requests'}"></ng-pluralize>)</small></h4>
 <h4><small>
   <span class="text-bold">Acceptance criterion:</span> {{ list.acceptance_criterion }} |
   <span class="text-bold">Total seats:</span> {{ list.total_seats }} |

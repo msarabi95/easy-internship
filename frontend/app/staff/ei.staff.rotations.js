@@ -110,8 +110,9 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
                 };
 
                 $scope.acceptance_lists = AcceptanceList.query(function (lists) {
-                    console.log(lists);
                     updateFilters(lists);
+                }, function (error) {
+                    toastr.error(error.statusText);
                 });
                 //$scope.requests = RotationRequest.kamc_no_memo(loadRequestInfo);
                 break;

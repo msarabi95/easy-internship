@@ -322,6 +322,8 @@ class AcceptanceList(object):
         self.unoccupied_seats = acceptance_setting.get_unoccupied_seats()
 
         requests = self.get_sorted_rotation_requests()
+        self.booked_seats = len(requests)
+
         self.default_auto_accepted = requests[:self.unoccupied_seats]
         self.default_auto_declined = requests[self.unoccupied_seats:]
 
@@ -362,6 +364,8 @@ class AcceptanceList(object):
                 self.acceptance_settings_cache
             )
             assert len(filtered) == 1, "Unexpected number of filtered cached acceptance settings."
+            assert filtered[0].total_seats is not None,\
+                "A number of seats should be specified in order to make an acceptance list."
             return filtered[0]
         else:
             from hospitals.models import AcceptanceSetting

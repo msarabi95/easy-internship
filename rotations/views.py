@@ -417,7 +417,9 @@ class AcceptanceListViewSet(viewsets.ViewSet):
         acceptance_lists = self.acceptance_list_factory(departments_and_months, rotation_requests\
             .prefetch_related('internship__intern'), acceptance_settings, departments_cache=departments)
 
-        return Response(AcceptanceListSerializer(acceptance_lists, many=True).data)
+        sorted_acceptance_lists = sorted(acceptance_lists, key=lambda al: (al.month, al.department.name))
+
+        return Response(AcceptanceListSerializer(sorted_acceptance_lists, many=True).data)
 
     @list_route(methods=['get'], url_path=r'(?P<department_id>\d+)/(?P<month_id>\d+)')
     def retrieve_list(self, request, department_id=None, month_id=None, *args, **kwargs):
