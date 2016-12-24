@@ -321,9 +321,6 @@ class AcceptanceList(object):
         self.total_seats = acceptance_setting.total_seats
         self.unoccupied_seats = acceptance_setting.get_unoccupied_seats()
 
-        # TODO: Verify that auto_accepted and auto_declined don't have any manually changed requests
-        assert True
-
         requests = self.get_sorted_rotation_requests()
         default_auto_accepted = requests[:self.unoccupied_seats]
         default_auto_declined = requests[self.unoccupied_seats:]

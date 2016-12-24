@@ -383,9 +383,10 @@ class RotationRequestForwardViewSet(viewsets.ReadOnlyModelViewSet):
 class AcceptanceListViewSet(viewsets.ViewSet):
     # permission_classes = [permissions.IsAuthenticated, IsStaff]
 
-    def acceptance_list_factory(self, departments, months, rotation_requests, acceptance_settings):
-        return [AcceptanceList(department, month, rotation_requests_cache=rotation_requests,
-                               acceptance_settings_cache=acceptance_settings) for department in departments for month in set(months)]
+    def acceptance_list_factory(self, departments_and_months, rotation_requests, acceptance_settings, departments_cache):
+        # FIXME: A better way to get the department
+        return [AcceptanceList(filter(lambda d: d.id == department_id, departments_cache)[0], month, rotation_requests_cache=rotation_requests,
+                               acceptance_settings_cache=acceptance_settings) for department_id, month in set(departments_and_months)]
 
     def acceptance_setting_factory(self, departments, months,
                                    department_month_settings=None, month_settings=None,
@@ -399,6 +400,7 @@ class AcceptanceListViewSet(viewsets.ViewSet):
             .filter(is_delete=False)\
             .filter(requested_department__department__hospital__is_kamc=True)\
             .filter(requested_department__department__requires_memo=False)
+        departments_and_months = rotation_requests.values_list('requested_department__department', 'month')
         department_ids = rotation_requests.values_list('requested_department__department', flat=True)
         departments = Department.objects.filter(id__in=department_ids)
         months = rotation_requests.values_list('month', flat=True)
@@ -412,8 +414,8 @@ class AcceptanceListViewSet(viewsets.ViewSet):
 
         acceptance_settings = self.acceptance_setting_factory(departments, months, dms, ms, ds, gs)
 
-        acceptance_lists = self.acceptance_list_factory(departments, months, rotation_requests\
-            .prefetch_related('internship__intern'), acceptance_settings)
+        acceptance_lists = self.acceptance_list_factory(departments_and_months, rotation_requests\
+            .prefetch_related('internship__intern'), acceptance_settings, departments_cache=departments)
 
         return Response(AcceptanceListSerializer(acceptance_lists, many=True).data)
 
