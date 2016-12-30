@@ -21,8 +21,12 @@
         </ul>
         <div class="tab-content">
           <div class="tab-pane active">
-            <div ng-hide="acceptance_lists.$promise.$$state.status == 1 || requests.$promise.$$state.status == 1" style="height: 150px;">
+            <div ng-hide="acceptance_lists.$promise.$$state.status == 1 || requests.$promise.$$state.status == 1 || !page" style="height: 150px;">
               <img src="/static/loading.gif" height="50" style="position: absolute; top: 50%; left: 50%; margin-left: -15px; margin-top: -15px;" />
+            </div>
+            <div class="text-center" ng-if="!page">
+              <h3 class="text-center">Please choose one of the tabs above.</h3>
+              <br>
             </div>
             <div class="well" ng-if="acceptance_lists.length > 0">
               <div class="row">
