@@ -1,5 +1,9 @@
+from rest_framework.decorators import list_route
+from rest_framework.response import Response
+
 from accounts.models import Profile, Intern
-from accounts.serializers import ProfileSerializer, InternSerializer, UserSerializer
+from accounts.permissions import IsStaff
+from accounts.serializers import ProfileSerializer, InternSerializer, UserSerializer, InternTableSerializer
 from django.contrib.auth.models import User
 from rest_framework import viewsets, permissions
 
@@ -35,3 +39,9 @@ class InternViewSet(viewsets.ReadOnlyModelViewSet):
         if self.request.user.has_perm("accounts.intern.view_all"):
             return self.queryset.all()
         return self.queryset.filter(profile__user=self.request.user)
+
+    @list_route(methods=['get'], permission_classes=[permissions.IsAuthenticated, IsStaff])
+    def as_table(self, request, *args, **kwargs):
+        interns = self.queryset.all().prefetch_related('profile__user', 'internship')
+        serialized = InternTableSerializer(interns, many=True)
+        return Response(serialized.data)
