@@ -12,5 +12,11 @@ accountsModule.factory("Profile", ["$resource", function($resource) {
 }]);
 
 accountsModule.factory("Intern", ["$resource", function($resource) {
-    return $resource('/api/interns/:id', {id: '@id'});
+    return $resource('/api/interns/:id', {id: '@id'}, {
+        as_table: {
+            method: 'get',
+            url: '/api/interns/as_table/',
+            isArray: true
+        }
+    });
 }]);
