@@ -297,6 +297,8 @@ class RotationRequestResponse(models.Model):
 class RotationRequestForward(models.Model):
     rotation_request = models.OneToOneField(RotationRequest, related_name="forward")
     forward_datetime = models.DateTimeField(auto_now_add=True)
+    memo_file = models.FileField(upload_to='forward_memos')  # TODO: validate file extension
+    last_updated = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
         return "Forward of request #%d" % self.rotation_request.id

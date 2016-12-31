@@ -1,9 +1,41 @@
 /**
  * Created by MSArabi on 12/18/16.
  */
-angular.module("ei.rotations.directives", ["ei.utils", "ui.bootstrap"])
+angular.module("ei.rotations.directives", ["ei.utils", "ui.bootstrap", "ngFileUpload"])
 
-.directive("rotationRequestCard", ["$timeout", function ($timeout) {
+.directive('validPdf', function () {
+    // Modified version of: http://stackoverflow.com/a/36058656
+    return {
+        require: 'ngModel',
+        link: function (scope, elem, attrs, ngModel) {
+            var validFormats = ['pdf'];
+            elem.bind('change', function () {
+                validFile(false);
+                scope.$apply(function () {
+                    ngModel.$render();
+                });
+            });
+            ngModel.$render = function () {
+                ngModel.$setViewValue(elem.val());
+            };
+            function validFile(bool) {
+                ngModel.$setValidity('extension', bool);
+            }
+            ngModel.$parsers.push(function(value) {
+                var fileName = typeof value == 'object' ? value.name : value;
+                var ext = fileName.substr(fileName.lastIndexOf('.')+1);
+                if(ext=='') return;
+                if(validFormats.indexOf(ext) == -1){
+                    return value;
+                }
+                validFile(true);
+                return value;
+            });
+        }
+    };
+})
+
+.directive("rotationRequestCard", ["$timeout", "Upload", function ($timeout, Upload) {
     return {
         restrict: 'E',
         scope: {
@@ -11,8 +43,12 @@ angular.module("ei.rotations.directives", ["ei.utils", "ui.bootstrap"])
             moveToPastRequests: "&onResponse",
             moveToForwardedRequests: "&onForward"
         },
-        templateUrl: "/static/directive-templates/staff/rotations/rotation-request-card.html",
+        templateUrl: "/static/directive-templates/staff/rotations/rotation-request-card.html?v=0001",
         link: function (scope, element, attrs) {
+
+            scope.forms = {};
+            scope.response = {};
+
             scope.flag = function (flagName) {
                 scope.flags = {};  // reset all flags
                 scope.flags[flagName] = true;
@@ -29,11 +65,25 @@ angular.module("ei.rotations.directives", ["ei.utils", "ui.bootstrap"])
             };
     
             scope.forward = function (request) {
-                request.$forward({}, function (data) {
-                    scope.moveToForwardedRequests({request: request});
-                }, function (error) {
-                    toastr.error(error);
-                });
+
+                if (scope.forms.memoUploadForm.$valid) {
+                    var file = scope.response.memo;
+                    var data = {memo_file: file};
+
+                    Upload.upload({
+                        url: '/api/rotation_requests/' + scope.request.id + '/forward/',
+                        data: data,
+                        method: "POST"
+                    }).then(function (resp) {
+                        console.log('Success ' + resp.config.data.memo_file.name + ' uploaded. Response: ' + resp.data);
+                        scope.moveToForwardedRequests({request: request});
+
+                    }, function (resp) {
+                        console.log('Error status: ' + resp.status);
+                        toastr.error(resp);
+                    });
+
+                }
             };
         }
     }
