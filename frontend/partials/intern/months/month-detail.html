@@ -150,7 +150,8 @@
                       <div ng-if="month.current_request.requested_department.department.memo_handed_by_intern == true">
                         <dt>Download memo</dt>
                         <dd>
-                          <a href="/api/rotation_request_forwards/{{ request.forward.id }}/memo_pdf/" class="btn btn-xs btn-danger disabled">As PDF <span class="badge bg-yellow">Soon</span></a>
+                          <a href="{{ month.current_request.forward.memo_file }}" class="btn btn-xs btn-danger">As PDF</a>
+                          <!--<i>(last updated: {{ rotation_request.forward.last_updated.format('dddd, D MMMM YYYY, hh:mm a') }} )</i>-->
                         </dd>
                       </div>
                     </dl>
