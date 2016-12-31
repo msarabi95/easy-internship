@@ -175,11 +175,55 @@
               <p ng-if="internship.unreviewed_rotation_requests.length > 0">
                 Below is the list of {{ internship.intern.profile.en_first_name }}'s requests that await your response.
               </p>
-              <rotation-request-card
-                      rotation-request="request"
-                      on-response="moveToPastRequests(request)"
-                      on-forward="moveToForwardedRequests(request)"
-                      ng-repeat="request in internship.unreviewed_rotation_requests"></rotation-request-card>
+              <!--<rotation-request-card-->
+                      <!--rotation-request="request"-->
+                      <!--on-response="moveToPastRequests(request)"-->
+                      <!--on-forward="moveToForwardedRequests(request)"-->
+                      <!--ng-repeat="request in internship.unreviewed_rotation_requests"></rotation-request-card>-->
+              <uib-accordion>
+                <div uib-accordion-group template-url="accordion-template.html"
+                     ng-repeat="request in internship.unreviewed_rotation_requests | orderBy: 'id'" class="panel-warning }}">
+                  <uib-accordion-heading>
+                    <img ng-hide="request.$promise.$$state.status == 1" src="/static/loading.gif" height="20px" />
+                    <span class="text-warning">#{{ request.id }} - <span class="text-bold">Unreviewed</span> |
+                      <span ng-if="request.is_delete == false">{{ request.specialty.abbreviation }} @ {{ request.requested_department.department.hospital.abbreviation }}</span>
+                      <span ng-if="request.is_delete == true">Cancellation</span>
+                      (<i>for</i> {{ request.month.label }})</span>
+                  </uib-accordion-heading>
+
+                  <dl class="dl-horizontal">
+                    <dt>Request #</dt>
+                    <dd>{{ request.id }}</dd>
+
+                    <dt>Month</dt>
+                    <dd>{{ request.month.label }}</dd>
+
+                    <div ng-if="!request.is_delete">
+                      <dt>Specialty</dt>
+                      <dd class="text-bold text-yellow">{{ request.specialty.name }}</dd>
+
+                      <dt>Hospital</dt>
+                      <dd class="text-bold text-yellow">{{ request.requested_department.department.hospital.name }}</dd>
+
+                      <dt>Elective?</dt>
+                      <dd>
+                        <span ng-if="request.is_elective == true" class="text-bold text-yellow">
+                          Yes
+                        </span>
+                        <span ng-if="request.is_elective == false">No</span>
+                      </dd>
+                    </div>
+                    <div ng-if="request.is_delete">
+                      <dt>Description</dt>
+                      <dd class="text-bold text-red">Cancellation of rotation</dd>
+                    </div>
+
+                    <dt style="width: inherit;">Submission date and time</dt>
+                    <dd>{{ request.submission_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
+                  </dl>
+                </div>
+              </uib-accordion>
+
               <p ng-if="internship.unreviewed_rotation_requests.length == 0">
                 {{ internship.intern.profile.en_full_name }} doesn't have any unreviewed requests currently.
               </p>

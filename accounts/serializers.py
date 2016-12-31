@@ -39,3 +39,14 @@ class InternSerializer(serializers.ModelSerializer):
                   'address', 'saudi_id_number', 'saudi_id', 'has_passport', 'passport_number', 'passport', 'passport_attachment',
                   'medical_record_number', 'contact_person_name', 'contact_person_relation',
                   'contact_person_mobile', 'contact_person_email', 'gpa')
+
+
+class InternTableSerializer(serializers.ModelSerializer):
+    mugshot = serializers.URLField(source='profile.get_mugshot_url')
+    name = serializers.CharField(source='profile.get_en_full_name')
+    email = serializers.EmailField(source='profile.user.email')
+    internship_id = serializers.IntegerField(source='internship.id')
+
+    class Meta:
+        model = Intern
+        fields = ('id', 'mugshot', 'name', 'student_number', 'badge_number', 'email', 'mobile_number', 'internship_id',)

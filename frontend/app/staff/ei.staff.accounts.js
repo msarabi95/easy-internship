@@ -9,29 +9,28 @@ angular.module("ei.staff.accounts", ["ei.months.models", "ei.accounts.models",
 .config(["$routeProvider", function ($routeProvider) {
     $routeProvider
         .when("/interns/", {
-            templateUrl: "static/partials/staff/interns/intern-list.html",
+            templateUrl: "static/partials/staff/interns/intern-list.html?v=0001",
             controller: "InternListCtrl"
         })
         .when("/interns/:id/", {
-            templateUrl: "static/partials/staff/interns/intern-detail.html?v=0003",
+            templateUrl: "static/partials/staff/interns/intern-detail.html?v=0004",
             controller: "InternDetailCtrl"
         });
 }])
 
-.controller("InternListCtrl", ["$scope", "DTOptionsBuilder", "DTColumnDefBuilder", "Internship", "Intern", "Profile",
-    function ($scope, DTOptionsBuilder, DTColumnDefBuilder, Internship, Intern, Profile) {
-        $scope.internships = Internship.query();
-
-        $scope.internships.$promise.then(function (internships) {
-            angular.forEach(internships, function (internship, index) {
-                // Load the intern profile and standard profile
-                $scope.internships[index].intern = Intern.get({id: internship.intern});
-                $scope.internships[index].intern.$promise.then(function (intern) {
-                    $scope.internships[index].intern.profile = Profile.get({id: intern.profile});
-                });
-            });
-        });
-
+.controller("InternListCtrl", ["$scope", "DTOptionsBuilder", "DTColumnBuilder", "DTColumnDefBuilder", "Intern", "Profile",
+    function ($scope, DTOptionsBuilder, DTColumnBuilder, DTColumnDefBuilder, Intern, Profile) {
+        //$scope.internships = Internship.query();
+        //
+        //$scope.internships.$promise.then(function (internships) {
+        //    angular.forEach(internships, function (internship, index) {
+        //        // Load the intern profile and standard profile
+        //        $scope.internships[index].intern = Intern.get({id: internship.intern});
+        //        $scope.internships[index].intern.$promise.then(function (intern) {
+        //            $scope.internships[index].intern.profile = Profile.get({id: intern.profile});
+        //        });
+        //    });
+        //});
 
         /* FIXME:
         * - Load datatable data from a dedicated endpoint.
@@ -39,16 +38,34 @@ angular.module("ei.staff.accounts", ["ei.months.models", "ei.accounts.models",
         * - Fix search and sorting issues.
         * */
         $scope.dtOptions = DTOptionsBuilder
-            .fromSource()
-            .withOption("order", [[ 2, "asc" ]])
+            .fromFnPromise(function() {
+                return Intern.as_table().$promise;
+            })
+            .withOption("order", [[ 1, "asc" ]])
             .withOption("responsive", true)
             .withBootstrap();
 
         $scope.dtColumns = [
-            DTColumnDefBuilder.newColumnDef(0).notSortable(),
-            DTColumnDefBuilder.newColumnDef([1, 2]).withOption("width", "20%"),
-            DTColumnDefBuilder.newColumnDef(5).notSortable()
+            DTColumnBuilder.newColumn(null).withTitle(null).notSortable()
+                .renderWith(function (data, type, full, meta) {
+                    return '<img src="' + data.mugshot + '" class="img-circle img-bordered-sm img-sm"/>';
+                }),
+            DTColumnBuilder.newColumn('name').withTitle('Name'),
+            DTColumnBuilder.newColumn('student_number').withTitle('Student Number'),
+            DTColumnBuilder.newColumn('badge_number').withTitle('Badge Number'),
+            DTColumnBuilder.newColumn('email').withTitle('Email'),
+            DTColumnBuilder.newColumn('mobile_number').withTitle('Mobile Number'),
+            DTColumnBuilder.newColumn(null).withTitle(null).notSortable()
+                .renderWith(function (data, type, full, meta) {
+                    return '<a class="btn btn-default btn-flat" href="#/interns/' + data.internship_id + '/">View details</a>';
+                })
         ];
+
+        //$scope.dtColumns = [
+        //    DTColumnDefBuilder.newColumnDef(0).notSortable(),
+        //    DTColumnDefBuilder.newColumnDef([1, 2]).withOption("width", "20%"),
+        //    DTColumnDefBuilder.newColumnDef(5).notSortable()
+        //];
 }])
 
 .controller("InternDetailCtrl", ["$scope", "$routeParams", "$timeout", "$q", "loadWithRelated", "Internship", "Intern", "Profile", "User", "InternshipMonth",

@@ -286,7 +286,8 @@ class AcceptanceSetting(object):
     """
     Acceptance setting for a particular department in a particular month.
     """
-    def __init__(self, department, month):
+    def __init__(self, department, month, department_month_settings=None, month_settings=None,
+                                   department_settings=None, global_settings=None):
         """
 
         Get settings for a month-department pair using the following sequence:
@@ -302,24 +303,35 @@ class AcceptanceSetting(object):
         """
         total_seats = None
         try:
-            settings_object = DepartmentMonthSettings.objects.get(department=department, month=month)
+            if not department_month_settings:
+                settings_object = DepartmentMonthSettings.objects.get(department=department, month=month)
+            else:
+                settings_object = filter(lambda dms: dms.department == department and dms.month == month, department_month_settings)[0]
             total_seats = settings_object.total_seats
             if not settings_object.acceptance_criterion:
                 raise ObjectDoesNotExist
             setting_type = 'DM'
-        except ObjectDoesNotExist:
+        except (ObjectDoesNotExist, IndexError):
             try:
-                settings_object = DepartmentSettings.objects.get(department=department)
+                if not department_settings:
+                    settings_object = DepartmentSettings.objects.get(department=department)
+                else:
+                    settings_object = filter(lambda ds: ds.department == department, department_settings)[0]
                 setting_type = 'D'
-            except ObjectDoesNotExist:
+            except (ObjectDoesNotExist, IndexError):
                 try:
-                    settings_object = MonthSettings.objects.get(month=month)
+                    if not month_settings:
+                        settings_object = MonthSettings.objects.get(month=month)
+                    else:
+                        settings_object = filter(lambda ms: ms.month == month, month_settings)[0]
                     setting_type = 'M'
-                except ObjectDoesNotExist:
-                    # Import is local to avoid cyclic import issues
-                    from hospitals.utils import get_global_settings
-
-                    settings_object = get_global_settings()
+                except (ObjectDoesNotExist, IndexError):
+                    if not global_settings:
+                        # Import is local to avoid cyclic import issues
+                        from hospitals.utils import get_global_settings
+                        settings_object = get_global_settings()
+                    else:
+                        settings_object = global_settings
                     setting_type = 'G'
 
         self.month = month
