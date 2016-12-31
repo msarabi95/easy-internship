@@ -86,6 +86,52 @@ class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
         serialized = self.get_serializer(requests, many=True)
         return Response(serialized.data)
 
+    @detail_route(methods=['get'], permission_classes=[permissions.IsAuthenticated, IsStaff])
+    def memo_docx(self, request, pk=None):
+        rotation_request = get_object_or_404(RotationRequest, pk=pk)
+        department = rotation_request.requested_department.get_department()
+        intern = rotation_request.internship.intern
+
+        # Check if memo is expected
+        department_requires_memo = department.requires_memo
+        if not department_requires_memo:
+            raise ForwardNotExpected("This rotation request does not require a forward.")
+
+        template_name = "inside_request" if department.hospital.is_kamc else "outside_request"
+        template = DocumentTemplate.objects.get(codename=template_name)
+
+        docx = DocxTemplate(template.template_file)
+        context = {
+            'contact_name': department.contact_name,
+            'contact_position': department.contact_position,
+            'hospital': department.hospital.name,
+            'intern_name': intern.profile.get_en_full_name(),
+            'specialty': rotation_request.specialty.name,
+            'month': rotation_request.month.first_day().strftime("%B"),
+            'year': rotation_request.month.year,
+            'badge_number': intern.badge_number,
+            'mobile_number': intern.mobile_number,
+            'email': intern.profile.user.email,
+        }
+        docx.render(context)
+        docx_file = StringIO.StringIO()
+        docx.save(docx_file)
+        docx_file.flush()
+        docx_file.seek(0)
+
+        file_name = "Memo - %s - %s %s" % (
+            intern.profile.get_en_full_name(),
+            rotation_request.month.first_day().strftime("%B"),
+            rotation_request.month.year,
+        )
+
+        response = HttpResponse(
+            FileWrapper(docx_file),
+            content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        )
+        response['Content-Disposition'] = 'attachment; filename=%s.docx' % file_name
+        return response
+
     @detail_route(methods=["post"])
     def respond(self, request, pk=None):
         """
@@ -162,6 +208,8 @@ class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
         """
         Forward the rotation request.
         """
+        print request.data
+
         rotation_request = self.get_queryset().get(pk=pk)
 
         # Checks
@@ -173,9 +221,14 @@ class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
         if not department_requires_memo:
             raise ForwardNotExpected("This rotation request does not require a forward.")
 
-        RotationRequestForward.objects.create(
-            rotation_request=rotation_request,
+        data = request.data
+        data['rotation_request'] = pk
+        serialized = RotationRequestForwardSerializer(
+            data=request.data,
         )
+
+        serialized.is_valid(raise_exception=True)
+        serialized.save()
 
         if not request.query_params.get("suppress_message"):
             messages.success(request._request, "Your response has been recorded.")
@@ -334,50 +387,6 @@ class RotationRequestForwardViewSet(viewsets.ReadOnlyModelViewSet):
         if self.request.user.has_perm("rotations.rotation_request_forward.view_all"):
             return self.queryset.all()
         return self.queryset.filter(rotation_request__internship__intern__profile__user=self.request.user)
-
-    @detail_route(methods=['get'], permission_classes=[permissions.IsAuthenticated, IsStaff])
-    def memo_docx(self, request, pk=None):
-        forward = get_object_or_404(RotationRequestForward, pk=pk)
-        rotation_request = forward.rotation_request
-        department = rotation_request.requested_department.get_department()
-        intern = rotation_request.internship.intern
-
-        template = DocumentTemplate.objects.get(codename="outside_request")
-        docx = DocxTemplate(template.template_file)
-        context = {
-            'contact_name': department.contact_name,
-            'contact_position': department.contact_position,
-            'hospital': department.hospital.name,
-            'intern_name': intern.profile.get_en_full_name(),
-            'specialty': rotation_request.specialty.name,
-            'month': rotation_request.month.first_day().strftime("%B"),
-            'year': rotation_request.month.year,
-            'badge_number': intern.badge_number,
-            'mobile_number': intern.mobile_number,
-            'email': intern.profile.user.email,
-        }
-        docx.render(context)
-        docx_file = StringIO.StringIO()
-        docx.save(docx_file)
-        docx_file.flush()
-        docx_file.seek(0)
-
-        file_name = "Memo - %s - %s %s" % (
-            intern.profile.get_en_full_name(),
-            rotation_request.month.first_day().strftime("%B"),
-            rotation_request.month.year,
-        )
-
-        response = HttpResponse(
-            FileWrapper(docx_file),
-            content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-        )
-        response['Content-Disposition'] = 'attachment; filename=%s.docx' % file_name
-        return response
-
-    @detail_route(methods=['get'], permission_classes=[permissions.IsAuthenticated])
-    def memo_pdf(self, request, pk=None):
-        pass  # TODO
 
 
 class AcceptanceListViewSet(viewsets.ViewSet):

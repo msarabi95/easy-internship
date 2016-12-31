@@ -88,11 +88,11 @@ angular.module("ei.rotations.models", ["ngResource", "ei.interceptors"])
         query: {
             method: 'get',
             isArray: true,
-            interceptor: DateTimeFieldToMomentInterceptor(["forward_datetime"])
+            interceptor: DateTimeFieldToMomentInterceptor(["forward_datetime", "last_updated"])
         },
         get: {
             method: 'get',
-            interceptor: DateTimeFieldToMomentInterceptor(["forward_datetime"])
+            interceptor: DateTimeFieldToMomentInterceptor(["forward_datetime", "last_updated"])
         }
     });
 }])
