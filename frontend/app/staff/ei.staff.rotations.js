@@ -12,6 +12,10 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
         .when("/requests/:page?/", {
             templateUrl: "static/partials/staff/rotations/rotation-request-list.html?v=0005",
             controller: "RotationRequestListCtrl"
+        })
+        .when("/memos/", {
+            templateUrl: "static/partials/staff/rotations/forward-list.html",
+            controller: "ForwardListCtrl"
         });
 
 }])
@@ -149,4 +153,51 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
             }
         };
 
+}])
+
+.controller("ForwardListCtrl", ["$scope", "DTOptionsBuilder", "DTColumnBuilder", "Intern", "RotationRequestForward", function ($scope, DTOptionsBuilder, DTColumnBuilder, Intern, RotationRequestForward) {
+    $scope.dtOptions = DTOptionsBuilder
+        .fromFnPromise(function() {
+            return Intern.as_table().$promise;
+        })
+        .withOption("order", [[ 1, "asc" ]])
+        .withOption("responsive", true)
+        .withBootstrap();
+
+    $scope.dtOptions1 = DTOptionsBuilder
+        .fromFnPromise(function() {
+            return RotationRequestForward.intern_memos_as_table().$promise;
+        })
+        .withOption("order", [[ 6, "asc" ]])
+        .withOption("responsive", true)
+        .withBootstrap();
+
+    $scope.dtColumns = [
+        DTColumnBuilder.newColumn('rotation_request.id').withTitle('#'),
+        DTColumnBuilder.newColumn('rotation_request.intern_name').withTitle('Intern name'),
+        DTColumnBuilder.newColumn('rotation_request.month').withTitle('Month')
+            .renderWith(function (data, type, full, meta) {
+                var year = Math.floor(data/12);
+                var month = data % 12;
+                return moment({year: year, month: month}).format('MMMM YYYY');
+            }),
+        DTColumnBuilder.newColumn('rotation_request.requested_department_name').withTitle('Department'),
+        DTColumnBuilder.newColumn('rotation_request.requested_department_hospital_name').withTitle('Hospital'),
+        DTColumnBuilder.newColumn('rotation_request.submission_datetime').withTitle('Submitted')
+            .renderWith(function (data, type, full, meta) {
+                return moment(data).format('D/MMM/YYYY, hh:mm a');
+            }),
+        DTColumnBuilder.newColumn('forward_datetime').withTitle('Forwarded')
+            .renderWith(function (data, type, full, meta) {
+                return data.format('D/MMM/YYYY, hh:mm a');
+            }),
+        DTColumnBuilder.newColumn(null).withTitle("Memo").notSortable()
+            .renderWith(function (data, type, full, meta) {
+                return '<a href="' + data.memo_file + '" class="btn btn-xs btn-danger">As PDF</a>';
+            }),
+        DTColumnBuilder.newColumn(null).withTitle(null).notSortable()
+            .renderWith(function (data, type, full, meta) {
+                return '<a class="btn btn-default btn-flat" href="#/interns/">View details</a>';
+            })
+    ];
 }]);

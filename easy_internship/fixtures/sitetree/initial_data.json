@@ -131,7 +131,7 @@
     "access_restricted": false,
     "access_perm_type": 1,
     "parent": null,
-    "sort_order": 10,
+    "sort_order": 13,
     "access_permissions": []
   }
 },
@@ -156,6 +156,78 @@
     "access_perm_type": 1,
     "parent": null,
     "sort_order": 7,
+    "access_permissions": []
+  }
+},
+{
+  "model": "sitetree.treeitem",
+  "pk": 11,
+  "fields": {
+    "title": "Seats",
+    "hint": "",
+    "url": "#/seats/",
+    "urlaspattern": false,
+    "tree": 1,
+    "hidden": false,
+    "alias": null,
+    "description": "",
+    "inmenu": true,
+    "inbreadcrumbs": true,
+    "insitetree": true,
+    "access_loggedin": false,
+    "access_guest": false,
+    "access_restricted": false,
+    "access_perm_type": 1,
+    "parent": null,
+    "sort_order": 11,
+    "access_permissions": []
+  }
+},
+{
+  "model": "sitetree.treeitem",
+  "pk": 12,
+  "fields": {
+    "title": "{{ \"<i class='fa fa-snowflake-o'></i> Freeze requests\" }}",
+    "hint": "",
+    "url": "#/freezes/",
+    "urlaspattern": false,
+    "tree": 2,
+    "hidden": false,
+    "alias": null,
+    "description": "",
+    "inmenu": true,
+    "inbreadcrumbs": true,
+    "insitetree": true,
+    "access_loggedin": false,
+    "access_guest": false,
+    "access_restricted": false,
+    "access_perm_type": 1,
+    "parent": null,
+    "sort_order": 12,
+    "access_permissions": []
+  }
+},
+{
+  "model": "sitetree.treeitem",
+  "pk": 13,
+  "fields": {
+    "title": "{{ \"<i class='fa fa-file'></i> Memos\" }}",
+    "hint": "",
+    "url": "#/memos/",
+    "urlaspattern": false,
+    "tree": 2,
+    "hidden": false,
+    "alias": null,
+    "description": "",
+    "inmenu": true,
+    "inbreadcrumbs": true,
+    "insitetree": true,
+    "access_loggedin": false,
+    "access_guest": false,
+    "access_restricted": false,
+    "access_perm_type": 1,
+    "parent": null,
+    "sort_order": 10,
     "access_permissions": []
   }
 }

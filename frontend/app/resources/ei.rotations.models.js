@@ -93,6 +93,24 @@ angular.module("ei.rotations.models", ["ngResource", "ei.interceptors"])
         get: {
             method: 'get',
             interceptor: DateTimeFieldToMomentInterceptor(["forward_datetime", "last_updated"])
+        },
+        intern_memos_as_table: {
+            method: 'get',
+            isArray: true,
+            interceptor: DateTimeFieldToMomentInterceptor(["forward_datetime"]),
+            url: '/api/rotation_request_forwards/intern_memos_as_table/'
+        },
+        staff_memos_as_table: {
+            method: 'get',
+            isArray: true,
+            interceptor: DateTimeFieldToMomentInterceptor(["forward_datetime"]),
+            url: '/api/rotation_request_forwards/staff_memos_as_table'
+        },
+        memos_archive_as_table: {
+            method: 'get',
+            isArray: true,
+            interceptor: DateTimeFieldToMomentInterceptor(["forward_datetime"]),
+            url: '/api/rotation_request_forwards/memos_archive_as_table'
         }
     });
 }])

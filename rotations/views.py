@@ -27,7 +27,8 @@ from rotations.models import Rotation, RequestedDepartment, RotationRequest, Rot
 from hospitals.models import Department, AcceptanceSetting, Hospital, Specialty, DepartmentMonthSettings, MonthSettings, \
     DepartmentSettings, GlobalSettings
 from rotations.serializers import RotationSerializer, RequestedDepartmentSerializer, RotationRequestSerializer, \
-    RotationRequestResponseSerializer, RotationRequestForwardSerializer, AcceptanceListSerializer
+    RotationRequestResponseSerializer, RotationRequestForwardSerializer, AcceptanceListSerializer, \
+    ShortRotationRequestForwardSerializer
 
 
 class RotationViewSet(viewsets.ReadOnlyModelViewSet):
@@ -388,9 +389,32 @@ class RotationRequestForwardViewSet(viewsets.ReadOnlyModelViewSet):
             return self.queryset.all()
         return self.queryset.filter(rotation_request__internship__intern__profile__user=self.request.user)
 
+    @list_route(methods=['get'], permission_classes=[permissions.IsAuthenticated, IsStaff])
+    def intern_memos_as_table(self, request, *args, **kwargs):
+        forwards = self.get_queryset()\
+            .filter(rotation_request__response__isnull=True)\
+            .filter(rotation_request__requested_department__department__memo_handed_by_intern=True)
+        serialized = ShortRotationRequestForwardSerializer(forwards, many=True)
+        return Response(serialized.data)
+
+    @list_route(methods=['get'], permission_classes=[permissions.IsAuthenticated, IsStaff])
+    def staff_memos_as_table(self, request, *args, **kwargs):
+        forwards = self.get_queryset()\
+            .filter(rotation_request__response__isnull=True)\
+            .filter(rotation_request__requested_department__department__memo_handed_by_intern=False)
+        serialized = ShortRotationRequestForwardSerializer(forwards, many=True)
+        return Response(serialized.data)
+
+    @list_route(methods=['get'], permission_classes=[permissions.IsAuthenticated, IsStaff])
+    def memos_archive_as_table(self, request, *args, **kwargs):
+        forwards = self.get_queryset()\
+            .filter(rotation_request__response__isnull=False)
+        serialized = ShortRotationRequestForwardSerializer(forwards, many=True)
+        return Response(serialized.data)
+
 
 class AcceptanceListViewSet(viewsets.ViewSet):
-    # permission_classes = [permissions.IsAuthenticated, IsStaff]
+    permission_classes = [permissions.IsAuthenticated, IsStaff]
 
     def acceptance_list_factory(self, departments_and_months, rotation_requests, acceptance_settings, departments_cache):
         # FIXME: A better way to get the department
@@ -430,7 +454,7 @@ class AcceptanceListViewSet(viewsets.ViewSet):
 
         return Response(AcceptanceListSerializer(sorted_acceptance_lists, many=True).data)
 
-    @list_route(methods=['get'], url_path=r'(?P<department_id>\d+)/(?P<month_id>\d+)')
+    @list_route(methods=['get'], url_path=r'(?P<department_id>\d+)/(?P<month_id>\d+)', permission_classes=[permissions.IsAuthenticated, IsStaff])
     def retrieve_list(self, request, department_id=None, month_id=None, *args, **kwargs):
         department = get_object_or_404(Department, id=department_id)
         month = Month.from_int(int(month_id))
@@ -438,7 +462,7 @@ class AcceptanceListViewSet(viewsets.ViewSet):
         acceptance_list = AcceptanceList(department, month)
         return Response(AcceptanceListSerializer(acceptance_list).data)
 
-    @list_route(methods=['post'], url_path=r'(?P<department_id>\d+)/(?P<month_id>\d+)/respond')
+    @list_route(methods=['post'], url_path=r'(?P<department_id>\d+)/(?P<month_id>\d+)/respond', permission_classes=[permissions.IsAuthenticated, IsStaff])
     def respond(self, request, department_id=None, month_id=None, *args, **kwargs):
         department = get_object_or_404(Department, id=department_id)
         month = Month.from_int(int(month_id))
