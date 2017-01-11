@@ -66,12 +66,16 @@ class ShortRotationRequestSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
     internship_id = serializers.IntegerField(source='internship.id')
     intern_name = serializers.CharField(source='internship.intern.profile.get_en_full_name')
+    month = MonthField()
+    requested_department_name = serializers.CharField(source='requested_department.get_department.name')
+    requested_department_hospital_name = serializers.CharField(source='requested_department.get_department.hospital.name')
     gpa = serializers.FloatField(source='internship.intern.gpa')
     response = ShortRotationRequestResponseSerializer(allow_null=True)
 
     class Meta:
         model = RotationRequest
-        fields = ('id', 'internship_id', 'intern_name', 'submission_datetime', 'gpa', 'response')
+        fields = ('id', 'internship_id', 'intern_name', 'month', 'requested_department_name',
+                  'requested_department_hospital_name', 'submission_datetime', 'gpa', 'response')
 
 
 class AcceptanceListSerializer(serializers.Serializer):
@@ -98,12 +102,19 @@ class AcceptanceListSerializer(serializers.Serializer):
             request_list = list()
             for request_data in validated_data.pop(x):
 
-                print request_data
-
-                rr = RotationRequest.objects.get(id=request_data['id'])
+                rr = RotationRequest.objects.get(id=request_data['id'])  # ? performance
                 if request_data.get('response'):
                     rr.response = RotationRequestResponse(rotation_request=rr, comments=request_data.get('response').get('comments'))
                 request_list.append(rr)
             setattr(acceptance_list, x, request_list)
 
         return acceptance_list
+
+
+class ShortRotationRequestForwardSerializer(serializers.ModelSerializer):
+    rotation_request = ShortRotationRequestSerializer()
+    memo_file = serializers.URLField(source='memo_file.url')
+
+    class Meta:
+        model = RotationRequestForward
+        fields = ('id', 'forward_datetime', 'memo_file', 'rotation_request', )
