@@ -90,8 +90,6 @@ class Internship(models.Model):
         2- Each specialty doesn't exceed its required months in non-elective rotations.
         3- Not more than 2 months are used for electives. (Electives can be any specialty)
         """
-        # FIXME: Doesn't work with admin, because it checks data that's stored in the database; i.e. a ModelForm
-        # can never evaluate! (e.g. the admin site)
         errors = []
         if self.rotations.count() > 12:
             errors.append(ValidationError("The internship plan should contain no more than 12 months."))
@@ -105,12 +103,22 @@ class Internship(models.Model):
 
         # Check that the internship plan contains at most 2 non-elective months of each general specialty.
         for specialty in general_specialties:
-            rotation_count = len(filter(lambda rotation: rotation.specialty.get_general_specialty() == specialty,
-                                        non_electives))
+            rotations = filter(lambda rotation: rotation.specialty.get_general_specialty() == specialty,
+                               non_electives)
+            rotation_count = len(rotations)
 
             if rotation_count > specialty.required_months:
                 errors.append(ValidationError("The internship plan should contain at most %d month(s) of %s.",
                                               params=(specialty.required_months, specialty.name)))
+
+            general_rotations_count = len(filter(lambda rotation: rotation.specialty == specialty, rotations))
+            if rotation_count > 1 and general_rotations_count == 0:
+                errors.append(
+                    ValidationError(
+                        "The internship plan can't have 2 sub-specialty months of %s.",
+                        params=(specialty.name, )
+                    )
+                )
 
         # Check that the internship plan contains at most 2 months of electives.
         if len(electives) > 2:
