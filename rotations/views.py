@@ -5,8 +5,7 @@ from wsgiref.util import FileWrapper
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError, NON_FIELD_ERRORS
 from django.http import Http404, HttpResponse
-
-# Create your views here.
+from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from django.views import generic as django_generics
 from django_nyt.utils import subscribe, notify
@@ -102,6 +101,7 @@ class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
 
         docx = DocxTemplate(template.template_file)
         context = {
+            'now': timezone.now(),
             'contact_name': department.contact_name,
             'contact_position': department.contact_position,
             'hospital': department.hospital.name,
