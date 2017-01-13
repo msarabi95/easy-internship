@@ -167,7 +167,7 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
 
     $scope.dtOptions1 = DTOptionsBuilder
         .fromFnPromise(function() {
-            return RotationRequestForward.intern_memos_as_table().$promise;
+            return RotationRequestForward.staff_memos_as_table().$promise;
         })
         .withOption("order", [[ 6, "asc" ]])
         .withOption("responsive", true)
@@ -190,7 +190,7 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
 
     $scope.dtOptions2 = DTOptionsBuilder
         .fromFnPromise(function() {
-            return RotationRequestForward.staff_memos_as_table().$promise;
+            return RotationRequestForward.intern_memos_as_table().$promise;
         })
         .withOption("order", [[ 6, "asc" ]])
         .withOption("responsive", true)
