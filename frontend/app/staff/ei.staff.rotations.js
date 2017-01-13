@@ -10,7 +10,7 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
 
     $routeProvider
         .when("/requests/:page?/", {
-            templateUrl: "static/partials/staff/rotations/rotation-request-list.html?v=0005",
+            templateUrl: "static/partials/staff/rotations/rotation-request-list.html?v=0006",
             controller: "RotationRequestListCtrl"
         })
         .when("/memos/", {
@@ -63,26 +63,9 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
 
         $scope.page = $routeParams.page;
 
-        function loadRequestInfo(requests) {
+        function momentizeMonth(requests) {
             angular.forEach(requests, function (request, index) {
-                request.month = InternshipMonth.get_by_internship_and_id({month_id: request.month, internship_id: request.internship});
-                request.requested_department = loadWithRelated(request.requested_department, RequestedDepartment, [
-                    [{department: Department}, [
-                        {hospital: Hospital}
-                    ]]
-                ], true);
-                request.specialty = Specialty.get({id: request.specialty});
-                request.internship = loadWithRelated(request.internship, Internship, [
-                    [{intern: Intern}, [
-                        {profile: Profile}
-                    ]]
-                ], true);
-                request.$promise = $q.all([
-                    request.month.$promise,
-                    request.requested_department.$promise,
-                    request.specialty.$promise,
-                    request.internship.$promise
-                ])
+                request.month = moment({year: Math.floor(request.month / 12), month: (request.month % 12)});
             });
         }
 
@@ -121,13 +104,13 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
                 //$scope.requests = RotationRequest.kamc_no_memo(loadRequestInfo);
                 break;
             case 'kamc-memo':
-                $scope.requests = RotationRequest.kamc_memo(loadRequestInfo);
+                $scope.requests = RotationRequest.kamc_memo(momentizeMonth);
                 break;
             case 'outside':
-                $scope.requests = RotationRequest.non_kamc(loadRequestInfo);
+                $scope.requests = RotationRequest.non_kamc(momentizeMonth);
                 break;
             case 'cancellation':
-                $scope.requests = RotationRequest.cancellation(loadRequestInfo);
+                $scope.requests = RotationRequest.cancellation(momentizeMonth);
                 break;
         }
 

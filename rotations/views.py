@@ -6,7 +6,6 @@ from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError, NON_FIELD_ERRORS
 from django.http import Http404, HttpResponse
 
-# Create your views here.
 from django.shortcuts import get_object_or_404
 from django.views import generic as django_generics
 from django_nyt.utils import subscribe, notify
@@ -14,7 +13,6 @@ from docxtpl import DocxTemplate
 from month import Month
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import detail_route, list_route
-from rest_framework.exceptions import ParseError
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK
 
@@ -28,7 +26,7 @@ from hospitals.models import Department, AcceptanceSetting, Hospital, Specialty,
     DepartmentSettings, GlobalSettings
 from rotations.serializers import RotationSerializer, RequestedDepartmentSerializer, RotationRequestSerializer, \
     RotationRequestResponseSerializer, RotationRequestForwardSerializer, AcceptanceListSerializer, \
-    ShortRotationRequestForwardSerializer
+    ShortRotationRequestForwardSerializer, ShortRotationRequestSerializer
 
 
 class RotationViewSet(viewsets.ReadOnlyModelViewSet):
@@ -70,7 +68,7 @@ class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
         requests = self.get_queryset().unreviewed().filter(is_delete=False)\
             .filter(requested_department__department__hospital__is_kamc=True)\
             .filter(requested_department__department__requires_memo=True)
-        serialized = self.get_serializer(requests, many=True)
+        serialized = ShortRotationRequestSerializer(requests, many=True)
         return Response(serialized.data)
 
     @list_route(methods=['get'], permission_classes=[permissions.IsAuthenticated, IsStaff])
@@ -78,13 +76,13 @@ class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
         requests = self.get_queryset().unreviewed().filter(is_delete=False)\
             .filter(requested_department__department__hospital__is_kamc=False)\
             .filter(requested_department__department__requires_memo=True)
-        serialized = self.get_serializer(requests, many=True)
+        serialized = ShortRotationRequestSerializer(requests, many=True)
         return Response(serialized.data)
 
     @list_route(methods=['get'], permission_classes=[permissions.IsAuthenticated, IsStaff])
     def cancellation(self, request):
         requests = self.get_queryset().unreviewed().filter(is_delete=True)
-        serialized = self.get_serializer(requests, many=True)
+        serialized = ShortRotationRequestSerializer(requests, many=True)
         return Response(serialized.data)
 
     @detail_route(methods=['get'], permission_classes=[permissions.IsAuthenticated, IsStaff])
@@ -149,7 +147,7 @@ class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
         
         department_requires_memo = rotation_request.requested_department.get_department().requires_memo
         memo_handed_by_intern = rotation_request.requested_department.get_department().memo_handed_by_intern
-        if department_requires_memo and not hasattr(rotation_request, 'forward') and is_approved:
+        if department_requires_memo and not hasattr(rotation_request, 'forward') and is_approved and not rotation_request.is_delete:
             raise ForwardExpected("This rotation request can't be approved without forwarding it first.")
 
         # TODO: Check that the appropriate person is recording the response

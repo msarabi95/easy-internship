@@ -67,15 +67,20 @@ class ShortRotationRequestSerializer(serializers.ModelSerializer):
     internship_id = serializers.IntegerField(source='internship.id')
     intern_name = serializers.CharField(source='internship.intern.profile.get_en_full_name')
     month = MonthField()
+    specialty = serializers.CharField(source='specialty.name')
     requested_department_name = serializers.CharField(source='requested_department.get_department.name')
     requested_department_hospital_name = serializers.CharField(source='requested_department.get_department.hospital.name')
+    requested_department_requires_memo = serializers.BooleanField(source='requested_department.get_department.requires_memo')
     gpa = serializers.FloatField(source='internship.intern.gpa')
+    is_elective = serializers.BooleanField()
+    is_delete = serializers.BooleanField()
     response = ShortRotationRequestResponseSerializer(allow_null=True)
 
     class Meta:
         model = RotationRequest
-        fields = ('id', 'internship_id', 'intern_name', 'month', 'requested_department_name',
-                  'requested_department_hospital_name', 'submission_datetime', 'gpa', 'response')
+        fields = ('id', 'internship_id', 'intern_name', 'month', 'specialty', 'requested_department_name',
+                  'requested_department_hospital_name', 'requested_department_requires_memo',
+                  'is_elective', 'submission_datetime', 'gpa', 'is_elective', 'is_delete', 'response')
 
 
 class AcceptanceListSerializer(serializers.Serializer):

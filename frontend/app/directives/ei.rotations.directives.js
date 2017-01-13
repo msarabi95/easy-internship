@@ -35,46 +35,39 @@ angular.module("ei.rotations.directives", ["ei.utils", "ui.bootstrap", "ngFileUp
     };
 })
 
-.directive("rotationRequestCard", ["$timeout", "Upload", function ($timeout, Upload) {
+.directive("rotationRequestForwardCard", ["$timeout", "Upload", function ($timeout, Upload) {
     return {
         restrict: 'E',
         scope: {
             request: "=rotationRequest",
-            moveToPastRequests: "&onResponse",
             moveToForwardedRequests: "&onForward"
         },
-        templateUrl: "/static/directive-templates/staff/rotations/rotation-request-card.html?v=0001",
+        templateUrl: "/static/app/directives/templates/rotations/rotation-request-forward-card.html?v=0001",
         link: function (scope, element, attrs) {
 
-            scope.forms = {};
             scope.response = {};
 
             scope.flag = function (flagName) {
+                console.log(scope.memoUploadForm);
+
                 scope.flags = {};  // reset all flags
                 scope.flags[flagName] = true;
-    
+
                 $timeout(function () {try {scope.flags[flagName] = false;} catch(e) {/* Do nothing */}},  5000);
             };
-    
-            scope.respond = function (request, response, comments) {
-                request.$respond({is_approved: response, comments: comments}, function (data) {
-                    scope.moveToPastRequests({request: request});
-                }, function (error) {
-                    toastr.error(error);
-                });
-            };
-    
+
             scope.forward = function (request) {
 
-                if (scope.forms.memoUploadForm.$valid) {
+                if (scope.memoUploadForm.$valid) {
                     var file = scope.response.memo;
                     var data = {memo_file: file};
 
-                    Upload.upload({
+                    scope.upload = Upload.upload({
                         url: '/api/rotation_requests/' + scope.request.id + '/forward/',
                         data: data,
                         method: "POST"
-                    }).then(function (resp) {
+                    });
+                    scope.upload.then(function (resp) {
                         console.log('Success ' + resp.config.data.memo_file.name + ' uploaded. Response: ' + resp.data);
                         scope.moveToForwardedRequests({request: request});
 
@@ -89,6 +82,37 @@ angular.module("ei.rotations.directives", ["ei.utils", "ui.bootstrap", "ngFileUp
     }
 }])
 
+.directive("rotationCancelRequestResponseCard", ["$timeout", function ($timeout) {
+    return {
+        restrict: 'E',
+        scope: {
+            request: "=rotationRequest",
+            moveToPastRequests: "&onResponse"
+        },
+        templateUrl: "/static/app/directives/templates/rotations/rotation-cancel-request-response-card.html",
+        link: function (scope, element, attrs) {
+
+            scope.response = {};
+
+            scope.flag = function (flagName) {
+                scope.flags = {};  // reset all flags
+                scope.flags[flagName] = true;
+
+                $timeout(function () {try {scope.flags[flagName] = false;} catch(e) {/* Do nothing */}},  5000);
+            };
+
+            scope.respond = function (request, response, comments) {
+                request.$respond({is_approved: response, comments: comments}, function (data) {
+                    scope.moveToPastRequests({request: request});
+                }, function (error) {
+                    toastr.error(error);
+                });
+            };
+
+        }
+    }
+}])
+
 .directive("acceptanceList", ["$uibModal", function ($uibModal) {
     return {
         restrict: 'E',
@@ -96,7 +120,7 @@ angular.module("ei.rotations.directives", ["ei.utils", "ui.bootstrap", "ngFileUp
             list: "=list",
             removeFromList: "&onResponse"
         },
-        templateUrl: "/static/directive-templates/staff/rotations/acceptance-list.html?v=0002",
+        templateUrl: "/static/app/directives/templates/rotations/acceptance-list.html?v=0002",
         link: function (scope, element, attrs) {
             var CommentModalCtrl = ["$scope", "$uibModalInstance", "request", "options", function ($scope, $uibModalInstance, request, options) {
                 $scope.request = request;
