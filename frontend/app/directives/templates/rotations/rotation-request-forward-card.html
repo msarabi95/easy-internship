@@ -1,0 +1,101 @@
+<div class="box box-solid box-warning">
+  <div class="box-header">
+    <h5 class="box-title">Request #{{ request.id }}</h5>
+  </div>
+  <div class="box-body">
+
+    <dl class="dl-horizontal">
+
+      <dt>Intern</dt>
+      <dd>{{ request.intern_name }}</dd>
+
+      <dt>GPA</dt>
+      <dd>{{ request.gpa }}</dd>
+
+      <dt></dt>
+      <dd><a class="btn btn-xs btn-primary" href="#/interns/{{ request.internship_id }}"><i class="fa fa-info-circle"></i> View full details</a></dd>
+
+      <hr>
+
+      <dt>Month</dt>
+      <dd>{{ request.month.format('MMMM YYYY') }}</dd>
+
+      <hr>
+
+      <dt>Specialty</dt>
+      <dd class="text-yellow text-bold">{{ request.specialty }}</dd>
+
+      <dt>Hospital</dt>
+      <dd class="text-yellow text-bold">{{ request.requested_department_hospital_name }}</dd>
+
+      <dt>Elective?</dt>
+      <dd>
+        <span ng-if="request.is_elective == true" class="text-yellow text-bold">Yes</span>
+        <span ng-if="request.is_elective == false">No</span>
+      </dd>
+
+      <dt style="width: inherit;">Submission date and time</dt>
+      <dd>{{ request.submission_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
+
+      <hr>
+
+      <dt>Memo</dt>
+      <dd><a href="/api/rotation_requests/{{ request.id }}/memo_docx/" class="btn btn-xs btn-primary">As Microsoft Word</a></dd>
+
+    </dl>
+
+    <hr>
+
+    <h4>Response</h4>
+
+    <div class="row">
+      <div class="col-xs-12">
+        <div class="form-group">
+
+          <!-- *************** -->
+          <form name="memoUploadForm" novalidate>
+            <div class="row">
+              <div class="col-sm-2">
+                <label for="id_memoFile" class="pull-right">Memo</label>
+              </div>
+              <div class="col-sm-10">
+                <input type="file" id="id_memoFile" ngf-select accept="application/pdf" name="memoFile" ng-model="response.memo" class="form-control" valid-pdf required />
+                <p ng-show="memoUploadForm.memoFile.$error.required">Please upload the forward memo.</p>
+                <p ng-show="memoUploadForm.memoFile.$error.extension">Please use PDF format only.</p>
+              </div>
+            </div>
+          </form>
+          <!-- *************** -->
+
+        </div>
+      </div>
+    </div>
+
+    <div class="row" ng-hide="upload.$$state.status == 0">
+      <div class="col-md-6">
+        <button type="button" class="btn btn-block btn-flat btn-warning" ng-if="!flags['forwardFlag']" ng-disabled="memoUploadForm.$invalid" ng-click="flag('forwardFlag')">
+          <i class="fa fa-mail-forward"></i>
+          Forward
+        </button>
+        <button type="button" class="btn btn-block btn-flat btn-danger" ng-if="flags['forwardFlag']" ng-click="forward(request)">
+          Confirm
+        </button>
+      </div>
+
+      <div class="col-md-6">
+        <button type="button" class="btn btn-block btn-flat btn-danger" ng-if="!flags['declineFlag']" ng-click="flag('declineFlag')">
+          <i class="fa fa-remove"></i>
+          Decline
+        </button>
+        <button type="button" class="btn btn-block btn-flat btn-warning" ng-if="flags['declineFlag']" ng-click="respond(request, 0, response['comments' + request.id])">
+          Confirm
+        </button>
+      </div>
+    </div>
+
+    <div ng-show="upload.$$state.status == 0" style="height: 50px;">
+      <img src="/static/loading.gif" height="30" style="position: relative; top: 50%; left: 50%; margin-left: -15px; margin-top: -15px;" />
+    </div>
+
+  </div>
+</div>

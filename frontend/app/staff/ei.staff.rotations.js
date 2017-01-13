@@ -4,14 +4,18 @@
 angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models", "ei.rotations.models", "ei.accounts.models",
                                      "ei.utils", "ngRoute", "ngResource", "ngSanitize", "ngAnimate",
                                      "datatables", "datatables.bootstrap", "ngHandsontable", "ngScrollbars",
-                                     "ui.bootstrap", "ui.select"])
+                                     "ui.bootstrap", "ui.select", "ei.rotations.directives"])
 
 .config(["$routeProvider", function ($routeProvider) {
 
     $routeProvider
         .when("/requests/:page?/", {
-            templateUrl: "static/partials/staff/rotations/rotation-request-list.html?v=0005",
+            templateUrl: "static/partials/staff/rotations/rotation-request-list.html?v=0006",
             controller: "RotationRequestListCtrl"
+        })
+        .when("/memos/", {
+            templateUrl: "static/partials/staff/rotations/forward-list.html?v=0001",
+            controller: "ForwardListCtrl"
         });
 
 }])
@@ -59,26 +63,9 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
 
         $scope.page = $routeParams.page;
 
-        function loadRequestInfo(requests) {
+        function momentizeMonth(requests) {
             angular.forEach(requests, function (request, index) {
-                request.month = InternshipMonth.get_by_internship_and_id({month_id: request.month, internship_id: request.internship});
-                request.requested_department = loadWithRelated(request.requested_department, RequestedDepartment, [
-                    [{department: Department}, [
-                        {hospital: Hospital}
-                    ]]
-                ], true);
-                request.specialty = Specialty.get({id: request.specialty});
-                request.internship = loadWithRelated(request.internship, Internship, [
-                    [{intern: Intern}, [
-                        {profile: Profile}
-                    ]]
-                ], true);
-                request.$promise = $q.all([
-                    request.month.$promise,
-                    request.requested_department.$promise,
-                    request.specialty.$promise,
-                    request.internship.$promise
-                ])
+                request.month = moment({year: Math.floor(request.month / 12), month: (request.month % 12)});
             });
         }
 
@@ -117,13 +104,13 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
                 //$scope.requests = RotationRequest.kamc_no_memo(loadRequestInfo);
                 break;
             case 'kamc-memo':
-                $scope.requests = RotationRequest.kamc_memo(loadRequestInfo);
+                $scope.requests = RotationRequest.kamc_memo(momentizeMonth);
                 break;
             case 'outside':
-                $scope.requests = RotationRequest.non_kamc(loadRequestInfo);
+                $scope.requests = RotationRequest.non_kamc(momentizeMonth);
                 break;
             case 'cancellation':
-                $scope.requests = RotationRequest.cancellation(loadRequestInfo);
+                $scope.requests = RotationRequest.cancellation(momentizeMonth);
                 break;
         }
 
@@ -150,4 +137,116 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
             }
         };
 
+}])
+
+.controller("ForwardListCtrl", ["$scope", "$compile", "$uibModal", "DTOptionsBuilder", "DTColumnBuilder", "Intern", "RotationRequest", "RotationRequestForward", function ($scope, $compile, $uibModal, DTOptionsBuilder, DTColumnBuilder, Intern, RotationRequest, RotationRequestForward) {
+    var dtColumnsCommon = [
+        DTColumnBuilder.newColumn('rotation_request.id').withTitle('#'),
+        DTColumnBuilder.newColumn('rotation_request.intern_name').withTitle('Intern name'),
+        DTColumnBuilder.newColumn('rotation_request.month').withTitle('Month')
+            .renderWith(function (data, type, full, meta) {
+                var year = Math.floor(data/12);
+                var month = data % 12;
+                return moment({year: year, month: month}).format('MMMM YYYY');
+            }),
+        DTColumnBuilder.newColumn('rotation_request.requested_department_name').withTitle('Department'),
+        DTColumnBuilder.newColumn('rotation_request.requested_department_hospital_name').withTitle('Hospital'),
+        DTColumnBuilder.newColumn('rotation_request.submission_datetime').withTitle('Submitted')
+            .renderWith(function (data, type, full, meta) {
+                return moment(data).format('D/MMM/YYYY, hh:mm a');
+            }),
+        DTColumnBuilder.newColumn('forward_datetime').withTitle('Forwarded')
+            .renderWith(function (data, type, full, meta) {
+                return data.format('D/MMM/YYYY, hh:mm a');
+            }),
+        DTColumnBuilder.newColumn(null).withTitle("Memo").notSortable()
+            .renderWith(function (data, type, full, meta) {
+                return '<a href="' + data.memo_file + '" class="btn btn-xs btn-danger">As PDF</a>';
+            })
+    ];
+
+    $scope.dtOptions1 = DTOptionsBuilder
+        .fromFnPromise(function() {
+            return RotationRequestForward.intern_memos_as_table().$promise;
+        })
+        .withOption("order", [[ 6, "asc" ]])
+        .withOption("responsive", true)
+        .withOption('fnRowCallback',
+         function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+            $compile(nRow)($scope);
+         })
+        .withBootstrap();
+
+    $scope.dtColumns1 = dtColumnsCommon.concat([
+        DTColumnBuilder.newColumn(null).withTitle("Response").notSortable()
+            .renderWith(function (data, type, full, meta) {
+                return '<a class="btn btn-xs btn-primary" ng-click="openModal(' + data.rotation_request.id + ')"><i class="fa fa-pencil"></i> Record</a>';
+            })
+    ]);
+
+    $scope.dtInstance1 = {};
+
+    /* ******* */
+
+    $scope.dtOptions2 = DTOptionsBuilder
+        .fromFnPromise(function() {
+            return RotationRequestForward.staff_memos_as_table().$promise;
+        })
+        .withOption("order", [[ 6, "asc" ]])
+        .withOption("responsive", true)
+        .withBootstrap();
+
+    $scope.dtColumns2 = dtColumnsCommon.concat([
+        DTColumnBuilder.newColumn(null).withTitle("Response").notSortable()
+            .renderWith(function (data, type, full, meta) {
+                return '<i>To be provided by intern</i>';
+            })
+    ]);
+
+    $scope.dtInstance2 = {};
+
+    /* ******* */
+
+    $scope.dtOptions3 = DTOptionsBuilder
+        .fromFnPromise(function() {
+            return RotationRequestForward.memos_archive_as_table().$promise;
+        })
+        .withOption("order", [[ 6, "asc" ]])
+        .withOption("responsive", true)
+        .withBootstrap();
+
+    $scope.dtColumns3 = dtColumnsCommon;
+
+    $scope.dtInstance3 = {};
+
+    var ResponseModalCtrl = ["$scope", "$uibModalInstance", "request", function ($scope, $uibModalInstance, request) {
+        $scope.request = request;
+
+        $scope.cancel = function () {
+            $uibModalInstance.dismiss('cancel');
+        };
+
+        $scope.ok = function () {
+            $uibModalInstance.close($scope.response);
+        }
+    }];
+
+    $scope.openModal = function (rotationRequestId) {
+        var request = new RotationRequest({id: rotationRequestId});
+        return $uibModal.open({
+            animation: true,
+            templateUrl: 'response-modal.html',
+            controller: ResponseModalCtrl,
+            resolve: {
+                request: request
+            }
+        }).result.then(function (response) {
+            request.$respond({is_approved: response.is_approved, comments: response.comment}, function () {
+                $scope.dtInstance1.reloadData();
+                $scope.dtInstance3.reloadData();
+            }, function (error) {
+                toastr.error(error);
+            });
+        });
+    };
 }]);
