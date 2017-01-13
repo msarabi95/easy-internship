@@ -71,7 +71,7 @@
       </div>
     </div>
 
-    <div class="row">
+    <div class="row" ng-hide="upload.$$state.status == 0">
       <div class="col-md-6">
         <button type="button" class="btn btn-block btn-flat btn-warning" ng-if="!flags['forwardFlag']" ng-disabled="memoUploadForm.$invalid" ng-click="flag('forwardFlag')">
           <i class="fa fa-mail-forward"></i>
@@ -82,7 +82,7 @@
         </button>
       </div>
 
-      <div class="col-md-6" ng-hide="upload.$$state.status == 0">
+      <div class="col-md-6">
         <button type="button" class="btn btn-block btn-flat btn-danger" ng-if="!flags['declineFlag']" ng-click="flag('declineFlag')">
           <i class="fa fa-remove"></i>
           Decline
