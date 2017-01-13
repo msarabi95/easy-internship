@@ -82,7 +82,7 @@
         </button>
       </div>
 
-      <div class="col-md-6">
+      <div class="col-md-6" ng-hide="upload.$$state.status == 0">
         <button type="button" class="btn btn-block btn-flat btn-danger" ng-if="!flags['declineFlag']" ng-click="flag('declineFlag')">
           <i class="fa fa-remove"></i>
           Decline
@@ -93,6 +93,9 @@
       </div>
     </div>
 
+    <div ng-show="upload.$$state.status == 0" style="height: 50px;">
+      <img src="/static/loading.gif" height="30" style="position: relative; top: 50%; left: 50%; margin-left: -15px; margin-top: -15px;" />
+    </div>
 
   </div>
 </div>

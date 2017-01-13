@@ -42,7 +42,7 @@ angular.module("ei.rotations.directives", ["ei.utils", "ui.bootstrap", "ngFileUp
             request: "=rotationRequest",
             moveToForwardedRequests: "&onForward"
         },
-        templateUrl: "/static/app/directives/templates/rotations/rotation-request-forward-card.html",
+        templateUrl: "/static/app/directives/templates/rotations/rotation-request-forward-card.html?v=0001",
         link: function (scope, element, attrs) {
 
             scope.response = {};
@@ -62,11 +62,12 @@ angular.module("ei.rotations.directives", ["ei.utils", "ui.bootstrap", "ngFileUp
                     var file = scope.response.memo;
                     var data = {memo_file: file};
 
-                    Upload.upload({
+                    scope.upload = Upload.upload({
                         url: '/api/rotation_requests/' + scope.request.id + '/forward/',
                         data: data,
                         method: "POST"
-                    }).then(function (resp) {
+                    });
+                    scope.upload.then(function (resp) {
                         console.log('Success ' + resp.config.data.memo_file.name + ' uploaded. Response: ' + resp.data);
                         scope.moveToForwardedRequests({request: request});
 
