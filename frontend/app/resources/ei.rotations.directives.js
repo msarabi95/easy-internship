@@ -43,7 +43,7 @@ angular.module("ei.rotations.directives", ["ei.utils", "ui.bootstrap", "ngFileUp
             moveToPastRequests: "&onResponse",
             moveToForwardedRequests: "&onForward"
         },
-        templateUrl: "/static/directive-templates/staff/rotations/rotation-request-card.html?v=0001",
+        templateUrl: "/static/directive-templates/staff/rotations/rotation-request-card.html?v=0002",
         link: function (scope, element, attrs) {
 
             scope.forms = {};
