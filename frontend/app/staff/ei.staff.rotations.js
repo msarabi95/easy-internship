@@ -135,7 +135,8 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
         $scope.orderingOptions = [
             {label: "Submission date and time", value: function (request) {return request.submission_datetime.toDate();}},
             {label: "GPA", value: function (request) {return parseFloat(request.internship.intern.gpa)}},
-            {label: "Name", value: function (request) {return request.internship.intern.profile.en_full_name;}}
+            {label: "Name", value: function (request) {return request.internship.intern.profile.en_full_name;}},
+            {label: "Hospital", value: function (request) {return request.requested_department.department.hospital.name;}}
         ];
         $scope.ordering = {
             option: $scope.orderingOptions[0].value,
