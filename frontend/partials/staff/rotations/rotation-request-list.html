@@ -74,10 +74,15 @@
               <hr>
               <div class="row">
                 <div class="col-md-offset-2 col-md-8">
-                  <rotation-request-card rotation-request="request"
-                                         ng-repeat="request in requests | orderBy: ordering.option : ordering.reverse"
-                                         on-response="removeRequest(request)"
-                                         on-forward="removeRequest(request)"></rotation-request-card>
+                  <rotation-request-forward-card rotation-request="request"
+                                                 ng-if="page == 'kamc-memo' || page == 'outside'"
+                                                 ng-repeat="request in requests | orderBy: ordering.option : ordering.reverse"
+                                                 on-forward="removeRequest(request)"></rotation-request-forward-card>
+
+                  <rotation-cancel-request-response-card rotation-request="request"
+                                                         ng-if="page == 'cancellation'"
+                                                         ng-repeat="request in requests | orderBy: ordering.option : ordering.reverse"
+                                                         on-response="removeRequest(request)"></rotation-cancel-request-response-card>
                 </div>
               </div>
             </div>

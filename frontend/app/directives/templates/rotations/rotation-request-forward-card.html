@@ -22,24 +22,17 @@
 
       <hr>
 
-      <div ng-if="!request.is_delete">
-        <dt>Specialty</dt>
-        <dd class="text-yellow text-bold">{{ request.specialty }}</dd>
+      <dt>Specialty</dt>
+      <dd class="text-yellow text-bold">{{ request.specialty }}</dd>
 
-        <dt>Hospital</dt>
-        <dd class="text-yellow text-bold">{{ request.requested_department_hospital_name }}</dd>
+      <dt>Hospital</dt>
+      <dd class="text-yellow text-bold">{{ request.requested_department_hospital_name }}</dd>
 
-        <dt>Elective?</dt>
-        <dd>
-          <span ng-if="request.is_elective == true" class="text-yellow text-bold">Yes</span>
-          <span ng-if="request.is_elective == false">No</span>
-        </dd>
-      </div>
-
-      <div ng-if="request.is_delete">
-        <dt>Description</dt>
-        <dd>{{ request.intern_name}} requested <span class="text-red text-bold">cancellation of the rotation</span> during this month.</dd>
-      </div>
+      <dt>Elective?</dt>
+      <dd>
+        <span ng-if="request.is_elective == true" class="text-yellow text-bold">Yes</span>
+        <span ng-if="request.is_elective == false">No</span>
+      </dd>
 
       <dt style="width: inherit;">Submission date and time</dt>
       <dd>{{ request.submission_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
@@ -57,21 +50,18 @@
 
     <div class="row">
       <div class="col-xs-12">
-        <div class="form-group" ng-if="request.requested_department_requires_memo == false">
-          <textarea class="form-control" rows="3" placeholder="Comment (optional)" ng-model="response['comments' + request.id]"></textarea>
-        </div>
-        <div class="form-group" ng-if="request.requested_department_requires_memo == true">
+        <div class="form-group">
 
           <!-- *************** -->
-          <form name="forms.memoUploadForm" novalidate>
+          <form name="memoUploadForm" novalidate>
             <div class="row">
               <div class="col-sm-2">
                 <label for="id_memoFile" class="pull-right">Memo</label>
               </div>
               <div class="col-sm-10">
                 <input type="file" id="id_memoFile" ngf-select accept="application/pdf" name="memoFile" ng-model="response.memo" class="form-control" valid-pdf required />
-                <p ng-show="forms.memoUploadForm.memoFile.$error.required">Please upload the forward memo.</p>
-                <p ng-show="forms.memoUploadForm.memoFile.$error.extension">Please use PDF format only.</p>
+                <p ng-show="memoUploadForm.memoFile.$error.required">Please upload the forward memo.</p>
+                <p ng-show="memoUploadForm.memoFile.$error.extension">Please use PDF format only.</p>
               </div>
             </div>
           </form>
@@ -82,18 +72,8 @@
     </div>
 
     <div class="row">
-      <div class="col-md-6" ng-if="request.requested_department_requires_memo == false">
-        <button type="button" class="btn btn-block btn-flat btn-success" ng-if="!flags['approveFlag']" ng-click="flag('approveFlag')">
-          <i class="fa fa-check"></i>
-          Approve
-        </button>
-        <button type="button" class="btn btn-block btn-flat btn-warning" ng-if="flags['approveFlag']" ng-click="respond(request, 1, response['comments' + request.id])">
-          Confirm
-        </button>
-      </div>
-
-      <div class="col-md-6" ng-if="request.requested_department_requires_memo == true">
-        <button type="button" class="btn btn-block btn-flat btn-warning" ng-if="!flags['forwardFlag']" ng-disabled="forms.memoUploadForm.$invalid" ng-click="flag('forwardFlag')">
+      <div class="col-md-6">
+        <button type="button" class="btn btn-block btn-flat btn-warning" ng-if="!flags['forwardFlag']" ng-disabled="memoUploadForm.$invalid" ng-click="flag('forwardFlag')">
           <i class="fa fa-mail-forward"></i>
           Forward
         </button>

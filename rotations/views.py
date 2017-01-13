@@ -147,7 +147,7 @@ class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
         
         department_requires_memo = rotation_request.requested_department.get_department().requires_memo
         memo_handed_by_intern = rotation_request.requested_department.get_department().memo_handed_by_intern
-        if department_requires_memo and not hasattr(rotation_request, 'forward') and is_approved:
+        if department_requires_memo and not hasattr(rotation_request, 'forward') and is_approved and not rotation_request.is_delete:
             raise ForwardExpected("This rotation request can't be approved without forwarding it first.")
 
         # TODO: Check that the appropriate person is recording the response

@@ -10,7 +10,7 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
 
     $routeProvider
         .when("/requests/:page?/", {
-            templateUrl: "static/partials/staff/rotations/rotation-request-list.html?v=0005",
+            templateUrl: "static/partials/staff/rotations/rotation-request-list.html?v=0006",
             controller: "RotationRequestListCtrl"
         })
         .when("/memos/", {
