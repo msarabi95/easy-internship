@@ -12,6 +12,9 @@ from rotations.models import Rotation, RotationRequest
 
 
 class Hospital(models.Model):
+    """
+    A hospital
+    """
     name = models.CharField(max_length=128)
     abbreviation = models.CharField(max_length=16)
     is_kamc = models.BooleanField(default=False)
@@ -22,6 +25,9 @@ class Hospital(models.Model):
     phone = models.CharField(max_length=128)
     extension = models.CharField(max_length=16)
 
+    requires_memo = models.BooleanField(default=True)
+    memo_handed_by_intern = models.BooleanField(default=True)
+
     has_requirement = models.BooleanField("Has special requirements?", default=False)
     requirement_description = models.TextField(blank=True, null=True)
     requirement_file = models.FileField(upload_to='hospital_requirements', blank=True, null=True)
@@ -31,6 +37,9 @@ class Hospital(models.Model):
 
 
 class Specialty(models.Model):
+    """
+    A specialty
+    """
     name = models.CharField(max_length=128)
     abbreviation = models.CharField(max_length=4)
     required_months = models.PositiveIntegerField()
@@ -65,23 +74,44 @@ class Specialty(models.Model):
         verbose_name_plural = "Specialties"
 
 
-#
-# General Specialties, General Departments
-# ========================================
-#
-#     Specialty 1 ----- * Department
-#         1                   1
-#         |                   |
-#         |                   |
-#         |                   |
-#         *                   *
-#     Specialty 1 ----- * Department
-#
-# ========================================
-# Subspecialties, Sub-departments (Sections)
-#
+class Location(models.Model):
+    """
+    For a specialty with multiple locations, an instance of this model is created for each particular location.
+    (e.g. Family Medicine in NGHA)
+    """
+    hospital = models.ForeignKey(Hospital, related_name="locations")
+    specialty = models.ForeignKey(Specialty, related_name="locations")
+    name = models.CharField(max_length=50)
 
 
+class CustomDepartmentDetail(models.Model):
+    """
+    A specification of a special department's details that override the hospital's default.
+    """
+    hospital = models.ForeignKey(Hospital, related_name="custom_department_details")
+    specialty = models.ForeignKey(Specialty, related_name="custom_department_details")
+    location = models.ForeignKey(Location, related_name="custom_department_details", blank=True, null=True)
+
+    contact_name = models.CharField(max_length=128)
+    contact_position = models.CharField(max_length=128)
+    email = models.EmailField(max_length=128)
+    phone = models.CharField(max_length=128)
+    extension = models.CharField(max_length=16)
+
+    requires_memo = models.BooleanField(default=True)
+    memo_handed_by_intern = models.BooleanField(default=True)
+
+    has_requirement = models.BooleanField("Has special requirements?", default=False)
+    requirement_description = models.TextField(blank=True, null=True)
+    requirement_file = models.FileField(upload_to='hospital_requirements', blank=True, null=True)
+
+    def clean(self):
+        if Location.objects.filter(hospital=self.hospital, specialty=self.specialty).exists() and \
+                        self.location is None:
+            raise ValidationError("A location has to be specified.")
+
+
+# TODO: remove
 class Department(models.Model):
     hospital = models.ForeignKey(Hospital, related_name="departments")
     parent_department = models.ForeignKey("Department", related_name="sections", null=True,
@@ -249,6 +279,9 @@ class DepartmentSettings(NonMonthSettingsMixin, models.Model):
     """
     Acceptance settings for a particular department.
     """
+    hospital = models.ForeignKey(Hospital)
+    specialty = models.ForeignKey(Specialty)
+    location = models.ForeignKey(Location, null=True, blank=True)
     department = models.OneToOneField(Department, related_name="acceptance_settings")
     acceptance_criterion = models.CharField(
         max_length=4,
@@ -264,6 +297,9 @@ class DepartmentMonthSettings(MonthSettingsMixin, models.Model):
     Acceptance settings for a particular department during a particular month
     """
     month = MonthField()
+    hospital = models.ForeignKey(Hospital)
+    specialty = models.ForeignKey(Specialty)
+    location = models.ForeignKey(Location, null=True, blank=True)
     department = models.ForeignKey(Department, related_name="monthly_settings")
     total_seats = models.PositiveIntegerField()
     acceptance_criterion = models.CharField(
