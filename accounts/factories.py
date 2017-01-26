@@ -17,6 +17,8 @@ class UserFactory(factory.django.DjangoModelFactory):
 
 
 class ProfileFactory(factory.django.DjangoModelFactory):
+    user = factory.SubFactory('accounts.factories.UserFactory')
+
     role = Profile.INTERN
     ar_first_name = factory.Sequence(lambda n: u"تجربة%d" % n)
     ar_middle_name = factory.Sequence(lambda n: u"ابن%d" % n)
@@ -24,6 +26,7 @@ class ProfileFactory(factory.django.DjangoModelFactory):
     en_first_name = factory.Sequence(lambda n: u"Test%d" % n)
     en_middle_name = factory.Sequence(lambda n: u"Bin%d" % n)
     en_last_name = factory.Sequence(lambda n: u"Tests%d" % n)
+
     intern = factory.RelatedFactory('accounts.factories.InternFactory', 'profile')
 
     class Meta:
@@ -31,6 +34,8 @@ class ProfileFactory(factory.django.DjangoModelFactory):
 
 
 class InternFactory(factory.django.DjangoModelFactory):
+    profile = factory.SubFactory('accounts.factories.ProfileFactory')
+
     student_number = factory.Sequence(lambda n: str(n))
     badge_number = factory.Sequence(lambda n: str(n))
     phone_number = factory.Sequence(lambda n: str(n))
