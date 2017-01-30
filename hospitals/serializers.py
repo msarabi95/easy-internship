@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from hospitals.models import Hospital, Specialty, Department, GlobalSettings, MonthSettings, DepartmentSettings, \
+from hospitals.models import Hospital, Specialty, GlobalSettings, MonthSettings, DepartmentSettings, \
     DepartmentMonthSettings
 from easy_internship.serializers import MonthField
 
@@ -16,13 +16,6 @@ class SpecialtySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Specialty
-        fields = '__all__'
-
-
-class DepartmentSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Department
         fields = '__all__'
 
 
@@ -47,7 +40,7 @@ class DepartmentSettingsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DepartmentSettings
-        fields = ('id', 'department', 'acceptance_criterion',
+        fields = ('id', 'hospital', 'specialty', 'location', 'acceptance_criterion',
                   'acceptance_start_date_interval', 'acceptance_end_date_interval')
 
 
@@ -71,14 +64,14 @@ class DepartmentMonthSettingsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DepartmentMonthSettings
-        fields = ('id', 'month', 'department',
+        fields = ('id', 'month', 'hospital', 'specialty', 'location',
                   'total_seats', 'booked_seats', 'occupied_seats', 'available_seats',
                   'acceptance_criterion', 'acceptance_start_date', 'acceptance_end_date')
 
 
 class AcceptanceSettingSerializer(serializers.Serializer):
     month = MonthField()
-    department = serializers.PrimaryKeyRelatedField(read_only=True)
+    department = serializers.PrimaryKeyRelatedField(read_only=True)  # FIXME
     type = serializers.CharField()
     criterion = serializers.CharField()
     start_or_end_date = serializers.DateTimeField()
@@ -98,7 +91,7 @@ class AcceptanceSettingSerializer(serializers.Serializer):
 
 class SeatSettingSerializer(serializers.Serializer):
     month = MonthField()
-    department = serializers.PrimaryKeyRelatedField(read_only=True)
+    department = serializers.PrimaryKeyRelatedField(read_only=True)  # FIXME
     total_seats = serializers.IntegerField()
     occupied_seats = serializers.IntegerField()
     booked_seats = serializers.IntegerField()

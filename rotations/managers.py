@@ -66,3 +66,27 @@ class RotationRequestQuerySet(models.QuerySet):
             return open_requests.latest("submission_datetime")
         except ObjectDoesNotExist:
             return None
+
+    def memo_required(self):
+        """
+        Return rotation requests that require a memo.
+        """
+        pass  # TODO
+
+    def no_memo_required(self):
+        """
+        Return rotation requests that don't require a memo.
+        """
+        pass  # TODO
+
+    def kamc(self):
+        """
+        Return rotation requests for KAMC.
+        """
+        return self.filter(hospital__is_kamc=True)
+
+    def outside(self):
+        """
+        Return rotation requests for outside hospitals.
+        """
+        return self.filter(hospital__is_kamc=False)

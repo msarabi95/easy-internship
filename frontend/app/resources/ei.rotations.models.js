@@ -22,7 +22,7 @@ angular.module("ei.rotations.models", ["ngResource", "ei.interceptors"])
             method: "get",
             interceptor: DateTimeFieldToMomentInterceptor(["submission_datetime"])
         },
-        query_by_department_and_month: {
+        query_by_department_and_month: {  // FIXME: Remove (no longer used)
             method: "get",
             url: '/api/rotation_requests/:department_id/:month_id',
             isArray: true,

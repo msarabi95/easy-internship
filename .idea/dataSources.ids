@@ -12,7 +12,8 @@
       <column name="mobile_number" sqlType="VARCHAR(16)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
       <column name="address" sqlType="VARCHAR(128)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
       <column name="saudi_id_number" sqlType="VARCHAR(10)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
-      <column name="passport_number" sqlType="VARCHAR(10)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
+      <column name="saudi_id" sqlType="VARCHAR(100)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
+      <column name="passport" sqlType="VARCHAR(100)" precision="0" scale="-1" nullable="true" jdbcType="12"/>
       <column name="medical_record_number" sqlType="VARCHAR(10)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
       <column name="contact_person_name" sqlType="VARCHAR(64)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
       <column name="contact_person_relation" sqlType="VARCHAR(32)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
@@ -20,8 +21,10 @@
       <column name="contact_person_email" sqlType="VARCHAR(64)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
       <column name="gpa" sqlType="REAL" precision="0" scale="-1" nullable="false" jdbcType="6"/>
       <column name="profile_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
-      <column name="passport" sqlType="VARCHAR(100)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
-      <column name="saudi_id" sqlType="VARCHAR(100)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
+      <column name="alt_email" sqlType="VARCHAR(254)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
+      <column name="has_passport" sqlType="BOOL" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="passport_attachment" sqlType="VARCHAR(100)" precision="0" scale="-1" nullable="true" jdbcType="12"/>
+      <column name="passport_number" sqlType="VARCHAR(10)" precision="0" scale="-1" nullable="true" jdbcType="12"/>
       <primary-key columns="id"/>
       <foreign-key name="#FAKE_accounts_intern_1" columns="profile_id" ref-table="accounts_profile" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
     </table>
@@ -205,45 +208,72 @@
       <index name="guardian_userobjectpermission_417f1b1c" unique="true" columns="content_type_id"/>
       <index name="guardian_userobjectpermission_user_id_b0b3d2fc_uniq" unique="true" columns="user_id,permission_id,object_pk"/>
     </table>
-    <table name="hospitals_department" schema="" catalog="" type="TABLE">
+    <table name="hospitals_customdepartmentdetail" schema="" catalog="" type="TABLE">
       <column name="id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
-      <column name="name" sqlType="VARCHAR(128)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
       <column name="contact_name" sqlType="VARCHAR(128)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
+      <column name="contact_position" sqlType="VARCHAR(128)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
       <column name="email" sqlType="VARCHAR(128)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
       <column name="phone" sqlType="VARCHAR(128)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
       <column name="extension" sqlType="VARCHAR(16)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
+      <column name="requires_memo" sqlType="BOOL" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="memo_handed_by_intern" sqlType="BOOL" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="has_requirement" sqlType="BOOL" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="requirement_description" sqlType="TEXT" precision="0" scale="-1" nullable="true" jdbcType="12"/>
+      <column name="requirement_file" sqlType="VARCHAR(100)" precision="0" scale="-1" nullable="true" jdbcType="12"/>
       <column name="hospital_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="location_id" sqlType="INTEGER" precision="0" scale="-1" nullable="true" jdbcType="4"/>
       <column name="specialty_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
-      <column name="parent_department_id" sqlType="INTEGER" precision="0" scale="-1" nullable="true" jdbcType="4"/>
       <primary-key columns="id"/>
-      <foreign-key name="#FAKE_hospitals_department_1" columns="parent_department_id" ref-table="planner_department" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
-      <foreign-key name="#FAKE_hospitals_department_2" columns="specialty_id" ref-table="planner_specialty" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
-      <foreign-key name="#FAKE_hospitals_department_3" columns="hospital_id" ref-table="planner_hospital" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
-      <index name="planner_department_3a122570" unique="true" columns="parent_department_id"/>
-      <index name="planner_department_2f27de08" unique="true" columns="specialty_id"/>
-      <index name="planner_department_8a738e00" unique="true" columns="hospital_id"/>
+      <foreign-key name="#FAKE_hospitals_customdepartmentdetail_1" columns="specialty_id" ref-table="hospitals_specialty" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+      <foreign-key name="#FAKE_hospitals_customdepartmentdetail_2" columns="location_id" ref-table="hospitals_location" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+      <foreign-key name="#FAKE_hospitals_customdepartmentdetail_3" columns="hospital_id" ref-table="hospitals_hospital" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+      <index name="hospitals_customdepartmentdetail_2f27de08" unique="true" columns="specialty_id"/>
+      <index name="hospitals_customdepartmentdetail_e274a5da" unique="true" columns="location_id"/>
+      <index name="hospitals_customdepartmentdetail_8a738e00" unique="true" columns="hospital_id"/>
+      <index name="hospitals_customdepartmentdetail_hospital_id_35f200cf_uniq" unique="true" columns="hospital_id,specialty_id,location_id"/>
+    </table>
+    <table name="hospitals_department" schema="" catalog="" type="TABLE">
+      <column name="column_1" sqlType="INT" precision="0" scale="-1" nullable="true" jdbcType="4"/>
+      <primary-key columns="column_1"/>
     </table>
     <table name="hospitals_departmentmonthsettings" schema="" catalog="" type="TABLE">
       <column name="id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
       <column name="month" sqlType="DATE" precision="0" scale="-1" nullable="false" jdbcType="12"/>
       <column name="total_seats" sqlType="INTEGER UNSIGNED" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="acceptance_criterion" sqlType="VARCHAR(4)" precision="0" scale="-1" nullable="true" jdbcType="12"/>
       <column name="acceptance_start_date" sqlType="DATETIME" precision="0" scale="-1" nullable="true" jdbcType="12"/>
       <column name="acceptance_end_date" sqlType="DATETIME" precision="0" scale="-1" nullable="true" jdbcType="12"/>
       <column name="department_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
-      <column name="acceptance_criterion" sqlType="VARCHAR(4)" precision="0" scale="-1" nullable="true" jdbcType="12"/>
+      <column name="hospital_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="specialty_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="location_id" sqlType="INTEGER" precision="0" scale="-1" nullable="true" jdbcType="4"/>
       <primary-key columns="id"/>
-      <foreign-key name="#FAKE_hospitals_departmentmonthsettings_1" columns="department_id" ref-table="planner_department" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
-      <index name="planner_departmentmonthsettings_bf691be4" unique="true" columns="department_id"/>
-      <index name="planner_departmentmonthsettings_month_a55263f7_uniq" unique="true" columns="month,department_id"/>
+      <foreign-key name="#FAKE_hospitals_departmentmonthsettings_1" columns="location_id" ref-table="hospitals_location" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+      <foreign-key name="#FAKE_hospitals_departmentmonthsettings_2" columns="specialty_id" ref-table="hospitals_specialty" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+      <foreign-key name="#FAKE_hospitals_departmentmonthsettings_3" columns="hospital_id" ref-table="hospitals_hospital" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+      <foreign-key name="#FAKE_hospitals_departmentmonthsettings_4" columns="department_id" ref-table="hospitals_department" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+      <index name="hospitals_departmentmonthsettings_e274a5da" unique="true" columns="location_id"/>
+      <index name="hospitals_departmentmonthsettings_2f27de08" unique="true" columns="specialty_id"/>
+      <index name="hospitals_departmentmonthsettings_8a738e00" unique="true" columns="hospital_id"/>
+      <index name="hospitals_departmentmonthsettings_bf691be4" unique="true" columns="department_id"/>
+      <index name="hospitals_departmentmonthsettings_month_92ad9bb4_uniq" unique="true" columns="month,hospital_id,specialty_id,location_id"/>
     </table>
     <table name="hospitals_departmentsettings" schema="" catalog="" type="TABLE">
       <column name="id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
       <column name="acceptance_criterion" sqlType="VARCHAR(4)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
       <column name="acceptance_start_date_interval" sqlType="INTEGER UNSIGNED" precision="0" scale="-1" nullable="true" jdbcType="4"/>
       <column name="acceptance_end_date_interval" sqlType="INTEGER UNSIGNED" precision="0" scale="-1" nullable="true" jdbcType="4"/>
-      <column name="department_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="hospital_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="specialty_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="location_id" sqlType="INTEGER" precision="0" scale="-1" nullable="true" jdbcType="4"/>
       <primary-key columns="id"/>
-      <foreign-key name="#FAKE_hospitals_departmentsettings_1" columns="department_id" ref-table="planner_department" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+      <foreign-key name="#FAKE_hospitals_departmentsettings_1" columns="location_id" ref-table="hospitals_location" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+      <foreign-key name="#FAKE_hospitals_departmentsettings_2" columns="specialty_id" ref-table="hospitals_specialty" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+      <foreign-key name="#FAKE_hospitals_departmentsettings_3" columns="hospital_id" ref-table="hospitals_hospital" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+      <index name="hospitals_departmentsettings_e274a5da" unique="true" columns="location_id"/>
+      <index name="hospitals_departmentsettings_2f27de08" unique="true" columns="specialty_id"/>
+      <index name="hospitals_departmentsettings_8a738e00" unique="true" columns="hospital_id"/>
+      <index name="hospitals_departmentsettings_hospital_id_3927f93b_uniq" unique="true" columns="hospital_id,specialty_id,location_id"/>
     </table>
     <table name="hospitals_globalsettings" schema="" catalog="" type="TABLE">
       <column name="id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
@@ -257,7 +287,29 @@
       <column name="name" sqlType="VARCHAR(128)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
       <column name="abbreviation" sqlType="VARCHAR(16)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
       <column name="is_kamc" sqlType="BOOL" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="contact_name" sqlType="VARCHAR(128)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
+      <column name="email" sqlType="VARCHAR(128)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
+      <column name="extension" sqlType="VARCHAR(16)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
+      <column name="phone" sqlType="VARCHAR(128)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
+      <column name="has_requirement" sqlType="BOOL" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="requirement_description" sqlType="TEXT" precision="0" scale="-1" nullable="true" jdbcType="12"/>
+      <column name="requirement_file" sqlType="VARCHAR(100)" precision="0" scale="-1" nullable="true" jdbcType="12"/>
+      <column name="contact_position" sqlType="VARCHAR(128)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
+      <column name="memo_handed_by_intern" sqlType="BOOL" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="requires_memo" sqlType="BOOL" precision="0" scale="-1" nullable="false" jdbcType="4"/>
       <primary-key columns="id"/>
+    </table>
+    <table name="hospitals_location" schema="" catalog="" type="TABLE">
+      <column name="id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="name" sqlType="VARCHAR(50)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
+      <column name="hospital_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="specialty_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="abbreviation" sqlType="VARCHAR(10)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
+      <primary-key columns="id"/>
+      <foreign-key name="#FAKE_hospitals_location_1" columns="specialty_id" ref-table="hospitals_specialty" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+      <foreign-key name="#FAKE_hospitals_location_2" columns="hospital_id" ref-table="hospitals_hospital" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+      <index name="hospitals_location_2f27de08" unique="true" columns="specialty_id"/>
+      <index name="hospitals_location_8a738e00" unique="true" columns="hospital_id"/>
     </table>
     <table name="hospitals_monthsettings" schema="" catalog="" type="TABLE">
       <column name="id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
@@ -359,6 +411,59 @@
       <column name="name" sqlType="VARCHAR(32)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
       <column name="max_days" sqlType="INTEGER UNSIGNED" precision="0" scale="-1" nullable="true" jdbcType="4"/>
       <primary-key columns="id"/>
+    </table>
+    <table name="misc_documenttemplate" schema="" catalog="" type="TABLE">
+      <column name="id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="label" sqlType="VARCHAR(50)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
+      <column name="codename" sqlType="VARCHAR(20)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
+      <column name="type" sqlType="VARCHAR(4)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
+      <column name="template_file" sqlType="VARCHAR(100)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
+      <primary-key columns="id"/>
+    </table>
+    <table name="months_freeze" schema="" catalog="" type="TABLE">
+      <column name="id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="month" sqlType="DATE" precision="0" scale="-1" nullable="false" jdbcType="12"/>
+      <column name="freeze_request_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="intern_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <primary-key columns="id"/>
+      <foreign-key name="#FAKE_months_freeze_1" columns="intern_id" ref-table="auth_user" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+      <foreign-key name="#FAKE_months_freeze_2" columns="freeze_request_id" ref-table="months_freezerequest" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+      <index name="months_freeze_f27ed5f9" unique="true" columns="intern_id"/>
+    </table>
+    <table name="months_freezecancelrequest" schema="" catalog="" type="TABLE">
+      <column name="id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="month" sqlType="DATE" precision="0" scale="-1" nullable="false" jdbcType="12"/>
+      <column name="submission_datetime" sqlType="DATETIME" precision="0" scale="-1" nullable="false" jdbcType="12"/>
+      <column name="intern_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <primary-key columns="id"/>
+      <foreign-key name="#FAKE_months_freezecancelrequest_1" columns="intern_id" ref-table="auth_user" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+    </table>
+    <table name="months_freezecancelrequestresponse" schema="" catalog="" type="TABLE">
+      <column name="id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="is_approved" sqlType="BOOL" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="comments" sqlType="TEXT" precision="0" scale="-1" nullable="false" jdbcType="12"/>
+      <column name="response_datetime" sqlType="DATETIME" precision="0" scale="-1" nullable="false" jdbcType="12"/>
+      <column name="request_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <primary-key columns="id"/>
+      <foreign-key name="#FAKE_months_freezecancelrequestresponse_1" columns="request_id" ref-table="months_freezecancelrequest" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+    </table>
+    <table name="months_freezerequest" schema="" catalog="" type="TABLE">
+      <column name="id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="month" sqlType="DATE" precision="0" scale="-1" nullable="false" jdbcType="12"/>
+      <column name="justification" sqlType="TEXT" precision="0" scale="-1" nullable="false" jdbcType="12"/>
+      <column name="submission_datetime" sqlType="DATETIME" precision="0" scale="-1" nullable="false" jdbcType="12"/>
+      <column name="intern_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <primary-key columns="id"/>
+      <foreign-key name="#FAKE_months_freezerequest_1" columns="intern_id" ref-table="auth_user" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+    </table>
+    <table name="months_freezerequestresponse" schema="" catalog="" type="TABLE">
+      <column name="id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="is_approved" sqlType="BOOL" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="comments" sqlType="TEXT" precision="0" scale="-1" nullable="false" jdbcType="12"/>
+      <column name="response_datetime" sqlType="DATETIME" precision="0" scale="-1" nullable="false" jdbcType="12"/>
+      <column name="request_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <primary-key columns="id"/>
+      <foreign-key name="#FAKE_months_freezerequestresponse_1" columns="request_id" ref-table="months_freezerequest" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
     </table>
     <table name="months_internship" schema="" catalog="" type="TABLE">
       <column name="id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
@@ -495,65 +600,68 @@
       <column name="department_id" sqlType="INTEGER" precision="0" scale="-1" nullable="true" jdbcType="4"/>
       <column name="department_hospital_id" sqlType="INTEGER" precision="0" scale="-1" nullable="true" jdbcType="4"/>
       <column name="department_specialty_id" sqlType="INTEGER" precision="0" scale="-1" nullable="true" jdbcType="4"/>
+      <column name="department_contact_position" sqlType="VARCHAR(128)" precision="0" scale="-1" nullable="true" jdbcType="12"/>
       <primary-key columns="id"/>
       <foreign-key name="#FAKE_rotations_requesteddepartment_1" columns="department_specialty_id" ref-table="hospitals_specialty" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
       <foreign-key name="#FAKE_rotations_requesteddepartment_2" columns="department_hospital_id" ref-table="hospitals_hospital" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
       <foreign-key name="#FAKE_rotations_requesteddepartment_3" columns="department_id" ref-table="hospitals_department" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
-      <index name="planner_requesteddepartment_23f16ba3" unique="true" columns="department_specialty_id"/>
-      <index name="planner_requesteddepartment_b1a2ae04" unique="true" columns="department_hospital_id"/>
-      <index name="planner_requesteddepartment_bf691be4" unique="true" columns="department_id"/>
+      <index name="rotations_requesteddepartment_23f16ba3" unique="true" columns="department_specialty_id"/>
+      <index name="rotations_requesteddepartment_b1a2ae04" unique="true" columns="department_hospital_id"/>
+      <index name="rotations_requesteddepartment_bf691be4" unique="true" columns="department_id"/>
     </table>
     <table name="rotations_rotation" schema="" catalog="" type="TABLE">
       <column name="id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
       <column name="month" sqlType="DATE" precision="0" scale="-1" nullable="false" jdbcType="12"/>
-      <column name="department_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
-      <column name="specialty_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
-      <column name="rotation_request_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
       <column name="is_elective" sqlType="BOOL" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="department_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
       <column name="internship_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="rotation_request_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="specialty_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="hospital_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="location_id" sqlType="INTEGER" precision="0" scale="-1" nullable="true" jdbcType="4"/>
       <primary-key columns="id"/>
-      <foreign-key name="#FAKE_rotations_rotation_1" columns="internship_id" ref-table="months_internship" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
-      <foreign-key name="#FAKE_rotations_rotation_2" columns="rotation_request_id" ref-table="planner_rotationrequest" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+      <foreign-key name="#FAKE_rotations_rotation_1" columns="location_id" ref-table="hospitals_location" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+      <foreign-key name="#FAKE_rotations_rotation_2" columns="hospital_id" ref-table="hospitals_hospital" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
       <foreign-key name="#FAKE_rotations_rotation_3" columns="specialty_id" ref-table="hospitals_specialty" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
-      <foreign-key name="#FAKE_rotations_rotation_4" columns="department_id" ref-table="hospitals_department" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
-      <index name="planner_rotation_ccd05cf1" unique="true" columns="internship_id"/>
-      <index name="planner_rotation_2f27de08" unique="true" columns="specialty_id"/>
-      <index name="planner_rotation_bf691be4" unique="true" columns="department_id"/>
+      <foreign-key name="#FAKE_rotations_rotation_4" columns="rotation_request_id" ref-table="rotations_rotationrequest" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+      <foreign-key name="#FAKE_rotations_rotation_5" columns="internship_id" ref-table="months_internship" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+      <foreign-key name="#FAKE_rotations_rotation_6" columns="department_id" ref-table="hospitals_department" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+      <index name="rotations_rotation_e274a5da" unique="true" columns="location_id"/>
+      <index name="rotations_rotation_8a738e00" unique="true" columns="hospital_id"/>
+      <index name="rotations_rotation_2f27de08" unique="true" columns="specialty_id"/>
+      <index name="rotations_rotation_ccd05cf1" unique="true" columns="internship_id"/>
+      <index name="rotations_rotation_bf691be4" unique="true" columns="department_id"/>
     </table>
     <table name="rotations_rotationrequest" schema="" catalog="" type="TABLE">
       <column name="id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
       <column name="month" sqlType="DATE" precision="0" scale="-1" nullable="false" jdbcType="12"/>
+      <column name="is_delete" sqlType="BOOL" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="is_elective" sqlType="BOOL" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="submission_datetime" sqlType="DATETIME" precision="0" scale="-1" nullable="false" jdbcType="12"/>
+      <column name="internship_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
       <column name="requested_department_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
       <column name="specialty_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
-      <column name="delete" sqlType="BOOL" precision="0" scale="-1" nullable="false" jdbcType="4"/>
-      <column name="submission_datetime" sqlType="DATETIME" precision="0" scale="-1" nullable="false" jdbcType="12"/>
-      <column name="is_elective" sqlType="BOOL" precision="0" scale="-1" nullable="false" jdbcType="4"/>
-      <column name="internship_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="hospital_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
+      <column name="location_id" sqlType="INTEGER" precision="0" scale="-1" nullable="true" jdbcType="4"/>
       <primary-key columns="id"/>
-      <foreign-key name="#FAKE_rotations_rotationrequest_1" columns="internship_id" ref-table="months_internship" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
-      <foreign-key name="#FAKE_rotations_rotationrequest_2" columns="specialty_id" ref-table="hospitals_specialty" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
-      <foreign-key name="#FAKE_rotations_rotationrequest_3" columns="requested_department_id" ref-table="planner_requesteddepartment" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
-      <index name="planner_rotationrequest_ccd05cf1" unique="true" columns="internship_id"/>
-      <index name="planner_rotationrequest_2f27de08" unique="true" columns="specialty_id"/>
+      <foreign-key name="#FAKE_rotations_rotationrequest_1" columns="location_id" ref-table="hospitals_location" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+      <foreign-key name="#FAKE_rotations_rotationrequest_2" columns="hospital_id" ref-table="hospitals_hospital" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+      <foreign-key name="#FAKE_rotations_rotationrequest_3" columns="specialty_id" ref-table="hospitals_specialty" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+      <foreign-key name="#FAKE_rotations_rotationrequest_4" columns="requested_department_id" ref-table="rotations_requesteddepartment" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+      <foreign-key name="#FAKE_rotations_rotationrequest_5" columns="internship_id" ref-table="months_internship" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+      <index name="rotations_rotationrequest_e274a5da" unique="true" columns="location_id"/>
+      <index name="rotations_rotationrequest_8a738e00" unique="true" columns="hospital_id"/>
+      <index name="rotations_rotationrequest_2f27de08" unique="true" columns="specialty_id"/>
+      <index name="rotations_rotationrequest_ccd05cf1" unique="true" columns="internship_id"/>
     </table>
     <table name="rotations_rotationrequestforward" schema="" catalog="" type="TABLE">
       <column name="id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
       <column name="forward_datetime" sqlType="DATETIME" precision="0" scale="-1" nullable="false" jdbcType="12"/>
       <column name="rotation_request_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
-      <column name="key" sqlType="VARCHAR(20)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
+      <column name="last_updated" sqlType="DATETIME" precision="0" scale="-1" nullable="false" jdbcType="12"/>
+      <column name="memo_file" sqlType="VARCHAR(100)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
       <primary-key columns="id"/>
-      <foreign-key name="#FAKE_rotations_rotationrequestforward_1" columns="rotation_request_id" ref-table="planner_rotationrequest" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
-    </table>
-    <table name="rotations_rotationrequestforwardresponse" schema="" catalog="" type="TABLE">
-      <column name="id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
-      <column name="is_approved" sqlType="BOOL" precision="0" scale="-1" nullable="false" jdbcType="4"/>
-      <column name="response_memo" sqlType="VARCHAR(100)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
-      <column name="comments" sqlType="TEXT" precision="0" scale="-1" nullable="false" jdbcType="12"/>
-      <column name="respondent_name" sqlType="VARCHAR(128)" precision="0" scale="-1" nullable="false" jdbcType="12"/>
-      <column name="response_datetime" sqlType="DATETIME" precision="0" scale="-1" nullable="false" jdbcType="12"/>
-      <column name="forward_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
-      <primary-key columns="id"/>
-      <foreign-key name="#FAKE_rotations_rotationrequestforwardresponse_1" columns="forward_id" ref-table="planner_rotationrequestforward" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
+      <foreign-key name="#FAKE_rotations_rotationrequestforward_1" columns="rotation_request_id" ref-table="rotations_rotationrequest" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
     </table>
     <table name="rotations_rotationrequestresponse" schema="" catalog="" type="TABLE">
       <column name="id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>

@@ -3,10 +3,8 @@ from __future__ import unicode_literals
 from copy import copy
 
 import itertools
-from django.core import validators
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
-from django.utils.crypto import get_random_string
 from django_nyt.utils import notify
 from month.models import MonthField
 
@@ -17,8 +15,9 @@ from rotations.managers import RotationManager, RotationRequestQuerySet
 class Rotation(models.Model):
     internship = models.ForeignKey(Internship, related_name="rotations")
     month = MonthField()
+    hospital = models.ForeignKey('hospitals.Hospital', related_name="rotations")
     specialty = models.ForeignKey('hospitals.Specialty', related_name="rotations")
-    department = models.ForeignKey('hospitals.Department', related_name="rotations")
+    location = models.ForeignKey('hospitals.Location', related_name="rotations", null=True, blank=True)
     is_elective = models.BooleanField(default=False)
     rotation_request = models.OneToOneField("RotationRequest")
 
@@ -28,152 +27,14 @@ class Rotation(models.Model):
         return "%s rotation in %s (%s)" % (self.specialty, self.department, self.month)
 
 
-class RequestedDepartment(models.Model):
-    is_in_database = models.BooleanField()
-    department = models.ForeignKey('hospitals.Department', related_name="department_requests", null=True, blank=True)
-
-    department_hospital = models.ForeignKey('hospitals.Hospital', null=True, blank=True)
-    department_name = models.CharField(max_length=128, blank=True)
-    department_specialty = models.ForeignKey('hospitals.Specialty', null=True, blank=True)
-    department_contact_name = models.CharField(max_length=128, blank=True)
-    department_contact_position = models.CharField(max_length=128, null=True, blank=True)
-    department_email = models.EmailField(max_length=128, blank=True)
-    department_phone = models.CharField(
-        max_length=128,
-        blank=True,
-        validators=[
-            validators.RegexValidator(
-                r'^\+\d{12}$',
-                code='invalid_phone_number',
-                message="Phone number should follow the format +966XXXXXXXXX."
-            )
-        ]
-    )
-    department_extension = models.CharField(
-        max_length=16,
-        blank=True,
-        validators=[
-            validators.RegexValidator(
-                r'^\d{3}\d*$',
-                code='invalid_extension',
-                message="Extension should be at least 3 digits long."
-            )
-        ]
-    )
-
-    def clean(self):
-        """
-        Check that *either* of the department field or the department_* details
-        fields are filled, but not both or none; and that `is_in_database` flag
-        is correctly assigned.
-        """
-        department_field_filled = self.department is not None
-        department_details_filled = all([
-            self.department_hospital is not None,
-            self.department_name != "",
-            self.department_specialty is not None,
-            self.department_contact_name != "",
-            self.department_contact_position != "",
-            self.department_email != "",
-            self.department_phone != "",
-            self.department_extension != "",
-        ])
-
-        if department_field_filled and department_details_filled:
-            raise ValidationError("Either an existing department should be chosen, "
-                                  "or the details of a new department be filled; but not both.")
-
-        elif not department_field_filled and not department_details_filled:
-            raise ValidationError("Either an existing department should be chosen, "
-                                  "or the details of a new department be filled.")
-
-        elif department_field_filled and not self.is_in_database:
-            raise ValidationError("`is_in_database` flag should be True if an existing department is chosen.")
-
-        elif department_details_filled and self.is_in_database:
-            raise ValidationError("`is_in_database` flag should be False if "
-                                  "the details of a new department are filled in.")
-
-    def link_to_existing_department(self, department):
-        """
-        Clears all the department_* details fields and links to an existing department through
-         the `department` field.
-        """
-        from hospitals.models import Department
-
-        if department in Department.objects.all():
-
-            self.department = department
-            self.is_in_database = True
-
-            # Empty the department_* details fields
-            self.department_hospital = None
-            self.department_name = ""
-            self.department_specialty = None
-            self.department_contact_name = ""
-            self.department_contact_position = ""
-            self.department_email = ""
-            self.department_phone = ""
-            self.department_extension = ""
-
-            self.save()
-        else:
-            raise ObjectDoesNotExist("This department doesn't exist in the database.")
-
-    def add_to_database(self):
-        """
-        Create a new department based on the data in this request, then link the request to that
-        department and clear the department_* details fields.
-        """
-        from hospitals.models import Department
-
-        if self.department in Department.objects.all():
-            raise Exception("Department already exists in database!")  # FIXME: A more accurate exception class?
-
-        new_department = Department.objects.create(  # FIXME: What about the dept. being actually a section of another?
-            hospital=self.department_hospital,
-            name=self.department_name,
-            specialty=self.department_specialty,
-            contact_name=self.department_contact_name,
-            contact_position=self.department_contact_position,
-            email=self.department_email,
-            phone=self.department_phone,
-            extension=self.department_extension,
-        )
-        self.link_to_existing_department(new_department)
-
-    def get_department(self):
-        """
-        Return the `Department` instance if that exists in the database. Otherwise return
-        a `Department` object containing all the details from the department_* fields.
-        """
-        from hospitals.models import Department
-        if self.is_in_database:
-            return self.department
-        else:
-            return Department(
-                hospital=self.department_hospital,
-                name=self.department_name,
-                specialty=self.department_specialty,
-                contact_name=self.department_contact_name,
-                contact_position=self.department_contact_position,
-                email=self.department_email,
-                phone=self.department_phone,
-                extension=self.department_extension,
-            )
-
-    def __unicode__(self):
-        return self.get_department().name
-
-
 class RotationRequest(models.Model):
     internship = models.ForeignKey(Internship, related_name="rotation_requests")
     month = MonthField()
-    specialty = models.ForeignKey('hospitals.Specialty', related_name="rotation_requests")  # TODO: Is this field really necessary?
-    requested_department = models.OneToOneField(RequestedDepartment)
+    hospital = models.ForeignKey('hospitals.Hospital', related_name="rotation_requests")
+    specialty = models.ForeignKey('hospitals.Specialty', related_name="rotation_requests")
+    location = models.ForeignKey('hospitals.Location', related_name="rotation_requests", null=True, blank=True)
     is_delete = models.BooleanField(default=False)  # Flag to determine if this is a "delete" request
     # FIXME: Maybe department & specialty should be optional with delete=True
-    # FIXME: The name `delete` conflicts with the api function `delete()`
     is_elective = models.BooleanField(default=False)
     submission_datetime = models.DateTimeField(auto_now_add=True)
 

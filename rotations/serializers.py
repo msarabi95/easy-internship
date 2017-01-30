@@ -1,8 +1,7 @@
 from rest_framework import serializers
 
 from easy_internship.serializers import MonthField
-from hospitals.models import Department
-from rotations.models import Rotation, RequestedDepartment, RotationRequest, RotationRequestResponse, \
+from rotations.models import Rotation, RotationRequest, RotationRequestResponse, \
     RotationRequestForward
 
 
@@ -10,13 +9,6 @@ class RotationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Rotation
-        fields = '__all__'
-
-
-class RequestedDepartmentSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = RequestedDepartment
         fields = '__all__'
 
 
@@ -29,8 +21,8 @@ class RotationRequestSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RotationRequest
-        fields = ('id', 'internship', 'month', 'specialty',
-                  'requested_department', 'is_delete', 'is_elective', 'submission_datetime',
+        fields = ('id', 'internship', 'month', 'hospital', 'specialty', 'location',
+                  'is_delete', 'is_elective', 'submission_datetime',
                   'status', 'response', 'forward')
 
 
@@ -48,11 +40,11 @@ class RotationRequestForwardSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class ShortDepartmentSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Department
-        fields = ('id', 'name')
+# class ShortDepartmentSerializer(serializers.ModelSerializer):
+#
+#     class Meta:
+#         model = Department
+#         fields = ('id', 'name')
 
 
 class ShortRotationRequestResponseSerializer(serializers.ModelSerializer):
@@ -84,7 +76,7 @@ class ShortRotationRequestSerializer(serializers.ModelSerializer):
 
 
 class AcceptanceListSerializer(serializers.Serializer):
-    department = ShortDepartmentSerializer()
+    # department = ShortDepartmentSerializer()  # FIXME
     month = MonthField()
     acceptance_criterion = serializers.CharField()
     acceptance_is_open = serializers.BooleanField()

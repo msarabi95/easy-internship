@@ -19,12 +19,12 @@ from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK
 from accounts.permissions import IsStaff
 from misc.models import DocumentTemplate
 from rotations.exceptions import ResponseExists, ForwardExists, ForwardExpected, ForwardNotExpected
-from rotations.forms import RotationRequestForm
-from rotations.models import Rotation, RequestedDepartment, RotationRequest, RotationRequestResponse, \
+# from rotations.forms import RotationRequestForm
+from rotations.models import Rotation, RotationRequest, RotationRequestResponse, \
     RotationRequestForward, AcceptanceList
-from hospitals.models import Department, AcceptanceSetting, Hospital, Specialty, DepartmentMonthSettings, MonthSettings, \
-    DepartmentSettings, GlobalSettings
-from rotations.serializers import RotationSerializer, RequestedDepartmentSerializer, RotationRequestSerializer, \
+from hospitals.models import AcceptanceSetting, Hospital, Specialty, DepartmentMonthSettings, MonthSettings, \
+    DepartmentSettings
+from rotations.serializers import RotationSerializer, RotationRequestSerializer, \
     RotationRequestResponseSerializer, RotationRequestForwardSerializer, AcceptanceListSerializer, \
     ShortRotationRequestForwardSerializer, ShortRotationRequestSerializer
 
@@ -40,12 +40,6 @@ class RotationViewSet(viewsets.ReadOnlyModelViewSet):
         return self.queryset.filter(internship__intern__profile__user=self.request.user)
 
 
-class RequestedDepartmentViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = RequestedDepartmentSerializer
-    queryset = RequestedDepartment.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
-
-
 class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = RotationRequestSerializer
     queryset = RotationRequest.objects.all()
@@ -59,7 +53,7 @@ class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
     @list_route(methods=['get'], permission_classes=[permissions.IsAuthenticated, IsStaff])
     def kamc_no_memo(self, request):
         requests = self.get_queryset().unreviewed().filter(is_delete=False)\
-            .filter(requested_department__department__requires_memo=False)
+            .filter(requested_department__department__requires_memo=False)  # FIXME: redefine
         serialized = self.get_serializer(requests, many=True)
         return Response(serialized.data)
 
@@ -67,7 +61,7 @@ class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
     def kamc_memo(self, request):
         requests = self.get_queryset().unreviewed().filter(is_delete=False)\
             .filter(requested_department__department__hospital__is_kamc=True)\
-            .filter(requested_department__department__requires_memo=True)
+            .filter(requested_department__department__requires_memo=True)  # FIXME: redefine
         serialized = ShortRotationRequestSerializer(requests, many=True)
         return Response(serialized.data)
 
@@ -75,7 +69,7 @@ class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
     def non_kamc(self, request):
         requests = self.get_queryset().unreviewed().filter(is_delete=False)\
             .filter(requested_department__department__hospital__is_kamc=False)\
-            .filter(requested_department__department__requires_memo=True)
+            .filter(requested_department__department__requires_memo=True)  # FIXME: redefine
         serialized = ShortRotationRequestSerializer(requests, many=True)
         return Response(serialized.data)
 
@@ -88,7 +82,7 @@ class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
     @detail_route(methods=['get'], permission_classes=[permissions.IsAuthenticated, IsStaff])
     def memo_docx(self, request, pk=None):
         rotation_request = get_object_or_404(RotationRequest, pk=pk)
-        department = rotation_request.requested_department.get_department()
+        department = rotation_request.requested_department.get_department()  # FIXME: Update
         intern = rotation_request.internship.intern
 
         # Check if memo is expected
@@ -146,7 +140,7 @@ class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
         if hasattr(rotation_request, 'response'):
             raise ResponseExists("This rotation request has already been responded to.")
         
-        department_requires_memo = rotation_request.requested_department.get_department().requires_memo
+        department_requires_memo = rotation_request.requested_department.get_department().requires_memo  # FIXME: Update
         memo_handed_by_intern = rotation_request.requested_department.get_department().memo_handed_by_intern
         if department_requires_memo and not hasattr(rotation_request, 'forward') and is_approved and not rotation_request.is_delete:
             raise ForwardExpected("This rotation request can't be approved without forwarding it first.")
@@ -163,7 +157,7 @@ class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
         
         if is_approved:
             # Remove any previous rotation in the request's month
-            rotation_request.internship.rotations.filter(month=rotation_request.month).delete()
+            rotation_request.internship.rotations.filter(month=rotation_request.month).delete()  # FIXME: Update
 
             # Unless this is a delete, request, add a new rotation object for the current month
             if not rotation_request.is_delete:
@@ -217,7 +211,7 @@ class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
         if hasattr(rotation_request, 'forward'):
             raise ForwardExists("This rotation request has already been forwarded.")
 
-        department_requires_memo = rotation_request.requested_department.get_department().requires_memo
+        department_requires_memo = rotation_request.requested_department.get_department().requires_memo  # FIXME: Update!
         if not department_requires_memo:
             raise ForwardNotExpected("This rotation request does not require a forward.")
 
@@ -236,135 +230,102 @@ class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
         return Response({"status": RotationRequest.FORWARDED_STATUS})
 
 
-class RotationRequestByDepartmentAndMonth(viewsets.ViewSet):
-    serializer_class = RotationRequestSerializer
-    queryset = RotationRequest.objects.all()
-    permission_classes = [permissions.IsAuthenticated, IsStaff]
-
-    def list(self, request, *args, **kwargs):
-        try:
-            queryset = self.get_queryset()
-            serializer = self.get_serializer(queryset, many=True)
-            return Response(serializer.data)
-        except ObjectDoesNotExist:
-            raise Http404
-
-    def get_serializer(self, *args, **kwargs):
-        serializer_class = self.get_serializer_class()
-        kwargs['context'] = self.get_serializer_context()
-        return serializer_class(*args, **kwargs)
-
-    def get_serializer_class(self):
-        return self.serializer_class
-
-    def get_serializer_context(self):
-        return {
-            'request': self.request,
-            'format': self.format_kwarg,
-            'view': self
-        }
-
-    def get_queryset(self):
-        department = Department.objects.get(id=self.kwargs['department_id'])
-        month = Month.from_int(int(self.kwargs['month_id']))
-        return RotationRequest.objects.unreviewed().filter(month=month, requested_department__department=department)
-
-
-class RotationRequestFormView(django_generics.FormView):
-    template_name = "rotations/intern/rotation-request-create.html"
-    form_class = RotationRequestForm
-    # TODO: permissions?
-
-    def post(self, request, *args, **kwargs):
-        if request.is_ajax():
-            return self.ajax(request)
-        raise
-
-    def ajax(self, request):
-        data = json.loads(request.body)
-        month = Month.from_int(int(data['month']))
-        internship = self.request.user.profile.intern.internship
-
-        if internship.rotation_requests.current_for_month(month):
-            raise PermissionDenied("There is a rotation request for this month already.")
-
-        # TODO: Check that month is not frozen or disabled
-
-        new_hospital_name = data.get("new_hospital_name")
-        new_hospital_abbrev = data.get("new_hospital_abbreviation")
-        if data.get("department_hospital") == -1:
-            new_hospital = Hospital.objects.create(
-                name=new_hospital_name,
-                abbreviation=new_hospital_abbrev,
-                contact_name=data.get("new_hospital_contact_name", ""),
-                contact_position=data.get("new_hospital_contact_position", ""),
-                email=data.get("new_hospital_email", ""),
-                phone=data.get("new_hospital_phone", ""),
-                extension=data.get("new_hospital_extension", ""),
-            )
-
-            raw_specialty = Specialty.objects.get(id=int(data.get("department_specialty")))
-
-            new_department = Department.objects.create(
-                hospital=new_hospital,
-                specialty=raw_specialty,
-                name="Department of %s" % raw_specialty.name,
-                contact_name="",
-                contact_position="",
-                email="",
-                phone="",
-                extension="",
-            )
-
-            data['department_hospital'] = new_hospital.id
-            data['department'] = new_department.id
-            data['is_in_database'] = True
-
-        form = self.form_class(data=data)
-        if form.is_valid():
-
-            if form.cleaned_data['is_in_database']:
-                department = form.cleaned_data['department']
-                settings = AcceptanceSetting(department, month)
-                if not settings.can_submit_requests():
-                    form.add_error(None, "Submission is closed for %s during %s." % (department.name, month.first_day().strftime("%B %Y")))
-                    response_data = {'errors': form.errors}
-                    return HttpResponse(json.dumps(response_data), content_type="application/json")
-
-            requested_department = form.save()
-            try:
-                rr = RotationRequest(
-                    internship=internship,
-                    month=month,
-                    specialty=requested_department.department_specialty,
-                    requested_department=requested_department,
-                    is_elective=form.cleaned_data['is_elective'],
-                )
-                rr.validate_request()
-                rr.save()
-            except ValidationError as e:
-                for error in e.message_dict[NON_FIELD_ERRORS]:
-                    form.add_error(None, error)
-
-            else:
-                # --notifications--
-
-                # Subscribe user to receive update notifications on the request
-                subscribe(request.user.settings_set.first(), "rotation_request_approved", object_id=rr.id)
-                subscribe(request.user.settings_set.first(), "rotation_request_declined", object_id=rr.id)
-
-                # Notify medical internship unit of the request
-                notify(
-                    "A new rotation request has been submitted by %s" % (request.user.profile.get_en_full_name()),
-                    "rotation_request_submitted",
-                    url="/planner/%d/" % rr.internship.id,
-                )  # FIXME: avoid sending a lot of simultaneous notifications
-
-                # Display success message to user
-                messages.success(request, "Your request has been submitted successfully.")
-
-        response_data = {'errors': form.errors}
-        return HttpResponse(json.dumps(response_data), content_type="application/json")
+# TODO: Remove and replace by `create` method on `RotationRequest` viewset
+# class RotationRequestFormView(django_generics.FormView):
+#     template_name = "rotations/intern/rotation-request-create.html"
+#     form_class = RotationRequestForm
+#     # TODO: permissions?
+#
+#     def post(self, request, *args, **kwargs):
+#         if request.is_ajax():
+#             return self.ajax(request)
+#         raise
+#
+#     def ajax(self, request):
+#         data = json.loads(request.body)
+#         month = Month.from_int(int(data['month']))
+#         internship = self.request.user.profile.intern.internship
+#
+#         if internship.rotation_requests.current_for_month(month):
+#             raise PermissionDenied("There is a rotation request for this month already.")
+#
+#         # TODO: Check that month is not frozen or disabled
+#
+#         new_hospital_name = data.get("new_hospital_name")
+#         new_hospital_abbrev = data.get("new_hospital_abbreviation")
+#         if data.get("department_hospital") == -1:
+#             new_hospital = Hospital.objects.create(
+#                 name=new_hospital_name,
+#                 abbreviation=new_hospital_abbrev,
+#                 contact_name=data.get("new_hospital_contact_name", ""),
+#                 contact_position=data.get("new_hospital_contact_position", ""),
+#                 email=data.get("new_hospital_email", ""),
+#                 phone=data.get("new_hospital_phone", ""),
+#                 extension=data.get("new_hospital_extension", ""),
+#             )
+#
+#             raw_specialty = Specialty.objects.get(id=int(data.get("department_specialty")))
+#
+#             new_department = Department.objects.create(
+#                 hospital=new_hospital,
+#                 specialty=raw_specialty,
+#                 name="Department of %s" % raw_specialty.name,
+#                 contact_name="",
+#                 contact_position="",
+#                 email="",
+#                 phone="",
+#                 extension="",
+#             )
+#
+#             data['department_hospital'] = new_hospital.id
+#             data['department'] = new_department.id
+#             data['is_in_database'] = True
+#
+#         form = self.form_class(data=data)
+#         if form.is_valid():
+#
+#             if form.cleaned_data['is_in_database']:
+#                 department = form.cleaned_data['department']
+#                 settings = AcceptanceSetting(department, month)
+#                 if not settings.can_submit_requests():
+#                     form.add_error(None, "Submission is closed for %s during %s." % (department.name, month.first_day().strftime("%B %Y")))
+#                     response_data = {'errors': form.errors}
+#                     return HttpResponse(json.dumps(response_data), content_type="application/json")
+#
+#             requested_department = form.save()
+#             try:
+#                 rr = RotationRequest(
+#                     internship=internship,
+#                     month=month,
+#                     specialty=requested_department.department_specialty,
+#                     requested_department=requested_department,
+#                     is_elective=form.cleaned_data['is_elective'],
+#                 )
+#                 rr.validate_request()
+#                 rr.save()
+#             except ValidationError as e:
+#                 for error in e.message_dict[NON_FIELD_ERRORS]:
+#                     form.add_error(None, error)
+#
+#             else:
+#                 # --notifications--
+#
+#                 # Subscribe user to receive update notifications on the request
+#                 subscribe(request.user.settings_set.first(), "rotation_request_approved", object_id=rr.id)
+#                 subscribe(request.user.settings_set.first(), "rotation_request_declined", object_id=rr.id)
+#
+#                 # Notify medical internship unit of the request
+#                 notify(
+#                     "A new rotation request has been submitted by %s" % (request.user.profile.get_en_full_name()),
+#                     "rotation_request_submitted",
+#                     url="/planner/%d/" % rr.internship.id,
+#                 )  # FIXME: avoid sending a lot of simultaneous notifications
+#
+#                 # Display success message to user
+#                 messages.success(request, "Your request has been submitted successfully.")
+#
+#         response_data = {'errors': form.errors}
+#         return HttpResponse(json.dumps(response_data), content_type="application/json")
 
 
 class RotationRequestResponseViewSet(viewsets.ReadOnlyModelViewSet):
@@ -392,7 +353,7 @@ class RotationRequestForwardViewSet(viewsets.ReadOnlyModelViewSet):
     def intern_memos_as_table(self, request, *args, **kwargs):
         forwards = self.get_queryset()\
             .filter(rotation_request__response__isnull=True)\
-            .filter(rotation_request__requested_department__department__memo_handed_by_intern=True)
+            .filter(rotation_request__requested_department__department__memo_handed_by_intern=True)  # FIXME
         serialized = ShortRotationRequestForwardSerializer(forwards, many=True)
         return Response(serialized.data)
 
@@ -400,7 +361,7 @@ class RotationRequestForwardViewSet(viewsets.ReadOnlyModelViewSet):
     def staff_memos_as_table(self, request, *args, **kwargs):
         forwards = self.get_queryset()\
             .filter(rotation_request__response__isnull=True)\
-            .filter(rotation_request__requested_department__department__memo_handed_by_intern=False)
+            .filter(rotation_request__requested_department__department__memo_handed_by_intern=False)  # FIXME
         serialized = ShortRotationRequestForwardSerializer(forwards, many=True)
         return Response(serialized.data)
 

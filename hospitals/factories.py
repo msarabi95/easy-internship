@@ -1,6 +1,6 @@
-import factory, random
+import factory
 
-from hospitals.models import Hospital, Specialty, Department, DepartmentMonthSettings
+from hospitals.models import Hospital, Specialty, DepartmentMonthSettings, CustomDepartmentDetail, Location
 
 
 class HospitalFactory(factory.django.DjangoModelFactory):
@@ -20,27 +20,38 @@ class SpecialtyFactory(factory.django.DjangoModelFactory):
         model = Specialty
 
 
-class DepartmentFactory(factory.django.DjangoModelFactory):
-    name = factory.Sequence(lambda n: "Department %d" % n)
+class LocationFactory(factory.django.DjangoModelFactory):
+    name = factory.Sequence(lambda n: "Location %d" % n)
+    abbreviation = factory.Sequence(lambda n: "L%d" % n)
 
+    class Meta:
+        model = Location
+
+
+class CustomDepartmentDetailFactory(factory.django.DjangoModelFactory):
     hospital = factory.SubFactory(HospitalFactory)
     specialty = factory.SubFactory(SpecialtyFactory)
+    location = factory.SubFactory(LocationFactory)
 
     contact_name = factory.Faker('name')
     contact_position = "Chairman"
     email = factory.Faker('email')
     phone = factory.Faker('phone_number')
-    extension = '12345'
+    extension = "12345"
+
+    requires_memo = True
+    memo_handed_by_intern = True
 
     class Meta:
-        model = Department
+        model = CustomDepartmentDetail
 
 
 class DepartmentMonthSettingsFactory(factory.django.DjangoModelFactory):
     total_seats = 50
 
-    department = factory.SubFactory(DepartmentFactory)
+    hospital = factory.SubFactory(HospitalFactory)
+    specialty = factory.SubFactory(SpecialtyFactory)
+    location = factory.SubFactory(LocationFactory)
 
     class Meta:
         model = DepartmentMonthSettings
-

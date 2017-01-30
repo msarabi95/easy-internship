@@ -82,6 +82,7 @@ class Location(models.Model):
     hospital = models.ForeignKey(Hospital, related_name="locations")
     specialty = models.ForeignKey(Specialty, related_name="locations")
     name = models.CharField(max_length=50)
+    abbreviation = models.CharField(max_length=10)
 
 
 class CustomDepartmentDetail(models.Model):
@@ -110,54 +111,8 @@ class CustomDepartmentDetail(models.Model):
                         self.location is None:
             raise ValidationError("A location has to be specified.")
 
-
-# TODO: remove
-class Department(models.Model):
-    hospital = models.ForeignKey(Hospital, related_name="departments")
-    parent_department = models.ForeignKey("Department", related_name="sections", null=True,
-                                          blank=True)
-    name = models.CharField(max_length=128)
-    specialty = models.ForeignKey(Specialty, related_name="departments")
-    contact_name = models.CharField(max_length=128)
-    contact_position = models.CharField(max_length=128)
-    email = models.EmailField(max_length=128)
-    phone = models.CharField(max_length=128)
-    extension = models.CharField(max_length=16)
-
-    requires_memo = models.BooleanField(default=True)
-    memo_handed_by_intern = models.BooleanField(default=True)
-
-    has_requirement = models.BooleanField("Has special requirements?", default=False)
-    requirement_description = models.TextField(blank=True, null=True)
-    requirement_file = models.FileField(upload_to='hospital_requirements', blank=True, null=True)
-
-    def get_available_seats(self, month):
-        """
-        Return the number of available seats for a specific month.
-        """
-        try:
-            return self.seats.get(month=month).total_seats
-        except DepartmentMonthSettings.DoesNotExist:
-            return None
-
-    def get_contact_details(self):
-        """
-        Return the contact details of the department if saved.
-        If no details are supplied, return the details of the parent department.
-        """
-        if self.email != "":
-            return {
-                "contact_name": self.contact_name,
-                "contact_position": self.contact_position,
-                "email": self.email,
-                "phone": self.phone,
-                "extension": self.extension,
-            }
-        elif self.parent_department is not None:
-            return self.parent_department.get_contact_details()
-
-    def __unicode__(self):
-        return "%s (%s)" % (self.name, self.hospital.abbreviation)
+    class Meta:
+        unique_together = ('hospital', 'specialty', 'location')
 
 
 FCFS_ACCEPTANCE = "FCFS"
@@ -282,7 +237,6 @@ class DepartmentSettings(NonMonthSettingsMixin, models.Model):
     hospital = models.ForeignKey(Hospital)
     specialty = models.ForeignKey(Specialty)
     location = models.ForeignKey(Location, null=True, blank=True)
-    department = models.OneToOneField(Department, related_name="acceptance_settings")
     acceptance_criterion = models.CharField(
         max_length=4,
         choices=ACCEPTANCE_CRITERION_CHOICES,
@@ -290,6 +244,9 @@ class DepartmentSettings(NonMonthSettingsMixin, models.Model):
     )
     acceptance_start_date_interval = models.PositiveIntegerField(blank=True, null=True)
     acceptance_end_date_interval = models.PositiveIntegerField(blank=True, null=True)
+
+    class Meta:
+        unique_together = ('hospital', 'specialty', 'location')
 
 
 class DepartmentMonthSettings(MonthSettingsMixin, models.Model):
@@ -300,7 +257,6 @@ class DepartmentMonthSettings(MonthSettingsMixin, models.Model):
     hospital = models.ForeignKey(Hospital)
     specialty = models.ForeignKey(Specialty)
     location = models.ForeignKey(Location, null=True, blank=True)
-    department = models.ForeignKey(Department, related_name="monthly_settings")
     total_seats = models.PositiveIntegerField()
     acceptance_criterion = models.CharField(
         max_length=4,
@@ -315,7 +271,7 @@ class DepartmentMonthSettings(MonthSettingsMixin, models.Model):
                                                         self.month)
 
     class Meta:
-        unique_together = ("month", "department")
+        unique_together = ("month", "hospital", "specialty", "location")
 
 
 class AcceptanceSetting(object):
