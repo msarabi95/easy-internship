@@ -1,28 +1,30 @@
 
-from misc.models import Announcements
+from misc.models import Announcement
 from rest_framework import serializers
-from django.contrib.auth.models import User
+from django.utils import timezone
 
 
-class AnnouncementsSerializer(serializers.ModelSerializer):
+class AnnouncementSerializer(serializers.ModelSerializer):
+
+    def create(self, validated_data):
+        instance = super(AnnouncementSerializer, self).create(validated_data)
+        if instance.published:
+            instance.publish_datetime == timezone.now()
+            return instance
+
+    def update(self,instance,validated_data):
+        instance = super(AnnouncementSerializer, self).create(validated_data)
+        Announcement.update_datetime == timezone.now()
+
+        if instance.published:
+            instance.publish_datetime == timezone.now()
+            return instance
+        if not instance.published:
+            instance.publish_datetime = None
+            instance.save()
+        return instance
+
+
     class Meta:
-        model = Announcements
-        author = serializers.ReadOnlyField(source='owner.username')
-        fields = (
-            'author','Text','submission_date'
-        )
-
-        def create(self, validated_data):
-            return Announcements.objects.create(**validated_data)
-
-        def update(self, instance, validated_data):
-            pass
-
-
-
-class UserSerializer(serializers.ModelSerializer):
-    announcements = serializers.PrimaryKeyRelatedField(many=True, queryset=Announcements.objects.all())
-
-    class Meta:
-        model = User
-        fields = ('id', 'username', 'announcements')
+        model = Announcement
+        fields = '__all__'

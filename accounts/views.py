@@ -45,3 +45,4 @@ class InternViewSet(viewsets.ReadOnlyModelViewSet):
         interns = self.queryset.all().prefetch_related('profile__user', 'internship')
         serialized = InternTableSerializer(interns, many=True)
         return Response(serialized.data)
+
