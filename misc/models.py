@@ -43,7 +43,6 @@ class Announcement(models.Model):
 
          if self.id:
             self.updated = timezone.now()
-            self.last_updated_by = request.user()
             return super(Announcement, self).save(*args, **kwargs)
 
 
