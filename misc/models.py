@@ -38,16 +38,17 @@ class Announcement(models.Model):
     objects = AnnouncementManager()
     is_published = models.BooleanField(default=False)
 
+    # When it's editied save the date and the user
+    def save(self,*args, **kwargs):
+
+         if self.id:
+            self.updated = timezone.now()
+            self.last_updated_by = request.user()
+            return super(Announcement, self).save(*args, **kwargs)
+
+
+
     def __unicode__(self):
         return self.title
 
 
-
-#title X
-#unicode_literals X
-#Draft (staff ) or Puplished  (interns)X
-# Edited ????
-#Puplish datetime X
-#Update datetime X
-#last updated by whome X
-# puplished manager X

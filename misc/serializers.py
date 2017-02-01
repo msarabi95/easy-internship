@@ -6,25 +6,25 @@ from django.utils import timezone
 
 class AnnouncementSerializer(serializers.ModelSerializer):
 
-    def create(self, validated_data):
-        instance = super(AnnouncementSerializer, self).create(validated_data)
-        if instance.published:
-            instance.publish_datetime == timezone.now()
-            return instance
 
-    def update(self,instance,validated_data):
-        instance = super(AnnouncementSerializer, self).create(validated_data)
-        Announcement.update_datetime == timezone.now()
+    def create(self,validated_data):
+        if validated_data.is_published:
+            instance.publish_datetime = timezone.now()
+            instance.save()
+        return instance
 
-        if instance.published:
-            instance.publish_datetime == timezone.now()
+    def update(self, instance, validated_data):
+        if validated_data.is_published and not instance.is_published:
+            instance.publish_datetime = timezone.now()
+            instance.save()
             return instance
-        if not instance.published:
+        elif not validated_data.is_published:
             instance.publish_datetime = None
             instance.save()
         return instance
 
-
     class Meta:
         model = Announcement
+        author = serializers.ReadOnlyField(source='author.username')
         fields = '__all__'
+
