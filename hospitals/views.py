@@ -13,10 +13,10 @@ from rest_framework.exceptions import ParseError
 from rest_framework.response import Response
 
 from hospitals.models import Hospital, Specialty, MonthSettings, DepartmentSettings, \
-    DepartmentMonthSettings, AcceptanceSetting, SeatSetting
+    DepartmentMonthSettings, AcceptanceSetting, SeatSetting, Location
 from hospitals.serializers import HospitalSerializer, SpecialtySerializer, \
     MonthSettingsSerializer, DepartmentSettingsSerializer, DepartmentMonthSettingsSerializer, \
-    AcceptanceSettingSerializer, SeatSettingSerializer
+    AcceptanceSettingSerializer, SeatSettingSerializer, LocationSerializer
 from hospitals.utils import get_global_acceptance_criterion, set_global_acceptance_criterion, \
     get_global_acceptance_start_date_interval, set_global_acceptance_start_date_interval, \
     get_global_acceptance_end_date_interval, set_global_acceptance_end_date_interval
@@ -32,6 +32,11 @@ class SpecialtyViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = SpecialtySerializer
     queryset = Specialty.objects.all()
     permission_classes = [permissions.IsAuthenticated]
+
+
+class LocationViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = LocationSerializer
+    queryset = Location.objects.all()
 
 
 # FIXME: This ought to be removed with the refactoring of the request submission form

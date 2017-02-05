@@ -232,10 +232,6 @@
       <index name="hospitals_customdepartmentdetail_8a738e00" unique="true" columns="hospital_id"/>
       <index name="hospitals_customdepartmentdetail_hospital_id_35f200cf_uniq" unique="true" columns="hospital_id,specialty_id,location_id"/>
     </table>
-    <table name="hospitals_department" schema="" catalog="" type="TABLE">
-      <column name="column_1" sqlType="INT" precision="0" scale="-1" nullable="true" jdbcType="4"/>
-      <primary-key columns="column_1"/>
-    </table>
     <table name="hospitals_departmentmonthsettings" schema="" catalog="" type="TABLE">
       <column name="id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
       <column name="month" sqlType="DATE" precision="0" scale="-1" nullable="false" jdbcType="12"/>
@@ -243,7 +239,6 @@
       <column name="acceptance_criterion" sqlType="VARCHAR(4)" precision="0" scale="-1" nullable="true" jdbcType="12"/>
       <column name="acceptance_start_date" sqlType="DATETIME" precision="0" scale="-1" nullable="true" jdbcType="12"/>
       <column name="acceptance_end_date" sqlType="DATETIME" precision="0" scale="-1" nullable="true" jdbcType="12"/>
-      <column name="department_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
       <column name="hospital_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
       <column name="specialty_id" sqlType="INTEGER" precision="0" scale="-1" nullable="false" jdbcType="4"/>
       <column name="location_id" sqlType="INTEGER" precision="0" scale="-1" nullable="true" jdbcType="4"/>
@@ -251,11 +246,9 @@
       <foreign-key name="#FAKE_hospitals_departmentmonthsettings_1" columns="location_id" ref-table="hospitals_location" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
       <foreign-key name="#FAKE_hospitals_departmentmonthsettings_2" columns="specialty_id" ref-table="hospitals_specialty" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
       <foreign-key name="#FAKE_hospitals_departmentmonthsettings_3" columns="hospital_id" ref-table="hospitals_hospital" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
-      <foreign-key name="#FAKE_hospitals_departmentmonthsettings_4" columns="department_id" ref-table="hospitals_department" ref-schema="" ref-catalog="" ref-columns="id" update-rule="3" delete-rule="3" deferrability="1"/>
       <index name="hospitals_departmentmonthsettings_e274a5da" unique="true" columns="location_id"/>
       <index name="hospitals_departmentmonthsettings_2f27de08" unique="true" columns="specialty_id"/>
       <index name="hospitals_departmentmonthsettings_8a738e00" unique="true" columns="hospital_id"/>
-      <index name="hospitals_departmentmonthsettings_bf691be4" unique="true" columns="department_id"/>
       <index name="hospitals_departmentmonthsettings_month_92ad9bb4_uniq" unique="true" columns="month,hospital_id,specialty_id,location_id"/>
     </table>
     <table name="hospitals_departmentsettings" schema="" catalog="" type="TABLE">

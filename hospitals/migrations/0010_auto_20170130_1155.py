@@ -9,6 +9,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('hospitals', '0009_auto_20170130_0706'),
+        ('rotations', '0007_auto_20170130_1129'),
     ]
 
     operations = [

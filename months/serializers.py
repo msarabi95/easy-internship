@@ -29,9 +29,13 @@ class InternshipMonthSerializer(serializers.Serializer):
     freeze_cancel_request_history = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
 
     occupied = serializers.BooleanField(read_only=True)
-    requested = serializers.BooleanField(read_only=True)
     disabled = serializers.BooleanField(read_only=True)
     frozen = serializers.BooleanField(read_only=True)
+
+    has_rotation_request = serializers.BooleanField(read_only=True)
+    has_rotation_cancel_request = serializers.BooleanField(read_only=True)
+    has_freeze_request = serializers.BooleanField(read_only=True)
+    has_freeze_cancel_request = serializers.BooleanField(read_only=True)
 
     def create(self, validated_data):
         pass

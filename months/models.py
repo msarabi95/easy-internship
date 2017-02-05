@@ -36,9 +36,13 @@ class InternshipMonth(object):
         self.freeze_cancel_request_history = self.intern.freeze_cancel_requests.month(month).closed()
 
         self.occupied = self.current_rotation is not None
-        self.requested = self.current_request is not None
         self.disabled = self._is_disabled()
         self.frozen = self.current_freeze is not None
+
+        self.has_rotation_request = self.current_request is not None and not self.current_request.is_delete
+        self.has_rotation_cancel_request = self.current_request is not None and self.current_request.is_delete
+        self.has_freeze_request = self.current_freeze_request is not None
+        self.has_freeze_cancel_request = self.current_freeze_cancel_request is not None
 
     def request_rotation(self):
         pass

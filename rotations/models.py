@@ -138,7 +138,7 @@ class RotationRequest(models.Model):
 
     def __unicode__(self):
         return "Request for %s rotation at %s (%s)" % (self.specialty.name,
-                                                       self.requested_department.get_department().name,
+                                                       self.hospital.name,
                                                        self.month)
 
     class Meta:

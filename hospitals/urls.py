@@ -3,6 +3,7 @@ from hospitals import views
 api_urls = (
     (r'hospitals', views.HospitalViewSet),
     (r'specialties', views.SpecialtyViewSet),
+    (r'locations', views.LocationViewSet),
     (r'global_settings', views.GlobalSettingsViewSet, 'globalsetting'),
     (r'month_settings', views.MonthSettingsViewSet),
     (r'department_settings', views.DepartmentSettingsViewSet),

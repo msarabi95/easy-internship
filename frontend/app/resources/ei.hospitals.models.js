@@ -11,6 +11,10 @@ angular.module("ei.hospitals.models", ["ngResource", "ei.interceptors"])
     return $resource('/api/specialties/:id', {id: '@id'});
 }])
 
+.factory("Location", ["$resource", function($resource) {
+    return $resource('/api/locations/:id', {id: '@id'});
+}])
+
 .factory("Department", ["$resource", function($resource) {
     return $resource('/api/departments/:id', {id: '@id'}, {
         get_by_specialty_and_hospital: {

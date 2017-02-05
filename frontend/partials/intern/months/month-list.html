@@ -57,7 +57,8 @@
 
         <div class="col-md-2" ng-class="{'col-md-offset-1': $index % 5 == 0}" ng-repeat="i in [$index, $index + 1, $index + 2, $index + 3, $index + 4]">
 
-          <div class="box direct-chat direct-chat-primary internship-month" ng-class="['box-' + getTileClass(months[i]), {'text-gray': months[i].disabled}]">
+          <div class="box direct-chat direct-chat-primary internship-month"
+               ng-class="['box-' + getTileClass(months[i]), {'text-gray disabled': months[i].disabled, 'occupied': months[i].occupied, 'frozen': months[i].frozen, 'has-rotation-request': months[i].has_rotation_request, 'has-rotation-cancel-request': months[i].has_rotation_cancel_request, 'has-freeze-request': months[i].has_freeze_request, 'has-freeze-cancel-request': months[i].has_freeze_cancel_request}]">
             <div class="box-header with-border">
               <h3 class="box-title">{{ months[i].label }}</h3>
               <div class="box-tools pull-right">
@@ -77,7 +78,7 @@
                 <!-- Regarding the CSS centering , check: https://css-tricks.com/centering-css-complete-guide/#both-unknown -->
                 <div style="width: 95%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
                   <div ng-if="!months[i].frozen && !months[i].disabled">
-                    <div ng-if="!months[i].occupied && !months[i].requested">
+                    <div ng-if="!months[i].occupied && !(months[i].has_rotation_request || months[i].has_rotation_cancel_request )">
                       <!-- #1 Not Occupied, Not Requested -->
                       <div ng-if="!months[i].current_freeze_request">
                         <h3 class="text-center">No rotation</h3>
@@ -87,52 +88,64 @@
                       </div>
                     </div>
 
-                    <div ng-if="!months[i].occupied && months[i].requested">
+                    <div ng-if="!months[i].occupied && (months[i].has_rotation_request || months[i].has_rotation_cancel_request )">
                       <!-- #2 Not Occupied, Requested -->
                       <h3 class="text-yellow text-center">Pending</h3>
                       <h4 class="text-yellow text-center">
-                        {{ months[i].current_request.specialty.name }}
+                        <span class="requested-specialty">{{ months[i].current_request.specialty.name }}</span>
                         <small ng-if="months[i].current_request.is_elective">(Elective)</small>
                       </h4>
-                      <h5 class="text-center">{{ months[i].current_request.requested_department.department.hospital.name }}</h5>
+                      <h5 class="text-center">
+                        <span class="requested-hospital">{{ months[i].current_request.hospital.name }}</span>
+                        <span class="requested-location" ng-if="months[i].current_request.location.id">({{ months[i].current_request.location.name }})</span>
+                      </h5>
                     </div>
 
-                    <div ng-if="months[i].occupied && !months[i].requested">
+                    <div ng-if="months[i].occupied && !(months[i].has_rotation_request || months[i].has_rotation_cancel_request )">
                       <!-- #3 Occupied, Not Requested -->
                       <h3 class="text-blue text-center">
-                        {{ months[i].current_rotation.department.specialty.name }}
+                        <span class="current-specialty">{{ months[i].current_rotation.specialty.name }}</span>
                         <small ng-if="months[i].current_rotation.is_elective">(Elective)</small>
                       </h3>
-                      <h5 class="text-center">{{ months[i].current_rotation.department.hospital.name }}</h5>
+                      <h5 class="text-center">
+                        <span class="current-hospital">{{ months[i].current_rotation.hospital.name }}</span>
+                        <span class="current-location" ng-if="months[i].current_rotation.location.id">({{ months[i].current_rotation.location.name }})</span>
+                      </h5>
                     </div>
 
-                    <div ng-if="months[i].occupied && months[i].requested">
+                    <div ng-if="months[i].occupied && (months[i].has_rotation_request || months[i].has_rotation_cancel_request )">
                       <!-- #4 Occupied, Requested -->
                       <h5 class="text-blue text-center">
-                        Current: {{ months[i].current_rotation.department.specialty.name }}
+                        Current: <span class="current-specialty">{{ months[i].current_rotation.specialty.name }}</span>
                         <small ng-if="months[i].current_rotation.is_elective">(Elective)</small>
                       </h5>
-                      <h6 class="text-center">{{ months[i].current_rotation.department.hospital.name }}</h6>
+                      <h6 class="text-center">
+                        <span class="current-hospital">{{ months[i].current_rotation.hospital.name }}</span>
+                        <span class="current-location" ng-if="months[i].current_rotation.location.id">({{ months[i].current_rotation.location.name }})</span>
+                      </h6>
 
                       <hr style="margin-top: 5px; margin-bottom: 5px;">
 
                       <div ng-if="months[i].current_request.is_delete">
                         <h5 class="text-red text-center">Pending</h5>
-                        <h6 class="text-center">Rotation to be cancelled</h6>
+                        <h6 class="text-center rotation-cancel-request-description">Rotation to be cancelled</h6>
                       </div>
 
                       <div ng-if="!months[i].current_request.is_delete">
                         <h5 class="text-yellow text-center">
-                          Pending: {{ months[i].current_request.specialty.name }}
+                          Pending: <span class="requested-specialty">{{ months[i].current_request.specialty.name }}</span>
                           <small ng-if="months[i].current_request.is_elective">(Elective)</small>
                         </h5>
-                        <h6 class="text-center">{{ months[i].current_request.requested_department.department.hospital.name }}</h6>
+                        <h6 class="text-center">
+                          <span class="requested-hospital">{{ months[i].current_request.hospital.name }}</span>
+                          <span class="requested-location" ng-if="months[i].current_request.location.id">{{ months[i].current_request.location.name }}</span>
+                        </h6>
                       </div>
 
                     </div>
                   </div>
                   <div ng-if="months[i].disabled">
-                    <h5 class="text-center">This month will be available when you have an approved freeze.</h5>
+                    <h5 class="text-center disabled-month-description">This month will be available when you have an approved freeze.</h5>
                   </div>
                   <div ng-if="months[i].frozen">
                     <h3 class="text-center text-aqua"><i class="fa fa-snowflake-o"></i> Frozen</h3>
@@ -147,83 +160,83 @@
 
             <div class="box-footer">
               <div ng-if="!months[i].disabled && !months[i].frozen">
-                <div ng-if="!months[i].occupied && !months[i].requested">
+                <div ng-if="!months[i].occupied && !(months[i].has_rotation_request || months[i].has_rotation_cancel_request )">
                   <!-- #1 Not Occupied, Not Requested -->
                   <div class="btn-group" ng-if="!months[i].current_freeze_request">
-                    <a type="button" class="btn btn-default btn-flat" href="#/planner/{{ months[i].month }}/new/">Request a rotation</a>
+                    <a type="button" class="btn btn-default btn-flat primary-button" href="#/planner/{{ months[i].month }}/new/">Request a rotation</a>
                     <button type="button" class="btn btn-default btn-flat dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                       <span class="caret"></span>
                       <span class="sr-only">Toggle Dropdown</span>
                     </button>
                     <ul class="dropdown-menu">
-                      <li><a href="#/planner/{{ months[i].month }}/freeze/">Request a freeze</a></li>
-                      <li><a href="#/planner/{{ months[i].month }}/history/">See previous requests for this month</a></li>
+                      <li class="extra-button"><a href="#/planner/{{ months[i].month }}/freeze/">Request a freeze</a></li>
+                      <li class="extra-button"><a href="#/planner/{{ months[i].month }}/history/">See previous requests for this month</a></li>
                     </ul>
                   </div>
                   <div class="btn-group" ng-if="months[i].current_freeze_request">
-                    <a class="btn btn-xs btn-{{ getTileClass(months[i]) }} btn-flat" href="#/planner/{{ months[i].month }}/">Get more info</a>
+                    <a class="btn btn-xs btn-{{ getTileClass(months[i]) }} btn-flat primary-button" href="#/planner/{{ months[i].month }}/">Get more info</a>
                     <button type="button" class="btn btn-xs btn-{{ getTileClass(months[i]) }} btn-flat dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                       <span class="caret"></span>
                       <span class="sr-only">Toggle Dropdown</span>
                     </button>
                     <ul class="dropdown-menu">
-                      <li><a href="#/planner/{{ months[i].month }}/history/">See previous requests for this month</a></li>
+                      <li class="extra-button"><a href="#/planner/{{ months[i].month }}/history/">See previous requests for this month</a></li>
                     </ul>
                   </div>
                 </div>
 
-                <div class="btn-group" ng-if="!months[i].occupied && months[i].requested">
+                <div class="btn-group" ng-if="!months[i].occupied && (months[i].has_rotation_request || months[i].has_rotation_cancel_request )">
                   <!-- #2 Not Occupied, Requested -->
-                  <a class="btn btn-xs btn-{{ getTileClass(months[i]) }} btn-flat" href="#/planner/{{ months[i].month }}/">Get more info</a>
+                  <a class="btn btn-xs btn-{{ getTileClass(months[i]) }} btn-flat primary-button" href="#/planner/{{ months[i].month }}/">Get more info</a>
                   <button type="button" class="btn btn-xs btn-{{ getTileClass(months[i]) }} btn-flat dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     <span class="caret"></span>
                     <span class="sr-only">Toggle Dropdown</span>
                   </button>
                   <ul class="dropdown-menu">
-                    <li><a href="#/planner/{{ months[i].month }}/history/">See previous requests for this month</a></li>
+                    <li class="extra-button"><a href="#/planner/{{ months[i].month }}/history/">See previous requests for this month</a></li>
                   </ul>
                 </div>
 
-                <div class="btn-group btn-group-xs" ng-if="months[i].occupied && !months[i].requested">
+                <div class="btn-group btn-group-xs" ng-if="months[i].occupied && !(months[i].has_rotation_request || months[i].has_rotation_cancel_request )">
                   <!-- #3 Occupied, Not Requested -->
-                  <a class="btn btn-xs btn-{{ getTileClass(months[i]) }} btn-flat" href="#/planner/{{ months[i].month }}/">Get more info</a>
+                  <a class="btn btn-xs btn-{{ getTileClass(months[i]) }} btn-flat primary-button" href="#/planner/{{ months[i].month }}/">Get more info</a>
                   <button type="button" class="btn btn-xs btn-{{ getTileClass(months[i]) }} btn-flat dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     <span class="caret"></span>
                     <span class="sr-only">Toggle Dropdown</span>
                   </button>
                   <ul class="dropdown-menu">
-                    <li><a href="#/planner/{{ months[i].month }}/new/">Request a different rotation</a></li>
-                    <li><a href="#/planner/{{ months[i].month }}/cancel/">Cancel this rotation</a></li>
+                    <li class="extra-button"><a href="#/planner/{{ months[i].month }}/new/">Request a different rotation</a></li>
+                    <li class="extra-button"><a href="#/planner/{{ months[i].month }}/cancel/">Cancel this rotation</a></li>
                     <!--<li class="divider"></li>
-                    <li><a href="#/planner/{{ months[i].month }}/leaves/new/">Request a leave during this month</a></li>
+                    <li class="extra-button"><a href="#/planner/{{ months[i].month }}/leaves/new/">Request a leave during this month</a></li>
                     <li class="divider"></li>-->
-                    <li><a href="#/planner/{{ months[i].month }}/history/">See previous requests for this month</a></li>
-                    <!--<li><a href="#/planner/{{ months[i].month }}/leaves/history/">See previous leave requests for this month</a></li>-->
+                    <li class="extra-button"><a href="#/planner/{{ months[i].month }}/history/">See previous requests for this month</a></li>
+                    <!--<li class="extra-button"><a href="#/planner/{{ months[i].month }}/leaves/history/">See previous leave requests for this month</a></li>-->
                   </ul>
                 </div>
 
-                <div class="btn-group btn-group-xs" ng-if="months[i].occupied && months[i].requested">
+                <div class="btn-group btn-group-xs" ng-if="months[i].occupied && (months[i].has_rotation_request || months[i].has_rotation_cancel_request )">
                   <!-- #4 Occupied, Requested -->
-                  <a class="btn btn-xs btn-{{ getTileClass(months[i]) }} btn-flat" href="#/planner/{{ months[i].month }}/">Get more info</a>
+                  <a class="btn btn-xs btn-{{ getTileClass(months[i]) }} btn-flat primary-button" href="#/planner/{{ months[i].month }}/">Get more info</a>
                   <button type="button" class="btn btn-xs btn-{{ getTileClass(months[i]) }} btn-flat dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     <span class="caret"></span>
                     <span class="sr-only">Toggle Dropdown</span>
                   </button>
                   <ul class="dropdown-menu">
-                    <li><a href="#/planner/{{ months[i].month }}/history/">See previous requests for this month</a></li>
+                    <li class="extra-button"><a href="#/planner/{{ months[i].month }}/history/">See previous requests for this month</a></li>
                   </ul>
                 </div>
               </div>
 
               <div class="btn-group btn-group-xs" ng-if="months[i].frozen">
-                <a class="btn btn-xs btn-{{ getTileClass(months[i]) }} btn-flat" href="#/planner/{{ months[i].month }}/">Get more info</a>
+                <a class="btn btn-xs btn-{{ getTileClass(months[i]) }} btn-flat primary-button" href="#/planner/{{ months[i].month }}/">Get more info</a>
                   <button type="button" class="btn btn-xs btn-{{ getTileClass(months[i]) }} btn-flat dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     <span class="caret"></span>
                     <span class="sr-only">Toggle Dropdown</span>
                   </button>
                   <ul class="dropdown-menu">
-                    <li ng-if="!months[i].current_freeze_cancel_request"><a href="#/planner/{{ months[i].month }}/freeze/cancel/">Cancel this freeze</a></li>
-                    <li><a href="#/planner/{{ months[i].month }}/history/">See previous requests for this month</a></li>
+                    <li class="extra-button" ng-if="!months[i].current_freeze_cancel_request"><a href="#/planner/{{ months[i].month }}/freeze/cancel/">Cancel this freeze</a></li>
+                    <li class="extra-button"><a href="#/planner/{{ months[i].month }}/history/">See previous requests for this month</a></li>
                   </ul>
               </div>
 

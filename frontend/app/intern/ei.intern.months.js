@@ -9,7 +9,7 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
 
     $routeProvider
         .when("/planner/", {
-            templateUrl: "static/partials/intern/months/month-list.html?v=0002",
+            templateUrl: "static/partials/intern/months/month-list.html?v=0003",
             controller: "MonthListCtrl"
         })
         .when("/planner/:month_id/", {
@@ -29,8 +29,8 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
 
 }])
 
-.controller("MonthListCtrl", ["$scope", "loadWithRelated", "InternshipMonth", "Rotation", "RotationRequest", "RequestedDepartment", "Department", "Hospital", "Specialty", "LeaveType", "Leave", "LeaveRequest", "LeaveCancelRequest",
-    function ($scope, loadWithRelated, InternshipMonth, Rotation, RotationRequest, RequestedDepartment, Department, Hospital, Specialty, LeaveType, Leave, LeaveRequest, LeaveCancelRequest) {
+.controller("MonthListCtrl", ["$scope", "$q", "loadWithRelated", "InternshipMonth", "Rotation", "RotationRequest", "RequestedDepartment", "Department", "Hospital", "Specialty", "Location", "LeaveType", "Leave", "LeaveRequest", "LeaveCancelRequest",
+    function ($scope, $q, loadWithRelated, InternshipMonth, Rotation, RotationRequest, RequestedDepartment, Department, Hospital, Specialty, Location, LeaveType, Leave, LeaveRequest, LeaveCancelRequest) {
         $scope.moment = moment;
 
         $scope.months = InternshipMonth.query();
@@ -41,20 +41,12 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
             var requested = [];
 
             // Save the indices of occupied and requested months in 2 separate arrays
-            // Also add 2 flags (occupied and requested) with the appropriate boolean values to each month object
             angular.forEach(results, function (month, index) {
-                if (month.current_rotation !== null) {
+                if (month.occupied) {
                     occupied.push(index);
-                    $scope.months[index].occupied = true;
-                } else {
-                    $scope.months[index].occupied = false;
                 }
-
-                if (month.current_request !== null) {
+                if (month.has_rotation_request || month.has_rotation_cancel_request) {
                     requested.push(index);
-                    $scope.months[index].requested = true;
-                } else {
-                    $scope.months[index].requested = false;
                 }
             });
 
@@ -62,44 +54,49 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
             angular.forEach(occupied, function (monthIndex) {
                 // Load current rotation
                 $scope.months[monthIndex].current_rotation = loadWithRelated($scope.months[monthIndex].current_rotation, Rotation, [
-                    [{department: Department}, [
                         {specialty: Specialty},
-                        {hospital: Hospital}
-                    ]]
-                ]);
+                        {hospital: Hospital},
+                        {location: Location}
+                    ]);
                 // Load current leaves, leave requests, and leave cancel requests
                 $scope.months[monthIndex].current_leaves = loadWithRelated($scope.months[monthIndex].current_leaves, Leave, [{type: LeaveType}]);
                 $scope.months[monthIndex].current_leave_requests = loadWithRelated($scope.months[monthIndex].current_leave_requests, LeaveRequest, [{type: LeaveType}]);
                 $scope.months[monthIndex].current_leave_cancel_requests = loadWithRelated($scope.months[monthIndex].current_leave_cancel_requests, LeaveCancelRequest);
+
+                $scope.months[monthIndex].$promise = $q.all([
+                    $scope.months[monthIndex].current_rotation.$promise,
+                    $scope.months[monthIndex].current_leaves.$promise,
+                    $scope.months[monthIndex].current_leave_requests.$promise,
+                    $scope.months[monthIndex].current_leave_cancel_requests.$promise
+                ])
             });
 
             // Load all details of requested month
             angular.forEach(requested, function (monthIndex) {
                 $scope.months[monthIndex].current_request = loadWithRelated($scope.months[monthIndex].current_request, RotationRequest, [
                     {specialty: Specialty},
-                    [{requested_department: RequestedDepartment}, [
-                        [{department: Department}, [
-                            {hospital: Hospital}
-                        ]]
-                    ]]
+                    {hospital: Hospital},
+                    {location: Location}
                 ]);
+
+                $scope.months[monthIndex].$promise = $scope.months[monthIndex].current_request.$promise;
             })
 
         });
 
         $scope.getTileClass = function (month) {
             if (!month.disabled && !month.frozen) {
-                if (!month.occupied && !month.requested) {
-                    if (!month.current_freeze_request) {
+                if (!month.occupied && !(month.has_rotation_request || month.has_rotation_cancel_request)) {
+                    if (!month.has_freeze_request) {
                         return "default";
                     } else {
                         return "warning";
                     }
-                } else if (!month.occupied && month.requested) {
+                } else if (!month.occupied && (month.has_rotation_request || month.has_rotation_cancel_request)) {
                     return "warning";
-                } else if (month.occupied && !month.requested) {
+                } else if (month.occupied && !(month.has_rotation_request || month.has_rotation_cancel_request)) {
                     return "primary";
-                //} else if (month.occupied && month.requested && month.current_request.delete) {
+                //} else if (month.occupied && month.has_rotation_cancel_request) {
                 //    return "danger";
                 } else {
                     return "primary";

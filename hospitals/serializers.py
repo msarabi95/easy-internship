@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from hospitals.models import Hospital, Specialty, GlobalSettings, MonthSettings, DepartmentSettings, \
-    DepartmentMonthSettings
+    DepartmentMonthSettings, Location
 from easy_internship.serializers import MonthField
 
 
@@ -16,6 +16,13 @@ class SpecialtySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Specialty
+        fields = '__all__'
+
+
+class LocationSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Location
         fields = '__all__'
 
 
