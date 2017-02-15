@@ -4,39 +4,48 @@
       <div class="modal-content">
 
         <div class="modal-header">
-          <h3 class="modal-title">{{ month.label }}</h3>
+          <h3 class="modal-title month-label" ng-if="month.month">{{ month.label }}</h3>
         </div>
 
         <div class="modal-body">
           <h4 class="text-bold">Summary</h4>
-          <p>
+          <p class="summary">
             <span ng-if="month.occupied">
-              During this month, you have a rotation of {{ month.current_rotation.department.specialty.name }} <span ng-if="month.current_rotation.is_elective">(elective)</span>
-              in {{ month.current_rotation.department.hospital.name }}.
+              During this month, you have a rotation of {{ month.current_rotation.specialty.name }} <span ng-if="month.current_rotation.is_elective">(elective)</span>
+              in {{ month.current_rotation.hospital.name }}<span ng-if="month.current_rotation.location.id"> ({{ month.current_rotation.location.name }})</span>.
             </span>
-            <span ng-if="month.requested">
+            <span ng-if="month.frozen">
+              You have a <span class="text-aqua"><i class="fa fa-snowflake-o"></i> freeze</span> during this month.
+            </span>
+            <span ng-if="(month.has_rotation_request || month.has_rotation_cancel_request)">
               <br ng-if="month.occupied">
               You <span ng-if="month.occupied">also </span>have a pending request
 
-              <span ng-if="!month.current_request.is_delete">
+              <span ng-if="month.has_rotation_request">
                 for a rotation of
-                <span class="text-yellow">{{ month.current_request.specialty.name }}
-                  <span ng-if="month.current_request.is_elective">(elective)</span>
+                <span class="text-yellow">{{ month.current_rotation_request.specialty.name }}
+                  <span ng-if="month.current_rotation_request.is_elective">(elective)</span>
                 </span> in
-                <span class="text-yellow">{{ month.current_request.requested_department.department.hospital.name }}</span>
+                <span class="text-yellow">{{ month.current_rotation_request.hospital.name }}<span ng-if="month.current_rotation_request.location.id"> ({{ month.current_rotation_request.location.name }})</span></span>
               </span>
-              <span ng-if="month.current_request.is_delete">
+              <span ng-if="month.has_rotation_cancel_request">
                 to <span class="text-red">cancel your rotation</span>
               </span>
               .
             </span>
-            <span ng-if="!month.occupied && !month.requested">
-              You don't have any active rotation or pending request for this month.
+            <span ng-if="month.has_freeze_request">
+              You have a <span class="text-yellow">freeze request</span> during this month.
+            </span>
+            <span ng-if="month.has_freeze_cancel_request">
+              You <span ng-if="month.frozen">also </span>have a <span class="text-yellow">request to cancel this freeze</span>.
+            </span>
+            <span ng-if="!month.occupied && !month.frozen && !(month.has_rotation_request || month.has_rotation_cancel_request || month.has_freeze_request || month.has_freeze_cancel_request)">
+              You don't have any active rotation, freeze, or pending request for this month.
             </span>
             <!-- TODO: add leaves & leave requests summary -->
           </p>
 
-          <div ng-if="month.occupied">
+          <div ng-if="month.occupied" class="current-rotation-detail">
             <hr>
             <h4 class="text-bold">Details of your rotation</h4>
 
@@ -44,10 +53,13 @@
               <div class="box-body bg-info">
                 <dl class="dl-horizontal">
                   <dt>Specialty</dt>
-                  <dd class="text-bold text-blue">{{ month.current_rotation.department.specialty.name }}</dd>
+                  <dd class="text-bold text-blue">{{ month.current_rotation.specialty.name }}</dd>
 
                   <dt>Hospital</dt>
-                  <dd class="text-bold text-blue">{{ month.current_rotation.department.hospital.name }}</dd>
+                  <dd class="text-bold text-blue">{{ month.current_rotation.hospital.name }}</dd>
+
+                  <div ng-if="month.current_rotation.location.id"><dt>Location</dt>
+                  <dd class="text-bold text-blue">{{ month.current_rotation.location.name }}</dd></div>
 
                   <dt>Elective?</dt>
                   <dd>
@@ -59,52 +71,72 @@
                   <dd>{{ month.current_rotation.rotation_request.submission_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
 
                   <dt>Approval date and time</dt>
-                  <dd>{{ month.current_rotation.rotation_request.response.response_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd><!-- FIXME: Account for forward responses as well -->
+                  <dd>{{ month.current_rotation.rotation_request.response.response_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
                 </dl>
               </div>
             </div>
           </div>
 
-          <div ng-if="month.requested">
+          <div ng-if="month.frozen" class="current-freeze-detail">
             <hr>
-            <h4 class="text-bold" ng-class="{'text-yellow': !month.current_request.is_delete, 'text-red': month.current_request.is_delete}">
-              Details of your pending request</h4>
+            <h4 class="text-bold">Details of your freeze</h4>
+
+            <div class="box box-solid">
+              <div class="box-body bg-info">
+                <dl class="dl-horizontal">
+                  <dt>Request date and time</dt>
+                  <dd>{{ month.current_freeze.freeze_request.submission_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
+
+                  <dt>Justification</dt>
+                  <dd>
+                    <div class="box box-solid box-default" style="margin-bottom: 0;">
+                      <div class="box-body bg-gray-light">
+                        <p style="white-space: pre;">{{ month.current_freeze.freeze_request.justification }}</p>
+                      </div>
+                    </div>
+                  </dd>
+
+                  <dt>Approval date and time</dt>
+                  <dd>{{ month.current_freeze.freeze_request.response.response_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+
+          <div ng-if="month.has_rotation_request" class="rotation-request-detail">
+            <hr>
+            <h4 class="text-bold text-yellow">
+              Details of your pending rotation request</h4>
 
             <p>
-              Below is a detailed breakdown of information about your request<span ng-if="month.current_request.is_delete">.</span>
-              <span ng-if="!month.current_request.is_delete"> , as well as the
-              department you'll be rotating in once it's approved.</span>
+              Below is a detailed breakdown of information about your rotation request, as well as the
+              department you'll be rotating in once it's approved.
             </p>
 
             <div class="box box-solid">
-              <div class="box-body" ng-class="{'bg-warning': !month.current_request.is_delete, 'bg-danger': month.current_request.is_delete}" style="margin-bottom: 0;">
+              <div class="box-body bg-warning" style="margin-bottom: 0;">
                 <dl class="dl-horizontal">
-                  <div ng-if="!month.current_request.is_delete">
-                    <dt>Specialty</dt>
-                    <dd class="text-yellow text-bold">{{ month.current_request.specialty.name }}</dd>
+                  <dt>Specialty</dt>
+                  <dd class="text-yellow text-bold requested-specialty">{{ month.current_rotation_request.specialty.name }}</dd>
 
-                    <dt>Hospital</dt>
-                    <dd class="text-yellow text-bold">{{ month.current_request.requested_department.department.hospital.name }}</dd>
+                  <dt>Hospital</dt>
+                  <dd class="text-yellow text-bold requested-hospital">{{ month.current_rotation_request.hospital.name }}</dd>
 
-                    <dt>Elective?</dt>
-                    <dd>
-                      <span ng-if="month.current_request.is_elective == true" class="text-yellow text-bold">Yes</span>
-                      <span ng-if="month.current_request.is_elective == false">No</span>
-                    </dd>
-                  </div>
+                  <div ng-if="month.current_rotation_request.location.id"><dt>Location</dt>
+                  <dd class="text-yellow text-bold requested-location">{{ month.current_rotation_request.location.name }}</dd></div>
 
-                  <div ng-if="month.current_request.is_delete">
-                    <dt>Description</dt>
-                    <dd>You have requested a <span class="text-red text-bold">cancellation of your rotation</span> during this month.</dd>
-                    <hr>
-                  </div>
+                  <dt>Elective?</dt>
+                  <dd class="requested-elective">
+                    <span ng-if="month.current_rotation_request.is_elective == true" class="text-yellow text-bold">Yes</span>
+                    <span ng-if="month.current_rotation_request.is_elective == false">No</span>
+                  </dd>
 
                   <dt style="width: inherit;">Submission date and time</dt>
-                  <dd>{{ month.current_request.submission_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
+                  <dd class="requested-submission-datetime">{{ month.current_rotation_request.submission_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
                 </dl>
 
 
-                <div class="box box-solid" style="margin-bottom: 0;" ng-if="!month.current_request.is_delete">
+                <div class="box box-solid" style="margin-bottom: 0;">
                   <div class="box-header bg-light-blue">
                     <h5 class="text-bold" style="margin-top: 0; margin-bottom: 0;">
                       Details of the department you'll be rotating in
@@ -112,29 +144,26 @@
                   </div>
                   <div class="box-body bg-info">
                     <dl class="dl-horizontal" style="margin-bottom: 0;">
-                      <dt>Name of department</dt>
-                      <dd>{{ month.current_request.requested_department.department.name }}</dd>
-
                       <dt>Name of contact person</dt>
                       <dd>
-                        {{ month.current_request.requested_department.department.contact_name }},
-                        {{ month.current_request.requested_department.department.contact_position }}
+                        <span class="requested-contact-name">{{ month.current_rotation_request.department_info.contact_name }}</span>,
+                        <span class="requested-contact-position">{{ month.current_rotation_request.department_info.contact_position }}</span>
                       </dd>
 
                       <dt>Email</dt>
-                      <dd>{{ month.current_request.requested_department.department.email }}</dd>
+                      <dd class="requested-email">{{ month.current_rotation_request.department_info.email }}</dd>
 
                       <dt>Phone</dt>
-                      <dd>{{ month.current_request.requested_department.department.phone }}</dd>
+                      <dd class="requested-phone">{{ month.current_rotation_request.department_info.phone }}</dd>
 
                       <dt>Extension</dt>
-                      <dd>{{ month.current_request.requested_department.department.extension }}</dd>
+                      <dd class="requested-extension">{{ month.current_rotation_request.department_info.extension }}</dd>
                     </dl>
 
                   </div>
                 </div>
 
-                <div class="box box-solid" style="margin-top: 10px; margin-bottom: 0;" ng-if="!!month.current_request.forward">
+                <div class="box box-solid" style="margin-top: 10px; margin-bottom: 0;" ng-if="!!month.current_rotation_request.forward">
                   <div class="box-header bg-green">
                     <h5 class="text-bold" style="margin-top: 0; margin-bottom: 0;">
                       Details of your request's forward
@@ -145,12 +174,12 @@
                       <p>Your request has been forwarded by the medical internship unit to the requested department.</p>
 
                       <dt>Forward date and time</dt>
-                      <dd>{{ month.current_request.forward.forward_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
+                      <dd>{{ month.current_rotation_request.forward.forward_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
 
-                      <div ng-if="month.current_request.requested_department.department.memo_handed_by_intern == true">
+                      <div ng-if="month.current_rotation_request.department_info.memo_handed_by_intern == true">
                         <dt>Download memo</dt>
                         <dd>
-                          <a href="{{ month.current_request.forward.memo_file }}" class="btn btn-xs btn-danger">As PDF</a>
+                          <a href="{{ month.current_rotation_request.forward.memo_file }}" class="btn btn-xs btn-danger">As PDF</a>
                           <!--<i>(last updated: {{ rotation_request.forward.last_updated.format('dddd, D MMMM YYYY, hh:mm a') }} )</i>-->
                         </dd>
                       </div>
@@ -159,7 +188,7 @@
                   </div>
                 </div>
 
-                <div class="box box-solid" style="margin-top: 10px; margin-bottom: 0;" ng-if="!!month.current_request.forward && month.current_request.requested_department.department.memo_handed_by_intern == true">
+                <div class="box box-solid" style="margin-top: 10px; margin-bottom: 0;" ng-if="!!month.current_rotation_request.forward && month.current_rotation_request.department_info.memo_handed_by_intern == true">
                   <div class="box-header bg-aqua">
                     <h5 class="text-bold" style="margin-top: 0; margin-bottom: 0;">
                       Department Response
@@ -199,6 +228,67 @@
                   </div>
                 </div>
 
+              </div>
+            </div>
+          </div>
+          
+          <div ng-if="month.has_rotation_cancel_request" class="rotation-cancel-request-detail">
+            <hr>
+            <h4 class="text-bold text-red">
+              Details of your pending rotation cancellation request</h4>
+
+            <p>
+              Below is a detailed breakdown of information about your rotation cancellation request.
+            </p>
+
+            <div class="box box-solid">
+              <div class="box-body bg-danger" style="margin-bottom: 0;">
+                <dl class="dl-horizontal">
+                  <dt>Description</dt>
+                  <dd>You have requested a <span class="text-red text-bold">cancellation of your rotation</span> during this month.</dd>
+                  <hr>
+
+                  <dt style="width: inherit;">Submission date and time</dt>
+                  <dd>{{ month.current_rotation_cancel_request.submission_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
+                </dl>
+
+              </div>
+            </div>
+          </div>
+
+          <div ng-if="month.has_freeze_request" class="freeze-request-detail">
+            <hr>
+            <h4 class="text-bold text-yellow">Details of your pending freeze request</h4>
+
+            <div class="box box-solid">
+              <div class="box-body bg-warning" style="margin-bottom: 0;">
+                <dl class="dl-horizontal">
+                  <dt style="width: inherit;">Submission date and time</dt>
+                  <dd>{{ month.current_freeze_request.submission_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
+
+                  <dt>Justification</dt>
+                  <dd>
+                    <div class="box box-solid box-default" style="margin-bottom: 0;">
+                      <div class="box-body bg-gray-light">
+                        <p style="white-space: pre;">{{ month.current_freeze_request.justification }}</p>
+                      </div>
+                    </div>
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+
+          <div ng-if="month.has_freeze_cancel_request" class="freeze-cancel-request-detail">
+            <hr>
+            <h4 class="text-bold text-yellow">Details of your pending freeze cancellation request</h4>
+
+            <div class="box box-solid">
+              <div class="box-body bg-warning" style="margin-bottom: 0;">
+                <dl class="dl-horizontal">
+                  <dt style="width: inherit;">Submission date and time</dt>
+                  <dd>{{ month.current_freeze_cancel_request.submission_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
+                </dl>
               </div>
             </div>
           </div>
@@ -277,13 +367,13 @@
               <li><a href="#/planner/{{ month.month }}/cancel/">
                 <span class="text-red">Cancel this rotation</span>
               </a></li>
-              <li class="divider"></li>
-              <li><a href="#/planner/{{ month.month }}/leaves/new/">
-                <span class="">Request a leave</span>
-              </a></li>
-              <li><a href="#/planner/{{ month.month }}/leaves/history/">
-                <span class="">See previous leave requests for this month</span>
-              </a></li>
+              <!--<li class="divider"></li>-->
+              <!--<li><a href="#/planner/{{ month.month }}/leaves/new/">-->
+                <!--<span class="">Request a leave</span>-->
+              <!--</a></li>-->
+              <!--<li><a href="#/planner/{{ month.month }}/leaves/history/">-->
+                <!--<span class="">See previous leave requests for this month</span>-->
+              <!--</a></li>-->
             </ul>
           </div>
 

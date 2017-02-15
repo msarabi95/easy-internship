@@ -1,3 +1,4 @@
+from selenium.common.exceptions import NoSuchElementException
 
 
 class BasePage(object):
@@ -25,6 +26,13 @@ class BasePage(object):
     def navigate(self):
         self.browser.get(self.base_url + str(self.url))
 
+    def check_element_exists_by_css_selector(self, selector):
+        try:
+            self.browser.find_element_by_css_selector(selector)
+        except NoSuchElementException:
+            return False
+        return True
+
 
 class BaseElement(object):
     """
@@ -42,3 +50,10 @@ class BaseElement(object):
         """
         self.browser = browser
         self.element = element
+
+    def check_element_exists_by_css_selector(self, selector):
+        try:
+            self.element.find_element_by_css_selector(selector)
+        except NoSuchElementException:
+            return False
+        return True

@@ -117,7 +117,7 @@ angular.module("ei.utils", ["ngRoute", "ngResource"])
 .factory("loadWithRelated", function ($q) {
     return function loadWithRelated(id, resourceFactory, relatedFields, wait) {
         /*
-            id: the identifier by which to fetch the object; could be a single ID, or an array of ID's
+            id: the identifier by which to fetch the object; could be a single ID, an array of ID's, or `null`
             resourceFactory: the ngResource factory to be used
             relatedFields: an optional argument. Is an array of fields. Each field definition takes one of 2 formats:
                 - {fieldName: resourceFactory} -> just load the field
@@ -135,13 +135,24 @@ angular.module("ei.utils", ["ngRoute", "ngResource"])
         // **1** Load the resource object(s)
         // *********************************
 
-        var isArray = Array.isArray(id),
+        var isNull = (id == null),
+            isArray = Array.isArray(id),
             hasRelatedFields = (typeof relatedFields !== 'undefined'),
             loaded;
 
-        if (isArray) {
+        if (isNull) {
+            // ***********************************
+            // *a* `null` is passed: return `null`
+            // ***********************************
+            loaded = null;
+
+            // ******* CAUTION *******
+            // Care must be taken when `null` is returned, as `null` can't have a $promise attribute attached.
+            // ***********************
+
+        } else if (isArray) {
             // **********************************************************************************************
-            // *a* Array is passed: load the resource objects and then load related objects (if any) for each
+            // *b* Array is passed: load the resource objects and then load related objects (if any) for each
             // **********************************************************************************************
             loaded = new Array(id.length);
             var promises = [];
@@ -168,7 +179,7 @@ angular.module("ei.utils", ["ngRoute", "ngResource"])
 
         } else {
             // *************************************************************************************************
-            // *b* Single integer is passed: load the resource object and then load its related objects (if any)
+            // *c* Single integer is passed: load the resource object and then load its related objects (if any)
             // *************************************************************************************************
             loaded = resourceFactory.get({id: id});
 
@@ -198,15 +209,14 @@ angular.module("ei.utils", ["ngRoute", "ngResource"])
                     relatedRelatedFields = fieldDefinition[1];
                     fieldDefinition = fieldDefinition[0];
                 }
-                //
-                //console.log(relatedRelatedFields);
-                //console.log(fieldDefinition);
 
                 var fieldName = Object.keys(fieldDefinition)[0],
                     fieldResource = fieldDefinition[fieldName];
 
                 object[fieldName] = loadWithRelated(object[fieldName], fieldResource, relatedRelatedFields, wait);
-                promises.push(object[fieldName].$promise);
+                if (object[fieldName]) {
+                    promises.push(object[fieldName].$promise);
+                }
             });
             return $q.all(promises);
         }

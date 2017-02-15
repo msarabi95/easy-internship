@@ -21,6 +21,8 @@ class SpecialtyFactory(factory.django.DjangoModelFactory):
 
 
 class LocationFactory(factory.django.DjangoModelFactory):
+    hospital = factory.SubFactory(HospitalFactory)
+    specialty = factory.SubFactory(SpecialtyFactory)
     name = factory.Sequence(lambda n: "Location %d" % n)
     abbreviation = factory.Sequence(lambda n: "L%d" % n)
 

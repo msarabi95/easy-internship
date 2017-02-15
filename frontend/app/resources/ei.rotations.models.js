@@ -22,12 +22,12 @@ angular.module("ei.rotations.models", ["ngResource", "ei.interceptors"])
             method: "get",
             interceptor: DateTimeFieldToMomentInterceptor(["submission_datetime"])
         },
-        query_by_department_and_month: {  // FIXME: Remove (no longer used)
-            method: "get",
-            url: '/api/rotation_requests/:department_id/:month_id',
-            isArray: true,
-            interceptor: DateTimeFieldToMomentInterceptor(["submission_datetime"])
-        },
+        //query_by_department_and_month: {  // FIXME: Remove (no longer used)
+        //    method: "get",
+        //    url: '/api/rotation_requests/:department_id/:month_id',
+        //    isArray: true,
+        //    interceptor: DateTimeFieldToMomentInterceptor(["submission_datetime"])
+        //},
         kamc_no_memo: {
             method: 'get',
             url: '/api/rotation_requests/kamc_no_memo/',
@@ -45,27 +45,27 @@ angular.module("ei.rotations.models", ["ngResource", "ei.interceptors"])
             url: '/api/rotation_requests/non_kamc/',
             isArray: true,
             interceptor: DateTimeFieldToMomentInterceptor(["submission_datetime"])
-        },
-        cancellation: {
-            method: 'get',
-            url: '/api/rotation_requests/cancellation/',
-            isArray: true,
-            interceptor: DateTimeFieldToMomentInterceptor(["submission_datetime"])
-        },
-        respond: {
-            method: "post",
-            url: '/api/rotation_requests/:id/respond/',
-            params: {
-                id: '@id'
-            }
-        },
-        forward: {
-            method: "post",
-            url: '/api/rotation_requests/:id/forward/',
-            params: {
-                id: '@id'
-            }
         }
+        //cancellation: {
+        //    method: 'get',
+        //    url: '/api/rotation_requests/cancellation/',
+        //    isArray: true,
+        //    interceptor: DateTimeFieldToMomentInterceptor(["submission_datetime"])
+        //},
+        //respond: {
+        //    method: "post",
+        //    url: '/api/rotation_requests/:id/respond/',
+        //    params: {
+        //        id: '@id'
+        //    }
+        //},
+        //forward: {
+        //    method: "post",
+        //    url: '/api/rotation_requests/:id/forward/',
+        //    params: {
+        //        id: '@id'
+        //    }
+        //}
     });
 }])
 
@@ -74,7 +74,35 @@ angular.module("ei.rotations.models", ["ngResource", "ei.interceptors"])
         query: {
             method: "get",
             isArray: true,
+            interceptor: DateTimeFieldToMomentInterceptor(["response_datetime"])
+        },
+        get: {
+            method: "get",
+            interceptor: DateTimeFieldToMomentInterceptor(["response_datetime"])
+        }
+    });
+}])
+
+.factory("RotationCancelRequest", ["$resource", "DateTimeFieldToMomentInterceptor", function($resource, DateTimeFieldToMomentInterceptor) {
+    return $resource('/api/rotation_cancel_requests/:id', {id: '@id'},{
+        query: {
+            method: "get",
+            isArray: true,
             interceptor: DateTimeFieldToMomentInterceptor(["submission_datetime"])
+        },
+        get: {
+            method: "get",
+            interceptor: DateTimeFieldToMomentInterceptor(["submission_datetime"])
+        }
+    });
+}])
+
+.factory("RotationCancelRequestResponse", ["$resource", "DateTimeFieldToMomentInterceptor", function($resource, DateTimeFieldToMomentInterceptor) {
+    return $resource('/api/rotation_cancel_request_responses/:id', {id: '@id'},{
+        query: {
+            method: "get",
+            isArray: true,
+            interceptor: DateTimeFieldToMomentInterceptor(["response_datetime"])
         },
         get: {
             method: "get",

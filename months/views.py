@@ -44,45 +44,45 @@ class InternshipMonthViewSet(viewsets.ReadOnlyModelViewSet):
         month = Month.from_int(int(self.kwargs[self.lookup_field]))
         return filter(lambda m: m.month == month, queryset)[0]
 
-    @detail_route(methods=["post"])
-    def cancel_rotation(self, request, month=None):
-        internship = request.user.profile.intern.internship
-        month = Month.from_int(int(month))
-        current_rotation = internship.rotations.current_for_month(month)
-
-        if not current_rotation:
-            raise ObjectDoesNotExist("This month has no rotation to cancel.")
-
-        if internship.rotation_requests.current_for_month(month):
-            raise PermissionDenied("There is a pending rotation request for this month already.")
-
-        requested_department = current_rotation.rotation_request.requested_department
-        requested_department.id = None
-        requested_department.save()
-
-        rr = internship.rotation_requests.create(
-            month=month,
-            specialty=requested_department.department_specialty,
-            requested_department=requested_department,
-            is_delete=True,
-        )
-
-        # --notifications--
-
-        # Subscribe user to receive update notifications on the request
-        subscribe(request.user.settings_set.first(), "rotation_request_approved", object_id=rr.id)
-        subscribe(request.user.settings_set.first(), "rotation_request_declined", object_id=rr.id)
-
-        # Notify medical internship unit of the request
-        notify(
-            "A cancellation request has been submitted by %s" % (request.user.profile.get_en_full_name()),
-            "rotation_request_submitted",
-            url="/planner/%d/" % rr.internship.id,
-            )  # FIXME: avoid sending a lot of simultaneous notifications
-
-        messages.success(request._request, "Your cancellation request has been submitted successfully.")
-
-        return Response(status=HTTP_201_CREATED)
+    # @detail_route(methods=["post"])
+    # def cancel_rotation(self, request, month=None):
+    #     internship = request.user.profile.intern.internship
+    #     month = Month.from_int(int(month))
+    #     current_rotation = internship.rotations.current_for_month(month)
+    #
+    #     if not current_rotation:
+    #         raise ObjectDoesNotExist("This month has no rotation to cancel.")
+    #
+    #     if internship.rotation_requests.current_for_month(month):
+    #         raise PermissionDenied("There is a pending rotation request for this month already.")
+    #
+    #     requested_department = current_rotation.rotation_request.requested_department
+    #     requested_department.id = None
+    #     requested_department.save()
+    #
+    #     rr = internship.rotation_requests.create(
+    #         month=month,
+    #         specialty=requested_department.department_specialty,
+    #         requested_department=requested_department,
+    #         is_delete=True,
+    #     )
+    #
+    #     # --notifications--
+    #
+    #     # Subscribe user to receive update notifications on the request
+    #     subscribe(request.user.settings_set.first(), "rotation_request_approved", object_id=rr.id)
+    #     subscribe(request.user.settings_set.first(), "rotation_request_declined", object_id=rr.id)
+    #
+    #     # Notify medical internship unit of the request
+    #     notify(
+    #         "A cancellation request has been submitted by %s" % (request.user.profile.get_en_full_name()),
+    #         "rotation_request_submitted",
+    #         url="/planner/%d/" % rr.internship.id,
+    #         )  # FIXME: avoid sending a lot of simultaneous notifications
+    #
+    #     messages.success(request._request, "Your cancellation request has been submitted successfully.")
+    #
+    #     return Response(status=HTTP_201_CREATED)
 
     @detail_route(methods=["get", "post"])
     def request_freeze(self, request, month=None):

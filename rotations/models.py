@@ -34,7 +34,6 @@ class RotationRequest(models.Model):
     specialty = models.ForeignKey('hospitals.Specialty', related_name="rotation_requests")
     location = models.ForeignKey('hospitals.Location', related_name="rotation_requests", null=True, blank=True)
     is_delete = models.BooleanField(default=False)  # Flag to determine if this is a "delete" request
-    # FIXME: Maybe department & specialty should be optional with delete=True
     is_elective = models.BooleanField(default=False)
     submission_datetime = models.DateTimeField(auto_now_add=True)
 
@@ -156,7 +155,7 @@ class RotationRequestResponse(models.Model):
 
 
 class RotationRequestForward(models.Model):
-    rotation_request = models.OneToOneField(RotationRequest, related_name="forward")
+    rotation_request = models.OneToOneField(RotationRequest, related_name="forward", limit_choices_to={'is_delete': False})
     forward_datetime = models.DateTimeField(auto_now_add=True)
     memo_file = models.FileField(upload_to='forward_memos')  # TODO: validate file extension
     last_updated = models.DateTimeField(auto_now=True)

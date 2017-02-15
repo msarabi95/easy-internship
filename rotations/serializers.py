@@ -1,6 +1,8 @@
 from rest_framework import serializers
 
 from easy_internship.serializers import MonthField
+from hospitals.models import CustomDepartmentDetail
+from hospitals.serializers import HospitalSerializer, CustomDepartmentDetailSerializer
 from rotations.models import Rotation, RotationRequest, RotationRequestResponse, \
     RotationRequestForward
 
@@ -15,15 +17,27 @@ class RotationSerializer(serializers.ModelSerializer):
 class RotationRequestSerializer(serializers.ModelSerializer):
     month = serializers.SerializerMethodField()
     status = serializers.CharField(source='get_status', required=False)
+    department_info = serializers.SerializerMethodField()
 
     def get_month(self, obj):
         return int(obj.month)
+
+    def get_department_info(self, obj):
+        details = CustomDepartmentDetail.objects.filter(
+            specialty=obj.specialty,
+            hospital=obj.hospital,
+            location=obj.location,
+        )
+
+        if details.exists():
+            return CustomDepartmentDetailSerializer(details.first()).data
+        return HospitalSerializer(obj.hospital).data
 
     class Meta:
         model = RotationRequest
         fields = ('id', 'internship', 'month', 'hospital', 'specialty', 'location',
                   'is_delete', 'is_elective', 'submission_datetime',
-                  'status', 'response', 'forward')
+                  'status', 'response', 'forward', 'department_info')
 
 
 class RotationRequestResponseSerializer(serializers.ModelSerializer):
@@ -31,6 +45,24 @@ class RotationRequestResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = RotationRequestResponse
         fields = '__all__'
+
+
+class RotationCancelRequestSerializer(serializers.ModelSerializer):
+    month = MonthField()
+    response = serializers.PrimaryKeyRelatedField(required=False, read_only=True)
+
+    class Meta:
+        model = RotationRequest
+        fields = ('id', 'internship', 'month', 'hospital', 'specialty', 'location',
+                  'is_delete', 'is_elective', 'submission_datetime',
+                  'response')
+
+
+# class RotationCancelRequestResponseSerializer(serializers.ModelSerializer):
+#
+#     class Meta:
+#         model = RotationRequestResponse
+#         fields = '__all__'
 
 
 class RotationRequestForwardSerializer(serializers.ModelSerializer):

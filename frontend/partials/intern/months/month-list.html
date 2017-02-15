@@ -92,12 +92,12 @@
                       <!-- #2 Not Occupied, Requested -->
                       <h3 class="text-yellow text-center">Pending</h3>
                       <h4 class="text-yellow text-center">
-                        <span class="requested-specialty">{{ months[i].current_request.specialty.name }}</span>
-                        <small ng-if="months[i].current_request.is_elective">(Elective)</small>
+                        <span class="requested-specialty">{{ months[i].current_rotation_request.specialty.name }}</span>
+                        <small class="requested-elective" ng-if="months[i].current_rotation_request.is_elective">(Elective)</small>
                       </h4>
                       <h5 class="text-center">
-                        <span class="requested-hospital">{{ months[i].current_request.hospital.name }}</span>
-                        <span class="requested-location" ng-if="months[i].current_request.location.id">({{ months[i].current_request.location.name }})</span>
+                        <span class="requested-hospital">{{ months[i].current_rotation_request.hospital.name }}</span>
+                        <span class="requested-location" ng-if="months[i].current_rotation_request.location.id">({{ months[i].current_rotation_request.location.name }})</span>
                       </h5>
                     </div>
 
@@ -105,7 +105,7 @@
                       <!-- #3 Occupied, Not Requested -->
                       <h3 class="text-blue text-center">
                         <span class="current-specialty">{{ months[i].current_rotation.specialty.name }}</span>
-                        <small ng-if="months[i].current_rotation.is_elective">(Elective)</small>
+                        <small class="current-elective" ng-if="months[i].current_rotation.is_elective">(Elective)</small>
                       </h3>
                       <h5 class="text-center">
                         <span class="current-hospital">{{ months[i].current_rotation.hospital.name }}</span>
@@ -117,7 +117,7 @@
                       <!-- #4 Occupied, Requested -->
                       <h5 class="text-blue text-center">
                         Current: <span class="current-specialty">{{ months[i].current_rotation.specialty.name }}</span>
-                        <small ng-if="months[i].current_rotation.is_elective">(Elective)</small>
+                        <small class="current-elective" ng-if="months[i].current_rotation.is_elective">(Elective)</small>
                       </h5>
                       <h6 class="text-center">
                         <span class="current-hospital">{{ months[i].current_rotation.hospital.name }}</span>
@@ -126,19 +126,19 @@
 
                       <hr style="margin-top: 5px; margin-bottom: 5px;">
 
-                      <div ng-if="months[i].current_request.is_delete">
+                      <div ng-if="months[i].has_rotation_cancel_request">
                         <h5 class="text-red text-center">Pending</h5>
                         <h6 class="text-center rotation-cancel-request-description">Rotation to be cancelled</h6>
                       </div>
 
-                      <div ng-if="!months[i].current_request.is_delete">
+                      <div ng-if="months[i].has_rotation_request">
                         <h5 class="text-yellow text-center">
-                          Pending: <span class="requested-specialty">{{ months[i].current_request.specialty.name }}</span>
-                          <small ng-if="months[i].current_request.is_elective">(Elective)</small>
+                          Pending: <span class="requested-specialty">{{ months[i].current_rotation_request.specialty.name }}</span>
+                          <small class="requested-elective" ng-if="months[i].current_rotation_request.is_elective">(Elective)</small>
                         </h5>
                         <h6 class="text-center">
-                          <span class="requested-hospital">{{ months[i].current_request.hospital.name }}</span>
-                          <span class="requested-location" ng-if="months[i].current_request.location.id">{{ months[i].current_request.location.name }}</span>
+                          <span class="requested-hospital">{{ months[i].current_rotation_request.hospital.name }}</span>
+                          <span class="requested-location" ng-if="months[i].current_rotation_request.location.id">({{ months[i].current_rotation_request.location.name }})</span>
                         </h6>
                       </div>
 

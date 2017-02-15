@@ -11,13 +11,15 @@ from django.views import generic as django_generics
 from django_nyt.utils import subscribe, notify
 from docxtpl import DocxTemplate
 from month import Month
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import detail_route, list_route
+from rest_framework.exceptions import MethodNotAllowed
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK
 
 from accounts.permissions import IsStaff
 from misc.models import DocumentTemplate
+from months.models import Internship
 from rotations.exceptions import ResponseExists, ForwardExists, ForwardExpected, ForwardNotExpected
 # from rotations.forms import RotationRequestForm
 from rotations.models import Rotation, RotationRequest, RotationRequestResponse, \
@@ -26,7 +28,7 @@ from hospitals.models import AcceptanceSetting, Hospital, Specialty, DepartmentM
     DepartmentSettings
 from rotations.serializers import RotationSerializer, RotationRequestSerializer, \
     RotationRequestResponseSerializer, RotationRequestForwardSerializer, AcceptanceListSerializer, \
-    ShortRotationRequestForwardSerializer, ShortRotationRequestSerializer
+    ShortRotationRequestForwardSerializer, ShortRotationRequestSerializer, RotationCancelRequestSerializer
 
 
 class RotationViewSet(viewsets.ReadOnlyModelViewSet):
@@ -42,7 +44,7 @@ class RotationViewSet(viewsets.ReadOnlyModelViewSet):
 
 class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = RotationRequestSerializer
-    queryset = RotationRequest.objects.all()
+    queryset = RotationRequest.objects.filter(is_delete=False)
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
@@ -73,11 +75,11 @@ class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
         serialized = ShortRotationRequestSerializer(requests, many=True)
         return Response(serialized.data)
 
-    @list_route(methods=['get'], permission_classes=[permissions.IsAuthenticated, IsStaff])
-    def cancellation(self, request):
-        requests = self.get_queryset().unreviewed().filter(is_delete=True)
-        serialized = ShortRotationRequestSerializer(requests, many=True)
-        return Response(serialized.data)
+    # @list_route(methods=['get'], permission_classes=[permissions.IsAuthenticated, IsStaff])
+    # def cancellation(self, request):
+    #     requests = self.get_queryset().unreviewed().filter(is_delete=True)
+    #     serialized = ShortRotationRequestSerializer(requests, many=True)
+    #     return Response(serialized.data)
 
     @detail_route(methods=['get'], permission_classes=[permissions.IsAuthenticated, IsStaff])
     def memo_docx(self, request, pk=None):
@@ -126,108 +128,108 @@ class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
         response['Content-Disposition'] = 'attachment; filename=%s.docx' % file_name
         return response
 
-    @detail_route(methods=["post"])
-    def respond(self, request, pk=None):
-        """
-        Respond to rotation request.
-        """
-        rotation_request = self.get_queryset().get(pk=pk)
-        is_approved = bool(int(request.query_params.get("is_approved")))
-        comments = request.query_params.get("comments", "")
+    # @detail_route(methods=["post"])
+    # def respond(self, request, pk=None):
+    #     """
+    #     Respond to rotation request.
+    #     """
+    #     rotation_request = self.get_queryset().get(pk=pk)
+    #     is_approved = bool(int(request.query_params.get("is_approved")))
+    #     comments = request.query_params.get("comments", "")
+    #
+    #     # Checks
+    #
+    #     if hasattr(rotation_request, 'response'):
+    #         raise ResponseExists("This rotation request has already been responded to.")
+    #
+    #     department_requires_memo = rotation_request.requested_department.get_department().requires_memo  # FIXME: Update
+    #     memo_handed_by_intern = rotation_request.requested_department.get_department().memo_handed_by_intern
+    #     if department_requires_memo and not hasattr(rotation_request, 'forward') and is_approved and not rotation_request.is_delete:
+    #         raise ForwardExpected("This rotation request can't be approved without forwarding it first.")
+    #
+    #     # TODO: Check that the appropriate person is recording the response
+    #     if department_requires_memo and memo_handed_by_intern:
+    #         pass
+    #
+    #     RotationRequestResponse.objects.create(
+    #         rotation_request=rotation_request,
+    #         is_approved=is_approved,
+    #         comments=comments,
+    #     )
+    #
+    #     if is_approved:
+    #         # Remove any previous rotation in the request's month
+    #         rotation_request.internship.rotations.filter(month=rotation_request.month).delete()  # FIXME: Update
+    #
+    #         # Unless this is a delete, request, add a new rotation object for the current month
+    #         if not rotation_request.is_delete:
+    #             # If the requested department is not in the database, add it.
+    #             # FIXME: This shouldn't be default behavior
+    #             if not rotation_request.requested_department.is_in_database:
+    #                 rotation_request.requested_department.add_to_database()
+    #
+    #             rotation_request.internship.rotations.create(
+    #                 month=rotation_request.month,
+    #                 specialty=rotation_request.specialty,
+    #                 department=rotation_request.requested_department.get_department(),
+    #                 is_elective=rotation_request.is_elective,
+    #                 rotation_request=rotation_request,
+    #             )
+    #
+    #             # --notifications--
+    #
+    #             notify(
+    #                 "Rotation request %d for %s has been approved." % (rotation_request.id, rotation_request.month.first_day().strftime("%B %Y")),
+    #                 "rotation_request_approved",
+    #                 target_object=rotation_request,
+    #                 url="/planner/%d/" % int(rotation_request.month),
+    #             )
+    #         else:
+    #
+    #             # --notifications--
+    #             notify(
+    #                 "Rotation request %d for %s has been declined." % (rotation_request.id, rotation_request.month.first_day().strftime("%B %Y")),
+    #                 "rotation_request_declined",
+    #                 target_object=rotation_request,
+    #                 url="/planner/%d/history/" % int(rotation_request.month),
+    #             )
+    #
+    #     if not request.query_params.get("suppress_message"):
+    #         messages.success(request._request, "Your response has been recorded.")
+    #
+    #     return Response({"status": RotationRequest.REVIEWED_STATUS, "is_approved": request.data.get("is_approved")})
 
-        # Checks
-
-        if hasattr(rotation_request, 'response'):
-            raise ResponseExists("This rotation request has already been responded to.")
-        
-        department_requires_memo = rotation_request.requested_department.get_department().requires_memo  # FIXME: Update
-        memo_handed_by_intern = rotation_request.requested_department.get_department().memo_handed_by_intern
-        if department_requires_memo and not hasattr(rotation_request, 'forward') and is_approved and not rotation_request.is_delete:
-            raise ForwardExpected("This rotation request can't be approved without forwarding it first.")
-
-        # TODO: Check that the appropriate person is recording the response
-        if department_requires_memo and memo_handed_by_intern:
-            pass
-
-        RotationRequestResponse.objects.create(
-            rotation_request=rotation_request,
-            is_approved=is_approved,
-            comments=comments,
-        )
-        
-        if is_approved:
-            # Remove any previous rotation in the request's month
-            rotation_request.internship.rotations.filter(month=rotation_request.month).delete()  # FIXME: Update
-
-            # Unless this is a delete, request, add a new rotation object for the current month
-            if not rotation_request.is_delete:
-                # If the requested department is not in the database, add it.
-                # FIXME: This shouldn't be default behavior
-                if not rotation_request.requested_department.is_in_database:
-                    rotation_request.requested_department.add_to_database()
-
-                rotation_request.internship.rotations.create(
-                    month=rotation_request.month,
-                    specialty=rotation_request.specialty,
-                    department=rotation_request.requested_department.get_department(),
-                    is_elective=rotation_request.is_elective,
-                    rotation_request=rotation_request,
-                )
-                
-                # --notifications--
-
-                notify(
-                    "Rotation request %d for %s has been approved." % (rotation_request.id, rotation_request.month.first_day().strftime("%B %Y")),
-                    "rotation_request_approved",
-                    target_object=rotation_request,
-                    url="/planner/%d/" % int(rotation_request.month),
-                )
-            else:
-
-                # --notifications--
-                notify(
-                    "Rotation request %d for %s has been declined." % (rotation_request.id, rotation_request.month.first_day().strftime("%B %Y")),
-                    "rotation_request_declined",
-                    target_object=rotation_request,
-                    url="/planner/%d/history/" % int(rotation_request.month),
-                )
-        
-        if not request.query_params.get("suppress_message"):
-            messages.success(request._request, "Your response has been recorded.")
-
-        return Response({"status": RotationRequest.REVIEWED_STATUS, "is_approved": request.data.get("is_approved")})
-
-    @detail_route(methods=["post"])
-    def forward(self, request, pk=None):
-        """
-        Forward the rotation request.
-        """
-        print request.data
-
-        rotation_request = self.get_queryset().get(pk=pk)
-
-        # Checks
-
-        if hasattr(rotation_request, 'forward'):
-            raise ForwardExists("This rotation request has already been forwarded.")
-
-        department_requires_memo = rotation_request.requested_department.get_department().requires_memo  # FIXME: Update!
-        if not department_requires_memo:
-            raise ForwardNotExpected("This rotation request does not require a forward.")
-
-        data = request.data
-        data['rotation_request'] = pk
-        serialized = RotationRequestForwardSerializer(
-            data=request.data,
-        )
-
-        serialized.is_valid(raise_exception=True)
-        serialized.save()
-
-        if not request.query_params.get("suppress_message"):
-            messages.success(request._request, "Your response has been recorded.")
-
-        return Response({"status": RotationRequest.FORWARDED_STATUS})
+    # @detail_route(methods=["post"])
+    # def forward(self, request, pk=None):
+    #     """
+    #     Forward the rotation request.
+    #     """
+    #     print request.data
+    #
+    #     rotation_request = self.get_queryset().get(pk=pk)
+    #
+    #     # Checks
+    #
+    #     if hasattr(rotation_request, 'forward'):
+    #         raise ForwardExists("This rotation request has already been forwarded.")
+    #
+    #     department_requires_memo = rotation_request.requested_department.get_department().requires_memo  # FIXME: Update!
+    #     if not department_requires_memo:
+    #         raise ForwardNotExpected("This rotation request does not require a forward.")
+    #
+    #     data = request.data
+    #     data['rotation_request'] = pk
+    #     serialized = RotationRequestForwardSerializer(
+    #         data=request.data,
+    #     )
+    #
+    #     serialized.is_valid(raise_exception=True)
+    #     serialized.save()
+    #
+    #     if not request.query_params.get("suppress_message"):
+    #         messages.success(request._request, "Your response has been recorded.")
+    #
+    #     return Response({"status": RotationRequest.FORWARDED_STATUS})
 
 
 # TODO: Remove and replace by `create` method on `RotationRequest` viewset
@@ -330,13 +332,90 @@ class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
 
 class RotationRequestResponseViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = RotationRequestResponseSerializer
-    queryset = RotationRequestResponse.objects.all()
+    queryset = RotationRequestResponse.objects.filter(rotation_request__is_delete=False)
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         if self.request.user.has_perm("rotations.rotation_request_response.view_all"):
             return self.queryset.all()
         return self.queryset.filter(rotation_request__internship__intern__profile__user=self.request.user)
+
+
+class RotationCancelRequestViewSet(viewsets.ModelViewSet):
+    serializer_class = RotationCancelRequestSerializer
+    queryset = RotationRequest.objects.filter(is_delete=True)
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        if self.request.user.has_perm("rotations.rotation_cancel_request.view_all"):
+            return self.queryset.all()
+        return self.queryset.filter(internship__intern__profile__user=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        internship = Internship.objects.get(id=int(request.data['internship']))
+        month = Month.from_int(int(request.data['month']))
+        current_rotation = internship.rotations.current_for_month(month)
+
+        if not internship.intern.profile.user == request.user:
+            raise PermissionDenied
+
+        if not current_rotation:
+            raise PermissionDenied("This month has no rotation to cancel.")
+
+        if internship.rotation_requests.current_for_month(month):
+            raise PermissionDenied("There is a pending rotation request for this month already.")
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        cancel_request = serializer.save()
+
+        # Subscribe user to receive update notifications on the request
+        subscribe(request.user.settings_set.first(), "rotation_cancel_request_approved", object_id=cancel_request.id)
+        subscribe(request.user.settings_set.first(), "rotation_cancel_request_declined", object_id=cancel_request.id)
+
+        # Notify medical internship unit of the request
+        notify(
+            "A rotation cancellation request has been submitted by %s" % (request.user.profile.get_en_full_name()),
+            "rotation_cancel_request_submitted",
+            url="/interns/%d/" % cancel_request.internship.id,
+        )
+
+        messages.success(request._request, "Your rotation cancellation request has been submitted successfully.")
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def update(self, request, *args, **kwargs):
+        raise MethodNotAllowed
+
+    def partial_update(self, request, *args, **kwargs):
+        raise MethodNotAllowed
+
+    def destroy(self, request, *args, **kwargs):
+        raise MethodNotAllowed
+
+
+class RotationCancelRequestResponseViewSet(viewsets.ModelViewSet):
+    serializer_class = RotationRequestResponseSerializer
+    queryset = RotationRequestResponse.objects.filter(rotation_request__is_delete=True)
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        if self.request.user.has_perm("rotations.rotation_cancel_request_response.view_all"):
+            return self.queryset.all()
+        return self.queryset.filter(rotation_request__internship__intern__profile__user=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        raise MethodNotAllowed
+
+    def update(self, request, *args, **kwargs):
+        raise MethodNotAllowed
+
+    def partial_update(self, request, *args, **kwargs):
+        raise MethodNotAllowed
+
+    def destroy(self, request, *args, **kwargs):
+        raise MethodNotAllowed
 
 
 class RotationRequestForwardViewSet(viewsets.ReadOnlyModelViewSet):

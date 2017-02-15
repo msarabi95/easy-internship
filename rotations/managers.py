@@ -67,6 +67,18 @@ class RotationRequestQuerySet(models.QuerySet):
         except ObjectDoesNotExist:
             return None
 
+    def non_cancellation(self):
+        """
+        Return actual rotation requests.
+        """
+        return self.filter(is_delete=False)
+
+    def cancellation(self):
+        """
+        Return cancellation rotation requests.
+        """
+        return self.filter(is_delete=True)
+
     def memo_required(self):
         """
         Return rotation requests that require a memo.

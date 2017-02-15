@@ -1,5 +1,6 @@
 from django.contrib import admin
-from hospitals.models import Hospital, Specialty, MonthSettings, DepartmentSettings, DepartmentMonthSettings, AcceptanceSetting
+from hospitals.models import Hospital, Specialty, MonthSettings, DepartmentSettings, DepartmentMonthSettings, AcceptanceSetting, \
+    Location
 
 
 class HospitalAdmin(admin.ModelAdmin):
@@ -23,6 +24,7 @@ class SpecialtyAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Hospital, HospitalAdmin)
+admin.site.register(Location)
 admin.site.register(MonthSettings)
 admin.site.register(DepartmentSettings)
 admin.site.register(DepartmentMonthSettings, DepartmentMonthSettingsAdmin)

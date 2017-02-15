@@ -9,11 +9,11 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
 
     $routeProvider
         .when("/planner/", {
-            templateUrl: "static/partials/intern/months/month-list.html?v=0003",
+            templateUrl: "static/partials/intern/months/month-list.html?v=0004",
             controller: "MonthListCtrl"
         })
         .when("/planner/:month_id/", {
-            templateUrl: "static/partials/intern/months/month-detail.html?v=0004",
+            templateUrl: "static/partials/intern/months/month-detail.html?v=0005",
             controller: "MonthDetailCtrl"
         })
         .when("/planner/:month_id/freeze/", {
@@ -36,52 +36,39 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
         $scope.months = InternshipMonth.query();
 
         $scope.months.$promise.then(function (results) {
-
-            var occupied = [];
-            var requested = [];
-
             // Save the indices of occupied and requested months in 2 separate arrays
             angular.forEach(results, function (month, index) {
-                if (month.occupied) {
-                    occupied.push(index);
-                }
-                if (month.has_rotation_request || month.has_rotation_cancel_request) {
-                    requested.push(index);
-                }
-            });
+                var promises = [];
 
-            // Load all details of occupied months
-            angular.forEach(occupied, function (monthIndex) {
                 // Load current rotation
-                $scope.months[monthIndex].current_rotation = loadWithRelated($scope.months[monthIndex].current_rotation, Rotation, [
-                        {specialty: Specialty},
-                        {hospital: Hospital},
-                        {location: Location}
-                    ]);
-                // Load current leaves, leave requests, and leave cancel requests
-                $scope.months[monthIndex].current_leaves = loadWithRelated($scope.months[monthIndex].current_leaves, Leave, [{type: LeaveType}]);
-                $scope.months[monthIndex].current_leave_requests = loadWithRelated($scope.months[monthIndex].current_leave_requests, LeaveRequest, [{type: LeaveType}]);
-                $scope.months[monthIndex].current_leave_cancel_requests = loadWithRelated($scope.months[monthIndex].current_leave_cancel_requests, LeaveCancelRequest);
-
-                $scope.months[monthIndex].$promise = $q.all([
-                    $scope.months[monthIndex].current_rotation.$promise,
-                    $scope.months[monthIndex].current_leaves.$promise,
-                    $scope.months[monthIndex].current_leave_requests.$promise,
-                    $scope.months[monthIndex].current_leave_cancel_requests.$promise
-                ])
-            });
-
-            // Load all details of requested month
-            angular.forEach(requested, function (monthIndex) {
-                $scope.months[monthIndex].current_request = loadWithRelated($scope.months[monthIndex].current_request, RotationRequest, [
+                $scope.months[index].current_rotation = loadWithRelated($scope.months[index].current_rotation, Rotation, [
                     {specialty: Specialty},
                     {hospital: Hospital},
                     {location: Location}
                 ]);
 
-                $scope.months[monthIndex].$promise = $scope.months[monthIndex].current_request.$promise;
-            })
+                if ($scope.months[index].current_rotation) {promises.push($scope.months[index].current_rotation.$promise)}
 
+                // Load current rotation request
+                $scope.months[index].current_rotation_request = loadWithRelated($scope.months[index].current_rotation_request, RotationRequest, [
+                    {specialty: Specialty},
+                    {hospital: Hospital},
+                    {location: Location}
+                ]);
+
+                if ($scope.months[index].current_rotation_request) {promises.push($scope.months[index].current_rotation_request.$promise)}
+
+                // No need to load rotation cancel request
+
+                // No need to load freezes
+
+                // Load current leaves, leave requests, and leave cancel requests
+                //$scope.months[index].current_leaves = loadWithRelated($scope.months[index].current_leaves, Leave, [{type: LeaveType}]);
+                //$scope.months[index].current_leave_requests = loadWithRelated($scope.months[index].current_leave_requests, LeaveRequest, [{type: LeaveType}]);
+                //$scope.months[index].current_leave_cancel_requests = loadWithRelated($scope.months[index].current_leave_cancel_requests, LeaveCancelRequest);
+
+                $scope.months[index].$promise = $q.all(promises)
+            });
         });
 
         $scope.getTileClass = function (month) {
@@ -110,50 +97,62 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
         };
 }])
 
-.controller("MonthDetailCtrl", ["$scope", "$location", "$routeParams", "loadWithRelated", "InternshipMonth", "Hospital", "Department", "Specialty", "Rotation", "RotationRequest", "RequestedDepartment", "RotationRequestResponse", "RotationRequestForward", "LeaveType", "Leave", "LeaveRequest", "LeaveRequestResponse", "LeaveCancelRequest",
-    function ($scope, $location, $routeParams, loadWithRelated, InternshipMonth, Hospital, Department, Specialty, Rotation, RotationRequest, RequestedDepartment, RotationRequestResponse, RotationRequestForward, LeaveType, Leave, LeaveRequest, LeaveRequestResponse, LeaveCancelRequest) {
+.controller("MonthDetailCtrl", ["$scope", "$location", "$routeParams", "loadWithRelated", "InternshipMonth", "Hospital", "Specialty", "Location", "Rotation", "RotationRequest", "RotationCancelRequest", "RotationRequestResponse", "RotationRequestForward", "Freeze", "FreezeRequest", "FreezeRequestResponse", "FreezeCancelRequest", "LeaveType", "Leave", "LeaveRequest", "LeaveRequestResponse", "LeaveCancelRequest",
+    function ($scope, $location, $routeParams, loadWithRelated, InternshipMonth, Hospital, Specialty, Location, Rotation, RotationRequest, RotationCancelRequest, RotationRequestResponse, RotationRequestForward, Freeze, FreezeRequest, FreezeRequestResponse, FreezeCancelRequest, LeaveType, Leave, LeaveRequest, LeaveRequestResponse, LeaveCancelRequest) {
         $scope.moment = moment;
 
         $scope.month = InternshipMonth.get({month_id: $routeParams.month_id});
 
         $scope.month.$promise.then(function (month) {
 
-            $scope.month.occupied = (month.current_rotation !== null);
-            $scope.month.requested = (month.current_request !== null);
-
             if ($scope.month.occupied) {
                 // Load current rotation
                 $scope.month.current_rotation = loadWithRelated($scope.month.current_rotation, Rotation, [
-                    [{department: Department}, [
-                        {specialty: Specialty},
-                        {hospital: Hospital}
-                    ]],
+                    {specialty: Specialty},
+                    {hospital: Hospital},
+                    {location: Location},
                     [{rotation_request: RotationRequest}, [
                         {response: RotationRequestResponse}
                     ]]
                 ]);
             }
 
-            if ($scope.month.requested) {
-                $scope.month.current_request = loadWithRelated($scope.month.current_request, RotationRequest, [
-                    {specialty: Specialty},
-                    [{requested_department: RequestedDepartment}, [
-                        [{department: Department}, [
-                            {hospital: Hospital}
-                        ]]
+            if ($scope.month.frozen) {
+                // Load current freeze
+                $scope.month.current_freeze = loadWithRelated($scope.month.current_freeze, Freeze, [
+                    [{freeze_request: FreezeRequest}, [
+                        {response: FreezeRequestResponse}
                     ]]
+                ])
+            }
+
+            if ($scope.month.has_rotation_request) {
+                $scope.month.current_rotation_request = loadWithRelated($scope.month.current_rotation_request, RotationRequest, [
+                    {specialty: Specialty},
+                    {hospital: Hospital},
+                    {location: Location},
+                    {forward: RotationRequestForward}
                 ]);
-                $scope.month.current_request.$promise.then(function (request) {
-                    if (!!$scope.month.current_request.forward) {
-                        $scope.month.current_request.forward = RotationRequestForward.get({id: request.forward});
-                    }
-                });
+            }
+            
+            if ($scope.month.has_rotation_cancel_request) {
+                $scope.month.current_rotation_cancel_request = loadWithRelated($scope.month.current_rotation_cancel_request, RotationCancelRequest);
+            }
+
+            if ($scope.month.has_freeze_request) {
+                $scope.month.current_freeze_request = loadWithRelated($scope.month.current_freeze_request, FreezeRequest);
+            }
+
+            if ($scope.month.has_freeze_cancel_request) {
+                $scope.month.current_freeze_cancel_request = loadWithRelated($scope.month.current_freeze_cancel_request, FreezeCancelRequest);
             }
 
             // Load current leaves, leave requests, and leave cancel requests
             $scope.month.current_leaves = loadWithRelated($scope.month.current_leaves, Leave, [{type: LeaveType}, [{request: LeaveRequest}, [{response: LeaveRequestResponse}]]]);
             $scope.month.current_leave_requests = loadWithRelated($scope.month.current_leave_requests, LeaveRequest, [{type: LeaveType}]);
             $scope.month.current_leave_cancel_requests = loadWithRelated($scope.month.current_leave_cancel_requests, LeaveCancelRequest);
+
+            console.log($scope.month);
 
         });
 
