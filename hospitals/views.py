@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404, get_list_or_404
 
 # Create your views here.
 from django.utils import timezone
+from django_filters.rest_framework.backends import DjangoFilterBackend
 from month import Month
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import list_route
@@ -37,6 +38,8 @@ class SpecialtyViewSet(viewsets.ReadOnlyModelViewSet):
 class LocationViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = LocationSerializer
     queryset = Location.objects.all()
+    filter_backends = [DjangoFilterBackend]
+    filter_fields = ['specialty', 'hospital']
 
 
 # FIXME: This ought to be removed with the refactoring of the request submission form
@@ -169,6 +172,20 @@ class AcceptanceSettingViewSet(viewsets.ViewSet):
     serializer_class = AcceptanceSettingSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    @list_route(
+        methods=['get'],
+        url_path=r'(?P<month>\d+)/(?P<specialty>\d+)/(?P<hospital>\d+)(?:/(?P<location>\d+))?',
+        permission_classes=[permissions.IsAuthenticated]
+    )
+    def get(self, request, month, specialty, hospital, location=None):
+        acceptance_setting = AcceptanceSetting(
+            month=Month.from_int(int(month)),
+            specialty=get_object_or_404(Specialty, id=int(specialty)),
+            hospital=get_object_or_404(Hospital, id=int(hospital)),
+            location=get_object_or_404(Location, id=int(location)) if location else None,
+        )
+        return Response(AcceptanceSettingSerializer(acceptance_setting).data)
+
     @list_route(methods=['get'])
     def as_table(self, request, *args, **kwargs):
 
@@ -230,6 +247,21 @@ class AcceptanceSettingsByDepartmentAndMonth(viewsets.ViewSet):
 class SeatSettingViewSet(viewsets.ViewSet):
     serializer_class = SeatSettingSerializer
     permission_classes = [permissions.IsAuthenticated]
+    lookup_fields = ['month', 'specialty', 'hospital', 'location']
+
+    @list_route(
+        methods=['get'],
+        url_path=r'(?P<month>\d+)/(?P<specialty>\d+)/(?P<hospital>\d+)(?:/(?P<location>\d+))?',
+        permission_classes=[permissions.IsAuthenticated]
+    )
+    def get(self, request, month, specialty, hospital, location=None):
+        seat_setting = SeatSetting(
+            month=Month.from_int(int(month)),
+            specialty=get_object_or_404(Specialty, id=int(specialty)),
+            hospital=get_object_or_404(Hospital, id=int(hospital)),
+            location=get_object_or_404(Location, id=int(location)) if location else None,
+        )
+        return Response(SeatSettingSerializer(seat_setting).data)
 
     @list_route(methods=['get'])
     def as_table(self, request, *args, **kwargs):

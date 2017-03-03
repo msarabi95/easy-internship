@@ -1,0 +1,88 @@
+<div class="example-modal">
+  <div class="modal">
+    <div class="modal-dialog">
+      <form name="rotationRequestCreateFrom" novalidate>
+        <div class="modal-content">
+          
+          <div class="modal-header">
+            <h3 class="modal-title">Request a rotation for {{ internshipMonth.label }}</h3>
+          </div>
+          
+          <div class="modal-body">
+            
+            <p>Please select the specialty and hospital you want to rotate in from the lists below.</p>
+            
+            <div class="has-feedback form-group">
+              <label class="control-label" for="id_specialty">Specialty</label>
+              
+              <ui-select id="id_specialty" name="specialty" ng-model="rotation_request.specialty" theme="bootstrap">
+                <ui-select-match placeholder="Select or search for a specialty in the list...">{{ $select.selected.name }}</ui-select-match>
+                <ui-select-choices repeat="specialty.id as specialty in specialties | filter: {name: $select.search} | orderBy: 'name'">
+                  <div ng-bind-html="specialty.name | highlight: $select.search"></div>
+                </ui-select-choices>
+              </ui-select>
+            </div>
+            
+            <div class="has-feedback form-group">
+              <label class="control-label" for="id_hospital">Hospital</label>
+              
+              <ui-select id="id_hospital" name="hospital" ng-model="rotation_request.hospital" theme="bootstrap">
+                <ui-select-match placeholder="Select or search for a hospital in the list...">{{ $select.selected.name }}</ui-select-match>
+                <ui-select-choices repeat="hospital.id as hospital in hospitals | filter: {name: $select.search} | orderBy: 'name'">
+                  <div ng-bind-html="hospital.name | highlight: $select.search"></div>
+                </ui-select-choices>
+              </ui-select>
+            </div>
+
+            <div ng-show="locations.$promise.$$state.status == 0" style="height: 50px;">
+              <img src="/static/loading.gif" height="30" style="position: absolute; top: 50%; left: 50%; margin-left: -15px; margin-top: -15px;" />
+            </div>
+            
+            <div class="has-feedback form-group" ng-if="locations.length > 0">
+              <label class="control-label" for="id_location">Location</label>
+              
+              <ui-select id="id_location" name="location" ng-model="rotation_request.location" theme="bootstrap">
+                <ui-select-match placeholder="Select or search for a location in the list...">{{ $select.selected.name }}</ui-select-match>
+                <ui-select-choices repeat="location.id as location in locations | filter: {name: $select.search} | orderBy: 'name'">
+                  <div ng-bind-html="location.name | highlight: $select.search"></div>
+                </ui-select-choices>
+              </ui-select>
+            </div>
+
+            <div ng-show="acceptance_setting.$promise.$$state.status == 0 || seat_setting.$promise.$$state.status == 0" style="height: 50px;">
+              <img src="/static/loading.gif" height="30" style="position: absolute; top: 50%; left: 50%; margin-left: -15px; margin-top: -15px;" />
+            </div>
+
+            <div ng-if="!!acceptance_setting && !!seat_setting">
+              <hr>
+
+              <p class="text-center">
+                <b>Submission:</b>
+                <span ng-if="acceptance_setting.can_submit_requests == true" class="badge bg-green">Open</span>
+                <span ng-if="acceptance_setting.can_submit_requests == false" class="badge bg-red">Closed</span>
+                |
+                <b>Total Seats:</b>
+                <span ng-if="seat_setting.total_seats">{{ seat_setting.total_seats }}</span>
+                <span ng-if="!seat_setting.total_seats" class="text-gray"><i>N/A</i></span>
+                |
+                <b>Available Seats:</b>
+                <span ng-if="seat_setting.available_seats" class="badge"
+                      ng-class="{'bg-green': seat_setting.available_seats > 0, 'bg-red': seat_setting.available_seats == 0}">
+                  {{ seat_setting.available_seats }}
+                </span>
+                <span ng-if="!seat_setting.available_seats" class="text-gray"><i>N/A</i></span>
+              </p>
+
+            </div>
+
+          </div><!-- /.modal-body -->
+
+          <div class="modal-footer">
+            <a type="button" class="btn btn-default pull-left" href="javascript:history.back()">Back</a>
+            <button type="button" class="btn btn-primary" ng-click="submit()" ng-disabled="true">Submit</button>
+          </div><!-- /.modal-footer -->
+        </div>
+      </form>
+    </div>
+  </div>
+</div> 

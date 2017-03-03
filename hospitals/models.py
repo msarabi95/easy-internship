@@ -270,8 +270,8 @@ class DepartmentMonthSettings(MonthSettingsMixin, models.Model):
     acceptance_end_date = models.DateTimeField(blank=True, null=True)
 
     def __unicode__(self):
-        return "Acceptance settings in %s during %s" % (self.department.__unicode__(),
-                                                        self.month)
+        return "Acceptance settings in %s in %s during %s" % \
+               (self.specialty.name, self.hospital.name,  self.month)
 
     class Meta:
         unique_together = ("month", "hospital", "specialty", "location")
@@ -281,27 +281,41 @@ class AcceptanceSetting(object):
     """
     Acceptance setting for a particular department in a particular month.
     """
-    def __init__(self, department, month, department_month_settings=None, month_settings=None,
-                                   department_settings=None, global_settings=None):
+    def __init__(self, month, specialty, hospital, location=None,
+                 department_month_settings=None, month_settings=None,
+                 department_settings=None, global_settings=None):
         """
 
-        Get settings for a month-department pair using the following sequence:
+        Get settings for a month-specialty-hospital-location combination using the following sequence:
         (1) If there's a DepartmentMonthSetting, use it.
         (2) If not, look for a DepartmentSetting.
         (3) If there isn't one, look for a MonthSetting.
         (4) If there isn't one, use global settings.
 
         Args:
-            department: A `Department` instance.
             month: A `Month` instance.
+            specialty: A `Specialty` instance.
+            hospital: A `Hospital` instance.
+            location: An optional `Location` instance.
 
         """
         total_seats = None
         try:
             if not department_month_settings:
-                settings_object = DepartmentMonthSettings.objects.get(department=department, month=month)
+                settings_object = DepartmentMonthSettings.objects.get(
+                    month=month,
+                    specialty=specialty,
+                    hospital=hospital,
+                    location=location,
+                )
             else:
-                settings_object = filter(lambda dms: dms.department == department and dms.month == month, department_month_settings)[0]
+                settings_object = filter(
+                    lambda dms: dms.month == month
+                                and dms.specialty == specialty
+                                and dms.hospital == dms.hospital
+                                and dms.location == dms.location,
+                    department_month_settings
+                )[0]
             total_seats = settings_object.total_seats
             if not settings_object.acceptance_criterion:
                 raise ObjectDoesNotExist
@@ -309,9 +323,16 @@ class AcceptanceSetting(object):
         except (ObjectDoesNotExist, IndexError):
             try:
                 if not department_settings:
-                    settings_object = DepartmentSettings.objects.get(department=department)
+                    settings_object = DepartmentSettings.objects.get(
+                        specialty=specialty,
+                        hospital=hospital,
+                        location=location,
+                    )
                 else:
-                    settings_object = filter(lambda ds: ds.department == department, department_settings)[0]
+                    settings_object = filter(
+                        lambda ds: ds.specialty == specialty and ds.hospital == hospital and ds.location == location,
+                        department_settings
+                    )[0]
                 setting_type = 'D'
             except (ObjectDoesNotExist, IndexError):
                 try:
@@ -330,7 +351,9 @@ class AcceptanceSetting(object):
                     setting_type = 'G'
 
         self.month = month
-        self.department = department
+        self.specialty = specialty
+        self.hospital = hospital
+        self.location = location
 
         self.type = setting_type
         self.criterion = settings_object.acceptance_criterion
@@ -342,7 +365,7 @@ class AcceptanceSetting(object):
         if self.total_seats is None:
             return None
         return RotationRequest.objects.open().month(self.month).\
-            filter(requested_department__department=self.department).count()
+            filter(specialty=self.specialty, hospital=self.hospital, location=self.location).count()
         # FIXME: what about departments not in db?
         # FIXME: Exclude declined requests
         # FIXME: Exclude cancellation requests
@@ -350,7 +373,9 @@ class AcceptanceSetting(object):
     def get_occupied_seats(self):
         if self.total_seats is None:
             return None
-        return Rotation.objects.filter(department=self.department, month=self.month).count()
+        return Rotation.objects.filter(
+            month=self.month, specialty=self.specialty, hospital=self.hospital, location=self.location
+        ).count()
 
     def get_unoccupied_seats(self):
         if self.total_seats is None:
@@ -396,18 +421,26 @@ class AcceptanceSetting(object):
 
 class SeatSetting(object):
     """
-    An object that contains the seat counts for a particular month and department.
+    An object that contains the seat counts for a particular combination of month, specialty, hospital, and (optionally) location.
     This class is optimized to minimize database calls when seat counts are required in bulk (e.g. when
      display a list of all seat counts for all departments). The passed department should have
      its `monthly_settings`, `rotations`, and `department_requests__rotationrequest__response` prefetched
      for optimal performance.
     """
-    def __init__(self, department, month):
-        self.department = department
+    def __init__(self, month, specialty, hospital, location=None, department_month_setting_cache=None):
         self.month = month
+        self.specialty = specialty
+        self.hospital = hospital
+        self.location = location
+
+        self.department_month_setting_cache = department_month_setting_cache or DepartmentMonthSettings.objects.all()
 
         department_month_settings = \
-            filter(lambda dms: dms.month == self.month, self.department.monthly_settings.all())
+            filter(
+                lambda dms: dms.month == self.month and dms.specialty == self.specialty and dms.hospital == self.hospital and dms.location == self.location,
+                self.department_month_setting_cache
+        )
+
         self.dms = department_month_settings[0] if len(department_month_settings) > 0 else None
         # Is it better to raise an exception rather than set self.dms to None?
 
@@ -419,18 +452,21 @@ class SeatSetting(object):
     def get_occupied_seats(self):
         if self.dms is None:
             return None
-        rotas = filter(lambda r: r.month == self.month, self.department.rotations.all())
+        rotas = filter(
+            lambda r: r.month == self.month and r.specialty == self.specialty and r.location == self.location,
+            self.hospital.rotations.all()
+        )
         return len(rotas)
 
     def get_booked_seats(self):
         if self.dms is None:
             return None
         requests = filter(
-            lambda rd: hasattr(rd, 'rotationrequest')
-                       and rd.rotationrequest.month == self.month
-                       and rd.rotationrequest.is_delete == False
-                       and not hasattr(rd.rotationrequest, 'response'),
-            self.department.department_requests.all()
+            lambda request: request.month == self.month
+                       and request.hospital == self.hospital
+                       and request.specialty == self.specialty
+                       and request.location == self.location,
+            RotationRequest.objects.open()
         )
         return len(requests)
 

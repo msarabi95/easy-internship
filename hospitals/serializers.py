@@ -85,7 +85,9 @@ class DepartmentMonthSettingsSerializer(serializers.ModelSerializer):
 
 class AcceptanceSettingSerializer(serializers.Serializer):
     month = MonthField()
-    department = serializers.PrimaryKeyRelatedField(read_only=True)  # FIXME
+    specialty = serializers.PrimaryKeyRelatedField(read_only=True)
+    hospital = serializers.PrimaryKeyRelatedField(read_only=True)
+    location = serializers.PrimaryKeyRelatedField(read_only=True)
     type = serializers.CharField()
     criterion = serializers.CharField()
     start_or_end_date = serializers.DateTimeField()
@@ -105,7 +107,9 @@ class AcceptanceSettingSerializer(serializers.Serializer):
 
 class SeatSettingSerializer(serializers.Serializer):
     month = MonthField()
-    department = serializers.PrimaryKeyRelatedField(read_only=True)  # FIXME
+    specialty = serializers.PrimaryKeyRelatedField(read_only=True)
+    hospital = serializers.PrimaryKeyRelatedField(read_only=True)
+    location = serializers.PrimaryKeyRelatedField(read_only=True)
     total_seats = serializers.IntegerField()
     occupied_seats = serializers.IntegerField()
     booked_seats = serializers.IntegerField()

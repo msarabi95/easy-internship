@@ -109,9 +109,11 @@ angular.module("ei.hospitals.models", ["ngResource", "ei.interceptors"])
 
 
 .factory("AcceptanceSettings", ["$resource", "DateTimeFieldToMomentInterceptor", function($resource, DateTimeFieldToMomentInterceptor) {
-    return $resource('/api/acceptance_settings/:department_id/:month_id', {
+    return $resource('/api/acceptance_settings/:month_id/:specialty/:hospital/:location?', {
         month_id: '@month',
-        department_id: '@department'
+        specialty: '@specialty',
+        hospital: '@hospital',
+        location: '@location'
     }, {
         query: {
             method: 'get',
@@ -131,7 +133,12 @@ angular.module("ei.hospitals.models", ["ngResource", "ei.interceptors"])
 }])
 
 .factory("SeatSettings", ["$resource", function($resource) {
-    return $resource('/api/seat_settings/', {}, {
+    return $resource('/api/seat_settings/:month_id/:specialty/:hospital/:location?', {
+        month_id: '@month',
+        specialty: '@specialty',
+        hospital: '@hospital',
+        location: '@location'
+    }, {
         as_table: {  // TODO: interceptor?
             method: 'get',
             url: '/api/seat_settings/as_table/',
