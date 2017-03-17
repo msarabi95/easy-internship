@@ -14,8 +14,10 @@ class InternshipMonthSerializer(serializers.Serializer):
     label_short = serializers.CharField(read_only=True)
 
     current_rotation = serializers.PrimaryKeyRelatedField(read_only=True)
-    current_request = serializers.PrimaryKeyRelatedField(read_only=True)
-    request_history = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
+    current_request = serializers.PrimaryKeyRelatedField(read_only=True)  # TODO: Change to `current_rotation_request`
+    current_rotation_cancel_request = serializers.PrimaryKeyRelatedField(read_only=True)
+    rotation_request_history = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
+    rotation_cancel_request_history = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
 
     current_leaves = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
     current_leave_requests = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
@@ -99,6 +101,7 @@ class FreezeRequestSerializer(serializers.ModelSerializer):
     intern_name = serializers.CharField(source='intern.profile.get_en_full_name')
     internship_id = serializers.IntegerField(source='intern.profile.intern.internship.id')
     gpa = serializers.FloatField(source='intern.profile.intern.gpa')
+    response = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = FreezeRequest
@@ -117,6 +120,7 @@ class FreezeCancelRequestSerializer(serializers.ModelSerializer):
     intern_name = serializers.CharField(source='intern.profile.get_en_full_name')
     internship_id = serializers.IntegerField(source='intern.profile.intern.internship.id')
     gpa = serializers.FloatField(source='intern.profile.intern.gpa')
+    response = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = FreezeCancelRequest

@@ -20,8 +20,10 @@ class InternshipMonth(object):
         self.label_short = month.first_day().strftime("%b. %Y")  # TODO: Remove
 
         self.current_rotation = self.internship.rotations.current_for_month(month)
-        self.current_request = self.internship.rotation_requests.current_for_month(month)
-        self.request_history = self.internship.rotation_requests.month(month).closed()
+        self.current_request = self.internship.rotation_requests.current_for_month(month)  # TODO: Change to `current_rotation_request` (is_delete=False)
+        self.current_rotation_cancel_request = self.internship.rotation_requests.filter(is_delete=True).current_for_month(month)
+        self.rotation_request_history = self.internship.rotation_requests.filter(is_delete=False).month(month).closed()
+        self.rotation_cancel_request_history = self.internship.rotation_requests.filter(is_delete=True).month(month).closed()
 
         self.current_leaves = self.intern.leaves.current_for_month(month)
         self.current_leave_requests = self.intern.leave_requests.current_for_month(month)
