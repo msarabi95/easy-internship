@@ -45,6 +45,9 @@ rules.add_perm("months.freeze_request_response.view_all", is_staff)
 rules.add_perm("months.freeze_cancel_request.view_all", is_staff)
 rules.add_perm("months.freeze_cancel_request_response.view_all", is_staff)
 
+rules.add_perm("months.freeze_request_response.create", is_staff)
+rules.add_perm("months.freeze_cancel_request_response.create", is_staff)
+
 rules.add_perm("leaves.leave_setting.view_all", is_staff)
 rules.add_perm("leaves.leave_request.view_all", is_staff)
 rules.add_perm("leaves.leave_request_response.view_all", is_staff)

@@ -7,6 +7,7 @@ from django_nyt.utils import subscribe, notify
 from month import Month
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import detail_route, list_route
+from rest_framework.exceptions import MethodNotAllowed
 from rest_framework.response import Response
 from rest_framework.status import HTTP_201_CREATED
 
@@ -223,8 +224,14 @@ class FreezeRequestViewSet(viewsets.ReadOnlyModelViewSet):
             return self.queryset.all()
         return self.queryset.filter(intern=self.request.user)
 
+    @list_route(methods=["get"], permission_classes=[permissions.IsAuthenticated, IsStaff])
+    def open(self, request):
+        requests = self.queryset.open()
+        serialized = self.serializer_class(requests, many=True)
+        return Response(serialized.data)
 
-class FreezeRequestResponseViewSet(viewsets.ReadOnlyModelViewSet):
+
+class FreezeRequestResponseViewSet(viewsets.ModelViewSet):
     serializer_class = FreezeRequestResponseSerializer
     queryset = FreezeRequestResponse.objects.all()
     permission_classes = [permissions.IsAuthenticated]
@@ -233,6 +240,54 @@ class FreezeRequestResponseViewSet(viewsets.ReadOnlyModelViewSet):
         if self.request.user.has_perm("months.freeze_request_response.view_all"):
             return self.queryset.all()
         return self.queryset.filter(request__intern=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        # Check that the responding user has sufficient permissions
+        if not request.user.has_perm("months.freeze_request_response.create"):
+            raise PermissionDenied
+
+        # Check that freeze request exists
+        freeze_request = get_object_or_404(FreezeRequest, id=int(request.data['request']))
+
+        # Check that there is no response already
+        if hasattr(freeze_request, 'response'):
+            raise PermissionDenied
+
+        response = super(FreezeRequestResponseViewSet, self).create(request, *args, **kwargs)
+
+        # Create freeze (if approved) and notify intern
+        if bool(request.data['is_approved']):
+
+            Freeze.objects.create(
+                intern=freeze_request.intern,
+                month=freeze_request.month,
+                freeze_request=freeze_request,
+            )
+
+            notify(
+                "Freeze request %d for %s has been approved." % (freeze_request.id, freeze_request.month.first_day().strftime("%B %Y")),
+                "freeze_request_approved",
+                target_object=freeze_request,
+                url="/planner/%d/" % int(freeze_request.month),
+            )
+        else:
+            notify(
+                "Freeze request %d for %s has been declined." % (freeze_request.id, freeze_request.month.first_day().strftime("%B %Y")),
+                "freeze_request_declined",
+                target_object=freeze_request,
+                url="/planner/%d/" % int(freeze_request.month),
+            )
+
+        return response
+
+    def update(self, request, *args, **kwargs):
+        raise MethodNotAllowed
+
+    def partial_update(self, request, *args, **kwargs):
+        raise MethodNotAllowed
+
+    def destroy(self, request, *args, **kwargs):
+        raise MethodNotAllowed
 
 
 class FreezeCancelRequestViewSet(viewsets.ReadOnlyModelViewSet):
@@ -245,8 +300,14 @@ class FreezeCancelRequestViewSet(viewsets.ReadOnlyModelViewSet):
             return self.queryset.all()
         return self.queryset.filter(intern=self.request.user)
 
+    @list_route(methods=["get"], permission_classes=[permissions.IsAuthenticated, IsStaff])
+    def open(self, request):
+        requests = self.queryset.open()
+        serialized = self.serializer_class(requests, many=True)
+        return Response(serialized.data)
 
-class FreezeCancelRequestResponseViewSet(viewsets.ReadOnlyModelViewSet):
+
+class FreezeCancelRequestResponseViewSet(viewsets.ModelViewSet):
     serializer_class = FreezeCancelRequestResponseSerializer
     queryset = FreezeCancelRequestResponse.objects.all()
     permission_classes = [permissions.IsAuthenticated]
@@ -255,3 +316,51 @@ class FreezeCancelRequestResponseViewSet(viewsets.ReadOnlyModelViewSet):
         if self.request.user.has_perm("months.freeze_cancel_request_response.view_all"):
             return self.queryset.all()
         return self.queryset.filter(request__intern=self.request.user)
+    
+    def create(self, request, *args, **kwargs):
+        # Check that the responding user has sufficient permissions
+        if not request.user.has_perm("months.freeze_cancel_request_response.create"):
+            raise PermissionDenied
+
+        # Check that freeze cancellation request exists
+        freeze_cancel_request = get_object_or_404(FreezeCancelRequest, id=int(request.data['request']))
+
+        # Check that there is no response already
+        if hasattr(freeze_cancel_request, 'response'):
+            raise PermissionDenied
+
+        response = super(FreezeCancelRequestResponseViewSet, self).create(request, *args, **kwargs)
+
+        # Delete freeze (if approved) and notify intern
+        if bool(request.data['is_approved']):
+            
+            freeze = Freeze.objects.get(
+                intern=freeze_cancel_request.intern,
+                month=freeze_cancel_request.month,
+            )
+            freeze.delete()
+
+            notify(
+                "Freeze cancellation request %d for %s has been approved." % (freeze_cancel_request.id, freeze_cancel_request.month.first_day().strftime("%B %Y")),
+                "freeze_cancel_request_approved",
+                target_object=freeze_cancel_request,
+                url="/planner/%d/" % int(freeze_cancel_request.month),
+            )
+        else:
+            notify(
+                "Freeze cancellation request %d for %s has been declined." % (freeze_cancel_request.id, freeze_cancel_request.month.first_day().strftime("%B %Y")),
+                "freeze_cancel_request_declined",
+                target_object=freeze_cancel_request,
+                url="/planner/%d/" % int(freeze_cancel_request.month),
+            )
+
+        return response
+
+    def update(self, request, *args, **kwargs):
+        raise MethodNotAllowed
+
+    def partial_update(self, request, *args, **kwargs):
+        raise MethodNotAllowed
+
+    def destroy(self, request, *args, **kwargs):
+        raise MethodNotAllowed

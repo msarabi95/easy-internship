@@ -1,6 +1,7 @@
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 
+from easy_internship.serializers import MonthField
 from months.models import Internship, Freeze, FreezeRequest, FreezeRequestResponse, FreezeCancelRequest, \
     FreezeCancelRequestResponse
 
@@ -94,6 +95,10 @@ class FreezeSerializer(serializers.ModelSerializer):
 
 
 class FreezeRequestSerializer(serializers.ModelSerializer):
+    month = MonthField()
+    intern_name = serializers.CharField(source='intern.profile.get_en_full_name')
+    internship_id = serializers.IntegerField(source='intern.profile.intern.internship.id')
+    gpa = serializers.FloatField(source='intern.profile.intern.gpa')
 
     class Meta:
         model = FreezeRequest
@@ -108,6 +113,10 @@ class FreezeRequestResponseSerializer(serializers.ModelSerializer):
 
 
 class FreezeCancelRequestSerializer(serializers.ModelSerializer):
+    month = MonthField()
+    intern_name = serializers.CharField(source='intern.profile.get_en_full_name')
+    internship_id = serializers.IntegerField(source='intern.profile.intern.internship.id')
+    gpa = serializers.FloatField(source='intern.profile.intern.gpa')
 
     class Meta:
         model = FreezeCancelRequest

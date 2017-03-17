@@ -4,13 +4,13 @@
 angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models", "ei.rotations.models", "ei.accounts.models",
                                      "ei.utils", "ngRoute", "ngResource", "ngSanitize", "ngAnimate",
                                      "datatables", "datatables.bootstrap", "ngHandsontable", "ngScrollbars",
-                                     "ui.bootstrap", "ui.select", "ei.rotations.directives"])
+                                     "ui.bootstrap", "ui.select", "ei.rotations.directives", "ei.months.directives"])
 
 .config(["$routeProvider", function ($routeProvider) {
 
     $routeProvider
         .when("/requests/:page?/", {
-            templateUrl: "static/partials/staff/rotations/rotation-request-list.html?v=0006",
+            templateUrl: "static/partials/staff/rotations/rotation-request-list.html?v=0007",
             controller: "RotationRequestListCtrl"
         })
         .when("/memos/", {
@@ -58,8 +58,8 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
     };
 })
 
-.controller("RotationRequestListCtrl", ["$scope", "$filter", "$q", "$routeParams", "$location", "$timeout", "loadWithRelated", "AcceptanceList", "Department", "AcceptanceSettings", "Internship", "InternshipMonth", "Intern", "Profile", "RotationRequest", "RequestedDepartment", "Specialty", "Hospital",
-    function ($scope, $filter, $q, $routeParams, $location, $timeout, loadWithRelated, AcceptanceList, Department, AcceptanceSettings, Internship, InternshipMonth, Intern, Profile, RotationRequest, RequestedDepartment, Specialty, Hospital) {
+.controller("RotationRequestListCtrl", ["$scope", "$filter", "$q", "$routeParams", "$location", "$timeout", "loadWithRelated", "AcceptanceList", "Department", "AcceptanceSettings", "Internship", "InternshipMonth", "Intern", "Profile", "RotationRequest", "RequestedDepartment", "Specialty", "Hospital", "FreezeRequest", "FreezeCancelRequest",
+    function ($scope, $filter, $q, $routeParams, $location, $timeout, loadWithRelated, AcceptanceList, Department, AcceptanceSettings, Internship, InternshipMonth, Intern, Profile, RotationRequest, RequestedDepartment, Specialty, Hospital, FreezeRequest, FreezeCancelRequest) {
 
         $scope.page = $routeParams.page;
 
@@ -101,7 +101,6 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
                 }, function (error) {
                     toastr.error(error.statusText);
                 });
-                //$scope.requests = RotationRequest.kamc_no_memo(loadRequestInfo);
                 break;
             case 'kamc-memo':
                 $scope.requests = RotationRequest.kamc_memo(momentizeMonth);
@@ -112,6 +111,11 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
             case 'cancellation':
                 $scope.requests = RotationRequest.cancellation(momentizeMonth);
                 break;
+            case 'freezes':
+                $scope.requests = FreezeRequest.open(momentizeMonth);
+                break;
+            case 'freezecancels':
+                $scope.requests = FreezeCancelRequest.open(momentizeMonth);
         }
 
         $scope.reverseOptions = [
@@ -125,8 +129,15 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
             {label: "Name", value: function (request) {return request.intern_name;}},
             {label: "Hospital", value: function (request) {return request.requested_department_hospital_name;}}
         ];
+
+        $scope.freezeOrderingOptions = [
+            {label: "Submission date and time", value: function (request) {return request.submission_datetime.toDate();}},
+            {label: "GPA", value: function (request) {return parseFloat(request.gpa)}},
+            {label: "Name", value: function (request) {return request.intern_name;}}
+        ];
+
         $scope.ordering = {
-            option: $scope.orderingOptions[0].value,
+            option: $scope.page == 'freezes' || $scope.page == 'freezecancels' ? $scope.freezeOrderingOptions[0].value : $scope.orderingOptions[0].value,
             reverse: false
         };
 

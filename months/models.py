@@ -197,7 +197,7 @@ class FreezeRequest(models.Model):
 class FreezeRequestResponse(models.Model):
     request = models.OneToOneField('FreezeRequest', related_name='response')
     is_approved = models.BooleanField()
-    comments = models.TextField()
+    comments = models.TextField(blank=True)
     response_datetime = models.DateTimeField(auto_now_add=True)
 
     def __unicode__(self):
@@ -254,5 +254,5 @@ class FreezeCancelRequest(models.Model):
 class FreezeCancelRequestResponse(models.Model):
     request = models.OneToOneField(FreezeCancelRequest, related_name='response')
     is_approved = models.BooleanField()
-    comments = models.TextField()
+    comments = models.TextField(blank=True)
     response_datetime = models.DateTimeField(auto_now_add=True)
