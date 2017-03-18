@@ -4,7 +4,18 @@
 angular.module("ei.rotations.models", ["ngResource", "ei.interceptors"])
 
 .factory("Rotation", ["$resource", function($resource) {
-    return $resource('/api/rotations/:id', {id: '@id'});
+    return $resource('/api/rotations/:id', {id: '@id'}, {
+        master_rota: {
+            method: 'get',
+            url: '/api/rotations/master_rota/',
+            isArray: true
+        },
+        monthly_list: {
+            method: 'get',
+            url: '/api/rotations/monthly_list/',
+            isArray: true
+        }
+    });
 }])
 
 .factory("RequestedDepartment", ["$resource", function($resource) {

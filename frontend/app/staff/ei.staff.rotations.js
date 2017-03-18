@@ -16,6 +16,14 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
         .when("/memos/", {
             templateUrl: "static/partials/staff/rotations/forward-list.html?v=0001",
             controller: "ForwardListCtrl"
+        })
+        .when("/rotations/", {
+            templateUrl: "static/partials/staff/rotations/master-rota.html",
+            controller: "MasterRotaCtrl"
+        })
+        .when("/rotations/:department/:month_id/", {
+            templateUrl: "static/partials/staff/rotations/monthly-list.html",
+            controller: "MonthlyListCtrl"
         });
 
 }])
@@ -260,4 +268,79 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
             });
         });
     };
+}])
+
+.controller("MasterRotaCtrl", ["$scope", "$q", "Department", "Rotation", function ($scope, $q, Department, Rotation) {
+    $scope.monthLabels = {
+            0: "January",
+            1: "February",
+            2: "March",
+            3: "April",
+            4: "May",
+            5: "June",
+            6: "July",
+            7: "August",
+            8: "September",
+            9: "October",
+            10: "November",
+            11: "December"
+        };
+
+        $scope.$watch("displayYear", function (newValue, oldValue) {
+            $scope.startMonth = newValue * 12;
+            $scope.months = Array.apply(null, Array(12)).map(function (_, i) {return $scope.startMonth + i;});
+
+            $scope.rotation_counts = Rotation.master_rota({year: newValue, hospital: 1});
+
+            $scope.rotation_counts.$promise.then(function (rotationCounts) {
+                var promises = [];
+                for (var i = 0; i < rotationCounts.length; i++) {
+                    var row = rotationCounts[i];
+                    var first = row[0];
+
+                    first.department = Department.get({id: first.department});
+                    promises.push(first.department.$promise);
+                }
+                return $q.all(promises);
+            });
+        });
+
+        $scope.displayYear = moment().year();
+
+        $scope.loadNextYear = function () {
+            $scope.displayYear += 1;
+        };
+
+        $scope.loadPreviousYear = function () {
+            $scope.displayYear -= 1;
+        };
+}])
+
+.controller("MonthlyListCtrl", ["$scope", "$routeParams", "DTOptionsBuilder", "DTColumnBuilder", "Department", "Rotation", function ($scope, $routeParams, DTOptionsBuilder, DTColumnBuilder, Department, Rotation) {
+    $scope.month = moment({year: Math.floor(parseInt($routeParams.month_id)/ 12), month: (parseInt($routeParams.month_id) % 12)});
+    $scope.department = Department.get({id: $routeParams.department});
+
+    $scope.dtOptions = DTOptionsBuilder
+        .fromFnPromise(function() {
+            return Rotation.monthly_list({department: $routeParams.department, month: $routeParams.month_id}).$promise;
+        })
+        .withOption("order", [[ 1, "asc" ]])
+        .withOption("responsive", true)
+        .withBootstrap();
+
+    $scope.dtColumns = [
+        DTColumnBuilder.newColumn(null).withTitle(null).notSortable()
+            .renderWith(function (data, type, full, meta) {
+                return '<img src="' + data.internship.intern.profile.mugshot + '" class="img-circle img-bordered-sm img-sm"/>';
+            }),
+        DTColumnBuilder.newColumn('internship.intern.profile.en_full_name').withTitle('Name'),
+        DTColumnBuilder.newColumn('internship.intern.student_number').withTitle('Student Number'),
+        DTColumnBuilder.newColumn('internship.intern.badge_number').withTitle('Badge Number'),
+        //DTColumnBuilder.newColumn('internship.intern.profile.user.email').withTitle('Email'),
+        DTColumnBuilder.newColumn('internship.intern.mobile_number').withTitle('Mobile Number'),
+        DTColumnBuilder.newColumn(null).withTitle(null).notSortable()
+            .renderWith(function (data, type, full, meta) {
+                return '<a class="btn btn-default btn-flat" href="#/interns/' + data.internship.id + '/">View details</a>';
+            })
+    ];
 }]);

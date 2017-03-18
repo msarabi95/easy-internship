@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from easy_internship.serializers import MonthField
 from hospitals.models import Department
+from months.serializers import FullInternshipSerializer
 from rotations.models import Rotation, RequestedDepartment, RotationRequest, RotationRequestResponse, \
     RotationRequestForward
 
@@ -123,3 +124,10 @@ class ShortRotationRequestForwardSerializer(serializers.ModelSerializer):
     class Meta:
         model = RotationRequestForward
         fields = ('id', 'forward_datetime', 'memo_file', 'rotation_request', )
+
+
+class FullRotationSerializer(RotationSerializer):
+    internship = FullInternshipSerializer()
+
+    class Meta(RotationSerializer.Meta):
+        pass

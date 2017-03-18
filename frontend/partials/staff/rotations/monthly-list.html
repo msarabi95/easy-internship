@@ -1,0 +1,29 @@
+<!-- Content Header (Page header) -->
+<section class="content-header">
+  <h1>
+    {{ department.name }} | {{ month.format('MMMM YYYY') }}
+    <small>
+      <a class="btn btn-xs btn-primary" href="#/rotations/"><i class="fa fa-arrow-left"></i> Back to Master Rota</a>
+    </small>
+  </h1>
+</section>
+
+<!-- Main content -->
+<section class="content">
+  <div class="row">
+    <div class="col-xs-12">
+      <div class="box box-solid">
+        <div class="box-header with-border">
+          <h4 class="box-title">List of rotating interns</h4>
+        </div>
+
+        <div class="box-body">
+
+          <table datatable="" class="table" dt-options="dtOptions" dt-columns="dtColumns" style="width: 100%"></table>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+</section>
