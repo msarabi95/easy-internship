@@ -56,6 +56,8 @@ INSTALLED_APPS = (
     'easy_thumbnails',
     'post_office',
     'protractor',
+    'ckeditor',
+    'ckeditor_uploader',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -199,3 +201,6 @@ NYT_EMAIL_SENDER = secrets.NYT_EMAIL_SENDER
 # Misc
 
 SUPPORT_EMAIL_ADDRESS = secrets.SUPPORT_EMAIL_ADDRESS
+CKEDITOR_UPLOAD_PATH = secrets.CKEDITOR_UPLOAD_PATH
+CKEDITOR_IMAGE_BACKEND = "pillow"
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '111.222.333.444', 'mywebsite.com']

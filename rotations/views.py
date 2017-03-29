@@ -13,6 +13,7 @@ from docxtpl import DocxTemplate
 from month import Month
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import detail_route, list_route
+from rest_framework.exceptions import ParseError
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK
 
@@ -26,7 +27,7 @@ from hospitals.models import Department, AcceptanceSetting, Hospital, Specialty,
     DepartmentSettings, GlobalSettings
 from rotations.serializers import RotationSerializer, RequestedDepartmentSerializer, RotationRequestSerializer, \
     RotationRequestResponseSerializer, RotationRequestForwardSerializer, AcceptanceListSerializer, \
-    ShortRotationRequestForwardSerializer, ShortRotationRequestSerializer
+    ShortRotationRequestForwardSerializer, ShortRotationRequestSerializer, FullRotationSerializer
 
 
 class RotationViewSet(viewsets.ReadOnlyModelViewSet):
@@ -38,6 +39,62 @@ class RotationViewSet(viewsets.ReadOnlyModelViewSet):
         if self.request.user.has_perm("rotations.rotation.view_all"):
             return self.queryset.all()
         return self.queryset.filter(internship__intern__profile__user=self.request.user)
+
+    @list_route(methods=['get'], permission_classes=[permissions.IsAuthenticated, IsStaff])
+    def master_rota(self, request):
+        if len(request.query_params.keys()) == 0:
+            raise ParseError(detail="No query parameters were specified.")  # FIXME: Is this the most accurate error?
+
+        year = request.query_params.get('year')
+        hospital = request.query_params.get('hospital')
+
+        if year is None or hospital is None:
+            raise ParseError(detail="Both `year` and `hospital` query parameters should be specified.")
+
+        months = [Month(int(year), month) for month in range(1, 13)]
+        departments = Department.objects.filter(hospital__id=hospital).prefetch_related(
+            'rotations',
+        )
+
+        rotation_counts = []
+
+        for department in departments:
+            dept_counts = []
+            for month in months:
+                dept_counts.append({
+                    "department": department.id,
+                    "month": int(month),
+                    "count": len(filter(lambda rotation: rotation.month == month, department.rotations.all())),
+                })
+            rotation_counts.append(dept_counts)
+
+        return Response(rotation_counts)
+
+    @list_route(methods=['get'], permission_classes=[permissions.IsAuthenticated, IsStaff])
+    def monthly_list(self, request):
+        """
+        Return the list of rotations for a given month and department
+        """
+        if len(request.query_params.keys()) == 0:
+            raise ParseError(detail="No query parameters were specified.")  # FIXME: Is this the most accurate error?
+
+        department = request.query_params.get('department')
+        month = request.query_params.get('month')
+
+        if department is None or month is None:
+            raise ParseError(detail="Both `department` and `month` query parameters should be specified.")
+
+        month = Month.from_int(int(month))
+        rotations = Rotation.objects.filter(
+            department=department,
+            month=month,
+        ).prefetch_related(
+            'internship__intern__profile',
+        )
+
+        serialized = FullRotationSerializer(rotations, many=True)
+
+        return Response(serialized.data)
 
 
 class RequestedDepartmentViewSet(viewsets.ReadOnlyModelViewSet):

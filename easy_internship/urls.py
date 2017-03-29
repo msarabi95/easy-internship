@@ -25,6 +25,7 @@ from leaves.urls import api_urls as leaves_urls
 from rotations.urls import api_urls as rotations_urls
 from hospitals.urls import api_urls as hospitals_urls
 from months.urls import api_urls as months_urls
+from misc.urls import api_urls as misc_urls
 
 from . import views
 
@@ -34,12 +35,14 @@ api_urls = (
     rotations_urls,
     accounts_urls,
     leaves_urls,
+    misc_urls,
 )
 
 router = routers.DefaultRouter()
 for app in api_urls:
     for urlconf in app:
         router.register(*urlconf)
+
 
 
 urlpatterns = [
@@ -59,6 +62,7 @@ urlpatterns = [
     url(r'^accounts/', include('userena.urls')),
 
     url(r'^admin/', include(admin.site.urls)),
+    url(r'^ckeditor/', include('ckeditor_uploader.urls')),
 ]
 
 if settings.DEBUG:

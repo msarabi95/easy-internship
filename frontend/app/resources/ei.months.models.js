@@ -51,6 +51,12 @@ angular.module("ei.months.models", ["ngResource", "ei.interceptors"])
         get: {
             method: 'get',
             interceptor: DateTimeFieldToMomentInterceptor(["submission_datetime"])
+        },
+        open: {
+            method: 'get',
+            isArray: true,
+            url: '/api/freeze_requests/open/',
+            interceptor: DateTimeFieldToMomentInterceptor(["submission_datetime"])
         }
     });
 }])
@@ -79,12 +85,18 @@ angular.module("ei.months.models", ["ngResource", "ei.interceptors"])
         get: {
             method: 'get',
             interceptor: DateTimeFieldToMomentInterceptor(["submission_datetime"])
+        },
+        open: {
+            method: 'get',
+            isArray: true,
+            url: '/api/freeze_cancel_requests/open/',
+            interceptor: DateTimeFieldToMomentInterceptor(["submission_datetime"])
         }
     });
 }])
 
 .factory("FreezeCancelRequestResponse", ["$resource", "DateTimeFieldToMomentInterceptor", function($resource, DateTimeFieldToMomentInterceptor) {
-    return $resource('/api/freeze_cancel_request_reponses/:id', {id: '@id'}, {
+    return $resource('/api/freeze_cancel_request_responses/:id', {id: '@id'}, {
         query: {
             method: 'get',
             isArray: true,

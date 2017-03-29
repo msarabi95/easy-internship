@@ -18,6 +18,8 @@
           <li ng-class="{'active': page == 'kamc-memo'}"><a href="#/requests/kamc-memo/"><h4 class="text-bold"><i class="fa fa-file-text-o"></i> KAMC - Memo</h4></a></li>
           <li ng-class="{'active': page == 'outside'}"><a href="#/requests/outside/"><h4 class="text-bold"><i class="fa fa-sign-out"></i> Outside</h4></a></li>
           <li ng-class="{'active': page == 'cancellation'}"><a href="#/requests/cancellation/"><h4 class="text-bold"><i class="fa fa-close"></i> Cancellation</h4></a></li>
+          <li ng-class="{'active': page == 'freezes'}"><a href="#/requests/freezes/"><h4 class="text-bold"><i class="fa fa-snowflake-o"></i> Freezes</h4></a></li>
+          <li ng-class="{'active': page == 'freezecancels'}"><a href="#/requests/freezecancels/"><h4 class="text-bold"><i class="fa fa-close"></i> Freeze Cancellation</h4></a></li>
         </ul>
         <div class="tab-content">
           <div class="tab-pane active">
@@ -66,7 +68,8 @@
                 <div class="col-md-12">
                   <div class="pull-right">
                     Sort by:
-                    <select ng-model="ordering.option" ng-options="option.value as option.label for option in orderingOptions"></select>
+                    <select ng-model="ordering.option" ng-options="option.value as option.label for option in orderingOptions" ng-if="page == 'kamc-memo' || page == 'outside' || page == 'cancellation'"></select>
+                    <select ng-model="ordering.option" ng-options="option.value as option.label for option in freezeOrderingOptions" ng-if="page == 'freezes' || page == 'freezecancels'"></select>
                     <select ng-model="ordering.reverse" ng-options="option.value as option.label for option in reverseOptions"></select>
                   </div>
                 </div>
@@ -83,6 +86,16 @@
                                                          ng-if="page == 'cancellation'"
                                                          ng-repeat="request in requests | orderBy: ordering.option : ordering.reverse"
                                                          on-response="removeRequest(request)"></rotation-cancel-request-response-card>
+
+                  <freeze-request-response-card freeze-request="request"
+                                                ng-if="page == 'freezes'"
+                                                ng-repeat="request in requests | orderBy: ordering.option : ordering.reverse"
+                                                on-response="removeRequest(request)"></freeze-request-response-card>
+
+                  <freeze-cancel-request-response-card freeze-cancel-request="request"
+                                                       ng-if="page == 'freezecancels'"
+                                                       ng-repeat="request in requests | orderBy: ordering.option : ordering.reverse"
+                                                       on-response="removeRequest(request)"></freeze-cancel-request-response-card>
                 </div>
               </div>
             </div>

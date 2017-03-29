@@ -6,6 +6,7 @@ import itertools
 from django.core import validators
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
+from django.db.models.query_utils import Q
 from django.utils.crypto import get_random_string
 from django_nyt.utils import notify
 from month.models import MonthField
@@ -410,6 +411,8 @@ class AcceptanceList(object):
 
         responses = list()
         rotations = list()
+        old_rotations = Q()  # A query to old rotations in order to delete them
+
         for request in self.auto_accepted:
             if hasattr(request, 'response'):
                 response = request.response
@@ -430,6 +433,8 @@ class AcceptanceList(object):
                 is_elective=request.is_elective,
                 rotation_request=request,
             ))
+
+            old_rotations = old_rotations | Q(internship=request.internship, month=request.month)
 
         for request in self.auto_declined:
             if hasattr(request, 'response'):
@@ -457,12 +462,16 @@ class AcceptanceList(object):
                 rotation_request=request,
             ))
 
+            old_rotations = old_rotations | Q(internship=request.internship, month=request.month)
+
         for request in self.manual_declined:
             response = request.response
             response.is_approved = False
             responses.append(response)
 
         RotationRequestResponse.objects.bulk_create(responses)
+
+        Rotation.objects.filter(old_rotations).delete()
         Rotation.objects.bulk_create(rotations)
 
         for rotation_request in all_requests:
