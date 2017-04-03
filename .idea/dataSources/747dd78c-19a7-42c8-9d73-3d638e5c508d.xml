@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <dataSource name="Django default">
-  <database-model serializer="dbm" rdbms="SQLITE" format-version="4.0">
+  <database-model serializer="dbm" rdbms="SQLITE" format-version="4.1">
     <root id="1"/>
     <schema id="2" parent="1">
       <Visible>1</Visible>
@@ -136,8 +136,6 @@
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>accounts_profile</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <column id="75" parent="4" name="id">
       <DataType>INTEGER(0,-1)|4</DataType>
@@ -193,8 +191,6 @@
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>auth_user</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <column id="88" parent="5" name="id">
       <DataType>INTEGER(0,-1)|4</DataType>
@@ -243,8 +239,6 @@ permission_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>auth_permission</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <foreign-key id="99" parent="6" name="#FAKE_auth_group_permissions_2">
       <ColNames>group_id</ColNames>
@@ -252,8 +246,6 @@ permission_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>auth_group</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <column id="100" parent="7" name="id">
       <DataType>INTEGER(0,-1)|4</DataType>
@@ -290,8 +282,6 @@ codename</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>django_content_type</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <column id="108" parent="8" name="id">
       <DataType>INTEGER(0,-1)|4</DataType>
@@ -375,8 +365,6 @@ group_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>auth_group</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <foreign-key id="128" parent="9" name="#FAKE_auth_user_groups_2">
       <ColNames>user_id</ColNames>
@@ -384,8 +372,6 @@ group_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>auth_user</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <column id="129" parent="10" name="id">
       <DataType>INTEGER(0,-1)|4</DataType>
@@ -422,8 +408,6 @@ permission_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>auth_permission</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <foreign-key id="137" parent="10" name="#FAKE_auth_user_user_permissions_2">
       <ColNames>user_id</ColNames>
@@ -431,8 +415,6 @@ permission_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>auth_user</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <column id="138" parent="11" name="id">
       <DataType>INTEGER(0,-1)|4</DataType>
@@ -482,8 +464,6 @@ permission_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>auth_user</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <foreign-key id="150" parent="11" name="#FAKE_django_admin_log_2">
       <ColNames>content_type_id</ColNames>
@@ -491,8 +471,6 @@ permission_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>django_content_type</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <column id="151" parent="12" name="id">
       <DataType>INTEGER(0,-1)|4</DataType>
@@ -652,8 +630,6 @@ source_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>easy_thumbnails_source</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <column id="189" parent="18" name="id">
       <DataType>INTEGER(0,-1)|4</DataType>
@@ -679,8 +655,6 @@ source_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>easy_thumbnails_thumbnail</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <column id="195" parent="19" name="id">
       <DataType>INTEGER(0,-1)|4</DataType>
@@ -730,8 +704,6 @@ object_pk</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>auth_permission</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <foreign-key id="206" parent="19" name="#FAKE_guardian_groupobjectpermission_2">
       <ColNames>group_id</ColNames>
@@ -739,8 +711,6 @@ object_pk</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>auth_group</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <foreign-key id="207" parent="19" name="#FAKE_guardian_groupobjectpermission_3">
       <ColNames>content_type_id</ColNames>
@@ -748,8 +718,6 @@ object_pk</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>django_content_type</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <column id="208" parent="20" name="id">
       <DataType>INTEGER(0,-1)|4</DataType>
@@ -799,8 +767,6 @@ object_pk</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>auth_user</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <foreign-key id="219" parent="20" name="#FAKE_guardian_userobjectpermission_2">
       <ColNames>permission_id</ColNames>
@@ -808,8 +774,6 @@ object_pk</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>auth_permission</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <foreign-key id="220" parent="20" name="#FAKE_guardian_userobjectpermission_3">
       <ColNames>content_type_id</ColNames>
@@ -817,8 +781,6 @@ object_pk</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>django_content_type</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <column id="221" parent="21" name="id">
       <DataType>INTEGER(0,-1)|4</DataType>
@@ -877,8 +839,6 @@ object_pk</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>planner_department</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <foreign-key id="235" parent="21" name="#FAKE_hospitals_department_2">
       <ColNames>specialty_id</ColNames>
@@ -886,8 +846,6 @@ object_pk</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>planner_specialty</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <foreign-key id="236" parent="21" name="#FAKE_hospitals_department_3">
       <ColNames>hospital_id</ColNames>
@@ -895,8 +853,6 @@ object_pk</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>planner_hospital</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <column id="237" parent="22" name="id">
       <DataType>INTEGER(0,-1)|4</DataType>
@@ -942,8 +898,6 @@ department_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>planner_department</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <column id="248" parent="23" name="id">
       <DataType>INTEGER(0,-1)|4</DataType>
@@ -973,8 +927,6 @@ department_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>planner_department</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <column id="255" parent="24" name="id">
       <DataType>INTEGER(0,-1)|4</DataType>
@@ -1069,8 +1021,6 @@ department_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>planner_specialty</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <column id="279" parent="28" name="id">
       <DataType>INTEGER(0,-1)|4</DataType>
@@ -1118,8 +1068,6 @@ department_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>leaves_leavetype</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <foreign-key id="290" parent="28" name="#FAKE_leaves_leave_2">
       <ColNames>request_id</ColNames>
@@ -1127,8 +1075,6 @@ department_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>leaves_leaverequest</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <foreign-key id="291" parent="28" name="#FAKE_leaves_leave_3">
       <ColNames>intern_id</ColNames>
@@ -1136,8 +1082,6 @@ department_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>auth_user</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <column id="292" parent="29" name="id">
       <DataType>INTEGER(0,-1)|4</DataType>
@@ -1184,8 +1128,6 @@ department_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>rotations_rotationrequest</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <foreign-key id="303" parent="29" name="#FAKE_leaves_leavecancelrequest_2">
       <ColNames>intern_id</ColNames>
@@ -1193,8 +1135,6 @@ department_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>auth_user</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <foreign-key id="304" parent="29" name="#FAKE_leaves_leavecancelrequest_3">
       <ColNames>leave_request_id</ColNames>
@@ -1202,8 +1142,6 @@ department_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>leaves_leaverequest</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <column id="305" parent="30" name="id">
       <DataType>INTEGER(0,-1)|4</DataType>
@@ -1235,8 +1173,6 @@ department_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>leaves_leavecancelrequest</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <column id="312" parent="31" name="id">
       <DataType>INTEGER(0,-1)|4</DataType>
@@ -1291,8 +1227,6 @@ department_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>rotations_rotationrequest</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <foreign-key id="325" parent="31" name="#FAKE_leaves_leaverequest_2">
       <ColNames>type_id</ColNames>
@@ -1300,8 +1234,6 @@ department_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>leaves_leavetype</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <foreign-key id="326" parent="31" name="#FAKE_leaves_leaverequest_3">
       <ColNames>intern_id</ColNames>
@@ -1309,8 +1241,6 @@ department_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>auth_user</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <column id="327" parent="32" name="id">
       <DataType>INTEGER(0,-1)|4</DataType>
@@ -1342,8 +1272,6 @@ department_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>leaves_leaverequest</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <column id="334" parent="33" name="id">
       <DataType>INTEGER(0,-1)|4</DataType>
@@ -1379,8 +1307,6 @@ department_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>leaves_leavetype</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <foreign-key id="342" parent="33" name="#FAKE_leaves_leavesetting_2">
       <ColNames>intern_id</ColNames>
@@ -1388,8 +1314,6 @@ department_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>auth_user</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <column id="343" parent="34" name="id">
       <DataType>INTEGER(0,-1)|4</DataType>
@@ -1432,8 +1356,6 @@ department_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>accounts_intern</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <column id="353" parent="36" name="id">
       <DataType>INTEGER(0,-1)|4</DataType>
@@ -1486,8 +1408,6 @@ department_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>nyt_subscription</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <foreign-key id="366" parent="36" name="#FAKE_nyt_notification_2">
       <ColNames>user_id</ColNames>
@@ -1495,8 +1415,6 @@ department_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>auth_user</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <column id="367" parent="37" name="key">
       <DataType>VARCHAR(128) (0,-1)|12</DataType>
@@ -1522,8 +1440,6 @@ department_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>django_content_type</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <column id="373" parent="38" name="id">
       <DataType>INTEGER(0,-1)|4</DataType>
@@ -1551,8 +1467,6 @@ department_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>auth_user</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <column id="379" parent="39" name="id">
       <DataType>INTEGER(0,-1)|4</DataType>
@@ -1598,8 +1512,6 @@ department_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>nyt_notification</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <foreign-key id="390" parent="39" name="#FAKE_nyt_subscription_2">
       <ColNames>notification_type_id</ColNames>
@@ -1607,8 +1519,6 @@ department_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>nyt_notificationtype</RefTableName>
       <RefColNames>key</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <foreign-key id="391" parent="39" name="#FAKE_nyt_subscription_3">
       <ColNames>settings_id</ColNames>
@@ -1616,8 +1526,6 @@ department_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>nyt_settings</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <column id="392" parent="40" name="id">
       <DataType>INTEGER(0,-1)|4</DataType>
@@ -1670,8 +1578,6 @@ email_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>post_office_email</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <foreign-key id="404" parent="41" name="#FAKE_post_office_attachment_emails_2">
       <ColNames>attachment_id</ColNames>
@@ -1679,8 +1585,6 @@ email_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>post_office_attachment</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <column id="405" parent="42" name="id">
       <DataType>INTEGER(0,-1)|4</DataType>
@@ -1774,8 +1678,6 @@ email_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>post_office_emailtemplate</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <column id="429" parent="43" name="id">
       <DataType>INTEGER(0,-1)|4</DataType>
@@ -1835,8 +1737,6 @@ default_template_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>post_office_emailtemplate</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <column id="443" parent="44" name="id">
       <DataType>INTEGER(0,-1)|4</DataType>
@@ -1876,8 +1776,6 @@ default_template_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>post_office_email</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <column id="452" parent="45" name="id">
       <DataType>INTEGER(0,-1)|4</DataType>
@@ -1938,8 +1836,6 @@ default_template_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>hospitals_specialty</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <foreign-key id="467" parent="45" name="#FAKE_rotations_requesteddepartment_2">
       <ColNames>department_hospital_id</ColNames>
@@ -1947,8 +1843,6 @@ default_template_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>hospitals_hospital</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <foreign-key id="468" parent="45" name="#FAKE_rotations_requesteddepartment_3">
       <ColNames>department_id</ColNames>
@@ -1956,8 +1850,6 @@ default_template_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>hospitals_department</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <column id="469" parent="46" name="id">
       <DataType>INTEGER(0,-1)|4</DataType>
@@ -2009,8 +1901,6 @@ default_template_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>months_internship</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <foreign-key id="481" parent="46" name="#FAKE_rotations_rotation_2">
       <ColNames>rotation_request_id</ColNames>
@@ -2018,8 +1908,6 @@ default_template_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>planner_rotationrequest</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <foreign-key id="482" parent="46" name="#FAKE_rotations_rotation_3">
       <ColNames>specialty_id</ColNames>
@@ -2027,8 +1915,6 @@ default_template_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>hospitals_specialty</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <foreign-key id="483" parent="46" name="#FAKE_rotations_rotation_4">
       <ColNames>department_id</ColNames>
@@ -2036,8 +1922,6 @@ default_template_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>hospitals_department</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <column id="484" parent="47" name="id">
       <DataType>INTEGER(0,-1)|4</DataType>
@@ -2089,8 +1973,6 @@ default_template_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>months_internship</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <foreign-key id="496" parent="47" name="#FAKE_rotations_rotationrequest_2">
       <ColNames>specialty_id</ColNames>
@@ -2098,8 +1980,6 @@ default_template_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>hospitals_specialty</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <foreign-key id="497" parent="47" name="#FAKE_rotations_rotationrequest_3">
       <ColNames>requested_department_id</ColNames>
@@ -2107,8 +1987,6 @@ default_template_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>planner_requesteddepartment</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <column id="498" parent="48" name="id">
       <DataType>INTEGER(0,-1)|4</DataType>
@@ -2136,8 +2014,6 @@ default_template_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>planner_rotationrequest</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <column id="504" parent="49" name="id">
       <DataType>INTEGER(0,-1)|4</DataType>
@@ -2177,8 +2053,6 @@ default_template_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>planner_rotationrequestforward</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <column id="513" parent="50" name="id">
       <DataType>INTEGER(0,-1)|4</DataType>
@@ -2210,8 +2084,6 @@ default_template_id</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>planner_rotationrequest</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <column id="520" parent="51" name="id">
       <DataType>INTEGER(0,-1)|4</DataType>
@@ -2366,8 +2238,6 @@ alias</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>sitetree_treeitem</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <foreign-key id="558" parent="52" name="#FAKE_sitetree_treeitem_2">
       <ColNames>tree_id</ColNames>
@@ -2375,8 +2245,6 @@ alias</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>sitetree_tree</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <column id="559" parent="53" name="id">
       <DataType>INTEGER(0,-1)|4</DataType>
@@ -2400,8 +2268,6 @@ alias</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>auth_permission</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <foreign-key id="564" parent="53" name="#FAKE_sitetree_treeitem_access_permissions_2">
       <ColNames>treeitem_id</ColNames>
@@ -2409,8 +2275,6 @@ alias</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>sitetree_treeitem</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
     <column id="565" parent="54" name="name">
       <DataType>(0,-1)|12</DataType>
@@ -2458,8 +2322,6 @@ alias</ColNames>
       <InitiallyDeferred>1</InitiallyDeferred>
       <RefTableName>auth_user</RefTableName>
       <RefColNames>id</RefColNames>
-      <OnDelete>no-action</OnDelete>
-      <OnUpdate>no-action</OnUpdate>
     </foreign-key>
   </database-model>
 </dataSource>
