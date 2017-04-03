@@ -4,17 +4,6 @@
 {% block title %}{% trans "Signup" %}{% endblock %}
 
 {% block content_title %}
-  {% comment %}{% if form.form_type == 'agu' %}
-  <p>
-    <img style="width: 100%" src="{% static 'bahrain.png' %}" />
-  </p>
-  <h1 dir="rtl" class="text-center">
-    حيّا الله الأشقاء البحرينية!
-  </h1>
-
-  <hr>
-  {% endif %}{% endcomment %}
-
   {% if form.form_type == 'ksauhs' %}
   <div class="row">
     <div class="col-xs-offset-3 col-xs-6">
@@ -218,6 +207,16 @@ $(document).ready(function () {
   showOrHide($checkbox.prop('checked'));
 });
 
+</script>
+{% endif %}
+
+{% if form.form_type == 'outside' %}
+<script type="text/javascript">
+$(document).ready(function () {
+   var $medicalChecklist = $(".form-group input[name=medical_checklist]").parent().parent().parent();
+
+   $("<p>Please fill <a href='{% static 'medical_checklist.pdf' %}'>this form</a> and attach it below.</p>").insertAfter($medicalChecklist.find("label"));
+});
 </script>
 {% endif %}
 

@@ -142,7 +142,12 @@
                   </div>
                   <div class="box-body bg-success">
                     <dl class="dl-horizontal" style="margin-bottom: 0;">
-                      <p>Your request has been forwarded by the medical internship unit to the requested department.</p>
+                      <p ng-if="month.current_request.requested_department.department.memo_handed_by_intern == false">
+                        Your request has been forwarded by the medical internship unit to the requested department.
+                      </p>
+                      <p ng-if="month.current_request.requested_department.department.memo_handed_by_intern == true">
+                        Please hand the attached memo to the requested hospital, and record the response below once received.
+                      </p>
 
                       <dt>Forward date and time</dt>
                       <dd>{{ month.current_request.forward.forward_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
