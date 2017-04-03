@@ -19,12 +19,10 @@ class ChooseUniversityForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(ChooseUniversityForm, self).__init__(*args, **kwargs)
         self.fields['university_id'].widget.attrs['class'] = 'input-lg'
+        self.fields['university_id'].choices = list(University.objects.values_list('id', 'name')) + [(-1, 'Other')]
 
     page = forms.IntegerField(initial=1, widget=forms.HiddenInput())
-    university_id = forms.ChoiceField(
-        label="University",
-        choices=list(University.objects.values_list('id', 'name')) + [(-1, 'Other')]
-    )
+    university_id = forms.ChoiceField(label="University")
 
 
 class BaseSignupForm(SignupFormOnlyEmail):
