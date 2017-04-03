@@ -1,4 +1,4 @@
-from accounts.models import Profile, Intern
+from accounts.models import Profile, Intern, University, Batch
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
@@ -9,12 +9,14 @@ class InternInline(admin.StackedInline):
     model = Intern
     extra = 0
 
+
 class ProfileAdmin(admin.ModelAdmin):
     list_display = ["get_ar_full_name", "get_en_full_name", "role"]
     search_fields = ["ar_first_name", "ar_middle_name",
                      "ar_last_name", "en_first_name",
                      "en_middle_name", "en_last_name"]
     inlines = [InternInline, ]
+
 
 class RoleListFilter(admin.SimpleListFilter):
     # Refer to: https://docs.djangoproject.com/en/1.9/ref/contrib/admin/#django.contrib.admin.ModelAdmin.list_filter
@@ -66,6 +68,55 @@ class ModifiedUserAdmin(UserAdmin):
         return tuple(list_filter)
 
 
+class UniversityAdmin(admin.ModelAdmin):
+    list_display = ['name', 'abbreviation', 'city', 'country', 'is_ksauhs', 'is_agu']
+
+
+class UniversityListFilter(admin.SimpleListFilter):
+    title = "University"
+    parameter_name = 'university'
+
+    KSAU_HS = 'ksauhs'
+    AGU = 'agu'
+    OTHER = 'other'
+
+    def lookups(self, request, model_admin):
+        return (
+            (self.KSAU_HS, "King Saud bin Abdulaziz University for Health Sciences"),
+            (self.AGU, "Arabian Gulf University"),
+            (self.OTHER, "Other"),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == self.KSAU_HS:
+            return queryset.filter(is_ksauhs=True)
+        if self.value() == self.AGU:
+            return queryset.filter(is_agu=True)
+        if self.value() == self.OTHER:
+            return queryset.filter(is_ksauhs=False, is_agu=False)
+
+
+class BatchAdmin(admin.ModelAdmin):
+    list_display = ['name', 'abbreviation', 'start_month', 'get_end_month', 'get_university']
+    list_filter = [UniversityListFilter]
+    readonly_fields = ['get_end_month']
+
+    def get_end_month(self, obj):
+        return obj.start_month + 11 if obj.id else "(Will be calculated from the chosen start month)"
+    get_end_month.short_description = "End Month (Calculated)"
+
+    def get_university(self, obj):
+        if obj.is_ksauhs:
+            return "KSAU-HS"
+        elif obj.is_agu:
+            return "AGU"
+        else:
+            return "Other"
+    get_university.short_description = "University"
+
+
 admin.site.unregister(User)
 admin.site.register(User, ModifiedUserAdmin)
 admin.site.register(Profile, ProfileAdmin)
+admin.site.register(University, UniversityAdmin)
+admin.site.register(Batch, BatchAdmin)

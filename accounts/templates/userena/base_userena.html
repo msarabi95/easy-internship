@@ -5,6 +5,8 @@
 
   <!-- iCheck --><!-- FIXME: Find a better place for this stylesheet -->
   <link rel="stylesheet" href="{% static 'bower_components/iCheck/skins/square/blue.css' %}">
+  <link rel="stylesheet" href="{% static 'bower_components/select2/dist/css/select2.min.css' %}">
+  <link rel="stylesheet" href="{% static 'bower_components/select2-bootstrap-theme/dist/select2-bootstrap.min.css' %}">
 
 
   <div class="login-box">
@@ -21,12 +23,16 @@
 
   <!-- iCheck --><!-- FIXME: Find a better place for this script -->
   <script src="{% static 'bower_components/iCheck/icheck.min.js' %}"></script>
+  <script src="{% static 'bower_components/select2/dist/js/select2.min.js' %}"></script>
   <script>
     $(function () {
       $('input').iCheck({
         checkboxClass: 'icheckbox_square-blue',
         radioClass: 'iradio_square-blue',
         increaseArea: '20%' // optional
+      });
+      $('select[name=university_id]').select2({
+        theme: 'bootstrap'
       });
     });
   </script>

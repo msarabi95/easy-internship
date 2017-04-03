@@ -4,6 +4,38 @@
 {% block title %}{% trans "Signup" %}{% endblock %}
 
 {% block content_title %}
+  {% comment %}{% if form.form_type == 'agu' %}
+  <p>
+    <img style="width: 100%" src="{% static 'bahrain.png' %}" />
+  </p>
+  <h1 dir="rtl" class="text-center">
+    حيّا الله الأشقاء البحرينية!
+  </h1>
+
+  <hr>
+  {% endif %}{% endcomment %}
+
+  {% if form.form_type == 'ksauhs' %}
+  <div class="row">
+    <div class="col-xs-offset-3 col-xs-6">
+      <img style="width: 100%;" class="img-circle" src="{% static 'ksauhs_logo.png' %}" />
+    </div>
+  </div>
+
+  <hr>
+  {% elif form.form_type == 'agu' %}
+  <div class="row">
+    <div class="col-xs-offset-1 col-xs-5">
+      <img style="width: 100%;" class="img-circle" src="{% static 'ksauhs_logo.png' %}" />
+    </div>
+    <div class="col-xs-5">
+      <img style="width: 100%; margin-top: 3px;" class="img-circle" src="{% static 'agu_logo.jpg' %}" />
+    </div>
+  </div>
+
+  <hr>
+  {% endif %}
+
   <p class="login-box-msg">
     Fill the details below to create your account
   </p>
@@ -16,34 +48,57 @@
 
   {% bootstrap_form_errors form %}
 
+  {% bootstrap_field form.university %}
+
+  {% bootstrap_field form.page %}
+
   {% bootstrap_field form.ar_first_name %}
-  {% bootstrap_field form.ar_middle_name %}
+  {% bootstrap_field form.ar_father_name %}
+  {% bootstrap_field form.ar_grandfather_name %}
   {% bootstrap_field form.ar_last_name %}
+  <hr>
   {% bootstrap_field form.en_first_name %}
-  {% bootstrap_field form.en_middle_name %}
+  {% bootstrap_field form.en_father_name %}
+  {% bootstrap_field form.en_grandfather_name %}
   {% bootstrap_field form.en_last_name %}
+
+  {% if form.form_type == 'ksauhs' %}
   <hr>
   {% bootstrap_field form.student_number %}
   {% bootstrap_field form.badge_number %}
+  {% endif %}
+
   <hr>
   {% bootstrap_field form.email %}
-  {% bootstrap_field form.alt_email %}
+  {% if form.form_type == 'ksauhs' %}{% bootstrap_field form.alt_email %}{% endif %}
   <hr>
   {% bootstrap_field form.phone_number %}
   {% bootstrap_field form.mobile_number %}
   {% bootstrap_field form.address %}
   <hr>
-  {% bootstrap_field form.saudi_id_number %}
-  {% bootstrap_field form.saudi_id %}
+  {% bootstrap_field form.id_number %}
+  {% bootstrap_field form.id_image %}
+
+  {% if form.form_type == 'ksauhs' %}
   <hr>
   <p>In case you don't have a valid passport for any reason, please check the box below.</p>
   {% bootstrap_field form.has_no_passport %}
   <hr>
   {% bootstrap_field form.passport_number %}
-  {% bootstrap_field form.passport %}
+  {% bootstrap_field form.passport_image %}
   {% bootstrap_field form.passport_attachment %}
   <hr>
   {% bootstrap_field form.medical_record_number %}
+  {% elif form.form_type == 'agu' %}
+  <hr>
+  {% bootstrap_field form.passport_number %}
+  {% bootstrap_field form.passport_image %}
+  {% endif %}
+
+  {% if form.form_type == 'outside' %}
+  <hr>
+  {% bootstrap_field form.medical_checklist %}
+  {% endif %}
   <hr>
   {% bootstrap_field form.contact_person_name %}
   {% bootstrap_field form.contact_person_relation %}
@@ -51,8 +106,67 @@
   {% bootstrap_field form.contact_person_email %}
   <hr>
   {% bootstrap_field form.gpa %}
-  {% bootstrap_field form.starting_year %}
-  {% bootstrap_field form.starting_month %}
+
+  {% if form.form_type == 'outside' %}
+  <div class="form-group">
+    <label>Graduation date</label>
+    <div class="row">
+      <div class="col-xs-6" style="padding-right: 2px;">
+        {% bootstrap_field form.graduation_month show_label=False %}
+      </div>
+      <div class="col-xs-6" style="padding-left: 2px;">
+        {% bootstrap_field form.graduation_year show_label=False %}
+      </div>
+    </div>
+  </div>
+  {% bootstrap_field form.academic_transcript %}
+
+  <hr>
+
+  <div class="form-group">
+    <label>University name</label>
+    <div class="row">
+      <div class="col-xs-8" style="padding-right: 2px;">
+        {% bootstrap_field form.university_name show_label=False %}
+      </div>
+      <div class="col-xs-4" style="padding-left: 2px;">
+        {% bootstrap_field form.university_abbreviation show_label=False %}
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label>Address</label>
+    <div class="row">
+      <div class="col-xs-6" style="padding-right: 2px;">
+        {% bootstrap_field form.university_city show_label=False %}
+      </div>
+      <div class="col-xs-6" style="padding-left: 2px;">
+        {% bootstrap_field form.university_country show_label=False %}
+      </div>
+    </div>
+  </div>
+
+  {% bootstrap_field form.university_internship_phone %}
+  {% bootstrap_field form.university_internship_fax %}
+  {% bootstrap_field form.university_internship_email %}
+
+  {% endif %}
+
+  <hr>
+  <div class="form-group">
+    <label>Internship starting date</label>
+    <div class="row">
+      <div class="col-xs-6" style="padding-right: 2px;">
+        {% bootstrap_field form.starting_month show_label=False %}
+      </div>
+      <div class="col-xs-6" style="padding-left: 2px;">
+        {% bootstrap_field form.starting_year show_label=False %}
+      </div>
+    </div>
+  </div>
+  {# {% bootstrap_field form.starting_year %}#}
+  {# {% bootstrap_field form.starting_month %}#}
   <hr>
   {% bootstrap_field form.password1 %}
   {% bootstrap_field form.password2 %}
@@ -71,6 +185,7 @@
 
 <a href="{% url 'userena_signin' %}" class="text-center">Already registered? Sign in</a>
 
+{% if form.form_type == 'ksauhs' %}
 <script type="text/javascript">
 $(document).ready(function () {
   var $checkbox = $("#id_has_no_passport"),
@@ -104,5 +219,6 @@ $(document).ready(function () {
 });
 
 </script>
+{% endif %}
 
 {% endblock %}
