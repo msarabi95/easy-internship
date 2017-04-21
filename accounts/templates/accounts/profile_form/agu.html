@@ -1,0 +1,7 @@
+{% extends 'accounts/profile_form/base.html' %}{% load bootstrap3 %}
+
+{% block passport %}
+    <hr>
+    {% bootstrap_field form.passport_number %}
+    {% bootstrap_field form.passport_image %}
+{% endblock %}

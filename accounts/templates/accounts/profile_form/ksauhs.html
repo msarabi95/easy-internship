@@ -1,0 +1,27 @@
+{% extends 'accounts/profile_form/base.html' %}{% load bootstrap3 %}
+
+{% block student_id %}
+    <hr>
+    {% bootstrap_field form.student_number %}
+    {% bootstrap_field form.badge_number %}
+{% endblock %}
+
+{% block alt_email %}
+    <hr>
+    {% bootstrap_field form.alt_email %}
+{% endblock %}
+
+{% block passport %}
+    <hr>
+    <p>In case you don't have a valid passport for any reason, please check the box below.</p>
+    {% bootstrap_field form.has_no_passport %}
+    <hr>
+    {% bootstrap_field form.passport_number %}
+    {% bootstrap_field form.passport_image %}
+    {% bootstrap_field form.passport_attachment %}
+{% endblock %}
+
+{% block medical_info %}
+    <hr>
+    {% bootstrap_field form.medical_record_number %}
+{% endblock %}

@@ -12,9 +12,9 @@ class InternInline(admin.StackedInline):
 
 class ProfileAdmin(admin.ModelAdmin):
     list_display = ["get_ar_full_name", "get_en_full_name", "role"]
-    search_fields = ["ar_first_name", "ar_middle_name",
+    search_fields = ["ar_first_name", "ar_father_name",
                      "ar_last_name", "en_first_name",
-                     "en_middle_name", "en_last_name"]
+                     "en_father_name", "en_last_name"]
     inlines = [InternInline, ]
 
 
@@ -41,10 +41,10 @@ class RoleListFilter(admin.SimpleListFilter):
 
 class ModifiedUserAdmin(UserAdmin):
     search_fields = ["profile__ar_first_name",
-                     "profile__ar_middle_name",
+                     "profile__ar_father_name",
                      "profile__ar_last_name",
                      "profile__en_first_name",
-                     "profile__en_middle_name",
+                     "profile__en_father_name",
                      "profile__en_last_name"]
 
     def get_role(self, instance):

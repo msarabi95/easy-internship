@@ -1,0 +1,22 @@
+{% extends 'accounts/profile_form/base.html' %}{% load bootstrap3 %}
+
+{% block medical_info %}
+    <hr>
+    {% bootstrap_field form.medical_checklist %}
+{% endblock %}
+
+{% block graduation_info %}
+    <hr>
+    {% bootstrap_field form.academic_transcript %}
+    <div class="form-group">
+      <label>Graduation date</label>
+      <div class="row">
+        <div class="col-xs-6" style="padding-right: 2px;">
+          {% bootstrap_field form.graduation_month show_label=False %}
+        </div>
+        <div class="col-xs-6" style="padding-left: 2px;">
+          {% bootstrap_field form.graduation_year show_label=False %}
+        </div>
+      </div>
+    </div>
+{% endblock %}

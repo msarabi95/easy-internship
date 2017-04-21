@@ -1,0 +1,14 @@
+{% extends "accounts/profile_detail/base.html" %}
+
+{% block medical_info %}
+    <dt>Medical Checklist</dt>
+    <dd>See it <a href="{{ profile.intern.medical_checklist.url}}">here</a>.</dd>
+{% endblock %}
+
+{% block graduation_info %}
+    <dt>Academic Transcript</dt>
+    <dd>See it <a href="{{ profile.intern.academic_transcript.url }}">here</a>.</dd>
+
+    <dt>Graduation date</dt>
+    <dd>{{ profile.intern.graduation_date.first_day|date:"F Y" }}</dd>
+{% endblock %}
