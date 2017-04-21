@@ -18,27 +18,30 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ('id', 'user', 'role', 'mugshot', 'ar_first_name', 'ar_middle_name', 'ar_last_name',
-                  'en_first_name', 'en_middle_name', 'en_last_name', 'ar_full_name', 'en_full_name')
+        fields = ('id', 'user', 'role', 'mugshot', 'ar_first_name', 'ar_father_name', 'ar_last_name',
+                  'en_first_name', 'en_father_name', 'en_last_name', 'ar_full_name', 'en_full_name')
 
 
 class InternSerializer(serializers.ModelSerializer):
-    saudi_id = serializers.URLField(source='saudi_id.url')
-    passport = serializers.SerializerMethodField(method_name='get_passport_url')
+    id_image = serializers.URLField(source='id_image.url')
+    passport_image = serializers.SerializerMethodField(method_name='get_passport_image_url')
     passport_attachment = serializers.SerializerMethodField(method_name='get_passport_attachment_url')
 
-    def get_passport_url(self, obj):
-        return obj.passport.url if obj.has_passport else None
+    def get_passport_image_url(self, obj):
+        if (obj.is_ksauhs_intern and obj.has_passport) or (obj.is_agu_intern and obj.passport_image):
+            return obj.passport_image.url
+        return None
 
     def get_passport_attachment_url(self, obj):
-        return obj.passport_attachment.url if not obj.has_passport else None
+        return obj.passport_attachment.url if obj.is_ksauhs_intern and not obj.has_passport else None
 
     class Meta:
         model = Intern
         fields = ('id', 'profile', 'alt_email', 'student_number', 'badge_number', 'phone_number', 'mobile_number',
-                  'address', 'saudi_id_number', 'saudi_id', 'has_passport', 'passport_number', 'passport', 'passport_attachment',
+                  'address', 'id_number', 'id_image', 'has_passport', 'passport_number', 'passport_image', 'passport_attachment',
                   'medical_record_number', 'contact_person_name', 'contact_person_relation',
-                  'contact_person_mobile', 'contact_person_email', 'gpa')
+                  'contact_person_mobile', 'contact_person_email', 'gpa',
+                  'is_ksauhs_intern', 'is_agu_intern', 'is_outside_intern',)
 
 
 class InternTableSerializer(serializers.ModelSerializer):
