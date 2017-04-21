@@ -8,7 +8,7 @@ angular.module("easyInternship", ["ei.hospitals", "ei.months", "ei.rotations", "
 
     $routeProvider
         .when("/", {
-            templateUrl: "static/partials/intern/index.html?v=0003",
+            templateUrl: "static/partials/intern/index.html?v=0004",
             controller: "IndexCtrl"
         })
 

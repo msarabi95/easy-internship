@@ -17,7 +17,7 @@
           Each request you make is submitted to the medical internship unit for review and approval.<br>
           <span class="text-blue">Click on <span class="text-bold">Request a Rotation</span> for any of the months below and make your first request!</span>
 
-          <span ng-if="!intern.is_outside_intern">
+          <span ng-if="intern.is_ksauhs_intern || intern.is_agu_intern">
             <br><br>
             Keep in mind that you have to satisfy the requirement of 2 months in each of <span class="text-bold">Internal Medicine, Surgery,
             Obstetrics and Gynecology, and Pediatrics</span>, having one general month at least in each specialty. In addition,
@@ -135,7 +135,8 @@
                     </div>
                   </div>
                   <div ng-if="months[i].disabled">
-                    <h5 class="text-center">This month will be available when you have an approved freeze.</h5>
+                    <h5 class="text-center" ng-if="!intern.is_outside_intern">This month will be available when you have an approved freeze.</h5>
+                    <h4 class="text-center" ng-if="intern.is_outside_intern">This month is not available.</h4>
                   </div>
                   <div ng-if="months[i].frozen">
                     <h3 class="text-center text-aqua"><i class="fa fa-snowflake-o"></i> Frozen</h3>
