@@ -12,7 +12,6 @@
     <div class="box-footer no-padding">
 
     </div>
-
   </div>
   <dl>
     <dt>Name (Arabic)</dt>
@@ -21,19 +20,20 @@
     <dt>Name (English)</dt>
     <dd>{{ profile.get_en_full_name }}</dd>
 
-    {% if not hide_email %}
-      <dt>Email</dt>
-      <dd>{{ profile.user.email }}</dd>
+    <dt>University</dt>
+    <dd>{{ profile.intern.university.name }}</dd>
 
-      <dt>Alternative Email</dt>
-      <dd>{{ profile.intern.alt_email }}</dd>
+    <dt>Batch</dt>
+    <dd>{{ profile.intern.batch.name }}</dd>
+
+    {% if not hide_email %}
+      {% block email %}
+        <dt>Email</dt>
+        <dd>{{ profile.user.email }}</dd>
+      {% endblock %}
     {% endif %}
 
-    <dt>Student Number</dt>
-    <dd>{{ profile.intern.student_number}}</dd>
-
-    <dt>Badge Number</dt>
-    <dd>{{ profile.intern.badge_number }}</dd>
+    {% block student_id %}{% endblock %}
 
     <dt>Phone Number</dt>
     <dd>{{ profile.intern.phone_number }}</dd>
@@ -44,25 +44,15 @@
     <dt>Address</dt>
     <dd>{{ profile.intern.address|linebreaksbr }}</dd>
 
-    <dt>Saudi ID Number</dt>
-    <dd>{{ profile.intern.saudi_id_number }}</dd>
+    <dt>ID Number</dt>
+    <dd>{{ profile.intern.id_number }}</dd>
 
-    <dt>Saudi ID Image</dt>
-    <dd>See it <a href="{{ profile.intern.saudi_id.url }}">here</a>.</dd>
+    <dt>ID Image</dt>
+    <dd>See it <a href="{{ profile.intern.id_image.url }}">here</a>.</dd>
 
-    {% if profile.intern.has_passport %}
-      <dt>Passport Number</dt>
-      <dd>{{ profile.intern.passport_number }}</dd>
+    {% block passport %}{% endblock %}
 
-      <dt>Passport Image</dt>
-      <dd>See it <a href="{{ profile.intern.passport.url }}">here</a>.</dd>
-    {% else %}
-      <dt>Expired or no passport form</dt>
-      <dd>See it <a href="{{ profile.intern.passport_attachment.url }}">here</a>.</dd>
-    {% endif %}
-
-    <dt>Medical Record Number</dt>
-    <dd>{{ profile.intern.medical_record_number }}</dd>
+    {% block medical_info %}{% endblock %}
 
     <dt>Contact Person Name</dt>
     <dd>{{ profile.intern.contact_person_name }}</dd>
@@ -75,5 +65,11 @@
 
     <dt>Contact Person Email</dt>
     <dd>{{ profile.intern.contact_person_email }}</dd>
+
+    <dt>GPA</dt>
+    <dd>{{ profile.intern.gpa }}</dd>
+
+    {% block graduation_info %}{% endblock %}
+
   </dl>
 {% endblock %}

@@ -36,10 +36,10 @@ class CompletePlanFilter(admin.SimpleListFilter):  # Temporary!
 
 class InternshipAdmin(admin.ModelAdmin):
     search_fields = ["intern__profile__ar_first_name",
-                     "intern__profile__ar_middle_name",
+                     "intern__profile__ar_father_name",
                      "intern__profile__ar_last_name",
                      "intern__profile__en_first_name",
-                     "intern__profile__en_middle_name",
+                     "intern__profile__en_father_name",
                      "intern__profile__en_last_name"]
     inlines = [RotationRequestInline]
     list_filter = [CompletePlanFilter]

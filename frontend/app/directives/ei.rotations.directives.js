@@ -42,7 +42,7 @@ angular.module("ei.rotations.directives", ["ei.utils", "ui.bootstrap", "ngFileUp
             request: "=rotationRequest",
             moveToForwardedRequests: "&onForward"
         },
-        templateUrl: "/static/app/directives/templates/rotations/rotation-request-forward-card.html?v=0002",
+        templateUrl: "/static/app/directives/templates/rotations/rotation-request-forward-card.html?v=0003",
         link: function (scope, element, attrs) {
 
             scope.response = {};
@@ -77,6 +77,14 @@ angular.module("ei.rotations.directives", ["ei.utils", "ui.bootstrap", "ngFileUp
                     });
 
                 }
+            };
+
+            scope.decline = function (request, comments) {
+                request.$respond({is_approved: 0, comments: comments}, function (data) {
+                    scope.moveToForwardedRequests({request: request});
+                }, function (error) {
+                    toastr.error(error);
+                });
             };
         }
     }

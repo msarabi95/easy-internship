@@ -16,11 +16,14 @@
           You can make new requests and view the status of your current and previous ones.
           Each request you make is submitted to the medical internship unit for review and approval.<br>
           <span class="text-blue">Click on <span class="text-bold">Request a Rotation</span> for any of the months below and make your first request!</span>
-          <br><br>
-          Keep in mind that you have to satisfy the requirement of 2 months in each of <span class="text-bold">Internal Medicine, Surgery,
-          Obstetrics and Gynecology, and Pediatrics</span>, having one general month at least in each specialty. In addition,
-          you have 1 required month in <span class="text-bold">Emergency Medicine</span> and another in
-          <span class="text-bold">Family Medicine</span>, plus 2 months of electives.
+
+          <span ng-if="intern.is_ksauhs_intern || intern.is_agu_intern">
+            <br><br>
+            Keep in mind that you have to satisfy the requirement of 2 months in each of <span class="text-bold">Internal Medicine, Surgery,
+            Obstetrics and Gynecology, and Pediatrics</span>, having one general month at least in each specialty. In addition,
+            you have 1 required month in <span class="text-bold">Emergency Medicine</span> and another in
+            <span class="text-bold">Family Medicine</span>, plus 2 months of electives.
+          </span>
 
 
         </div>
@@ -132,7 +135,8 @@
                     </div>
                   </div>
                   <div ng-if="months[i].disabled">
-                    <h5 class="text-center">This month will be available when you have an approved freeze.</h5>
+                    <h5 class="text-center" ng-if="!intern.is_outside_intern">This month will be available when you have an approved freeze.</h5>
+                    <h4 class="text-center" ng-if="intern.is_outside_intern">This month is not available.</h4>
                   </div>
                   <div ng-if="months[i].frozen">
                     <h3 class="text-center text-aqua"><i class="fa fa-snowflake-o"></i> Frozen</h3>

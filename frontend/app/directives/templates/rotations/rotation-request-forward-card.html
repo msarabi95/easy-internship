@@ -87,7 +87,7 @@
           <i class="fa fa-remove"></i>
           Decline
         </button>
-        <button type="button" class="btn btn-block btn-flat btn-warning" ng-if="flags['declineFlag']" ng-click="respond(request, 0, response['comments' + request.id])">
+        <button type="button" class="btn btn-block btn-flat btn-warning" ng-if="flags['declineFlag']" ng-click="decline(request, response['comments' + request.id])">
           Confirm
         </button>
       </div>

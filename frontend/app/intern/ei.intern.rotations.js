@@ -24,10 +24,13 @@ angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.r
 }])
 
 
-.controller("RotationRequestCreateCtrl", ["$scope", "$routeParams", "$location", "Specialty", "Hospital", "Department",
-    "RequestedDepartment", "RotationRequest", "InternshipMonth", "djangoForm", "$http", "$compile", "AcceptanceSettings",
-    function ($scope, $routeParams, $location, Specialty, Hospital, Department, RequestedDepartment, RotationRequest, InternshipMonth, djangoForm, $http, $compile, AcceptanceSettings) {
+.controller("RotationRequestCreateCtrl", ["$scope", "$q", "$routeParams", "$location", "Specialty", "Hospital", "Department",
+    "RequestedDepartment", "RotationRequest", "Intern", "InternshipMonth", "djangoForm", "$http", "$compile", "AcceptanceSettings",
+    function ($scope, $q, $routeParams, $location, Specialty, Hospital, Department, RequestedDepartment, RotationRequest, Intern, InternshipMonth, djangoForm, $http, $compile, AcceptanceSettings) {
         $scope.internshipMonth = InternshipMonth.get({month_id: $routeParams.month_id});
+        Intern.query(function (interns) {
+            $scope.intern = interns[0];
+        });
 
         $scope.showHospitalFields = false;
         $scope.disableHospitalMenu = true;
@@ -50,30 +53,38 @@ angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.r
             // Load hospital data, each with the department corresponding to the selected specialty
 
             $scope.hospitals = Hospital.query(function (hospitals) {
+                var outerPromises = [];
+
                 angular.forEach(hospitals, function (hospital, index) {
                     $scope.hospitals[index].specialty_departments = Department.get_by_specialty_and_hospital({
                         specialty: $scope.rotationRequestData.department_specialty,
                         hospital: $scope.hospitals[index].id
                     });
 
-                    $scope.hospitals[index].specialty_departments.$promise.then(function (departments) {
+                    var promise = $scope.hospitals[index].specialty_departments.$promise.then(function (departments) {
+
+                        var innerPromises = [];
+
                         angular.forEach(departments, function (department, dIndex) {
+
                             // Get acceptance settings
                             $scope.hospitals[index].specialty_departments[dIndex].acceptance_settings = AcceptanceSettings.get({}, {
                                 department: department.id,
                                 month: $scope.internshipMonth.month
                             });
+                            innerPromises.push($scope.hospitals[index].specialty_departments[dIndex].acceptance_settings.$promise);
+
                             $scope.hospitals[index].specialty_departments[dIndex].acceptance_settings.$promise.then(
-                                function (settings) {
-                                    /*console.log(settings);*/
-                                },
+                                function (settings) {},
                                 function (error) {
                                     if (error.status !== 404) {
                                         toastr.error(error.statusText);
                                         console.error(error.statusText);
                                     }
                                 });
-                        });
+                            });
+
+                            return $q.all(innerPromises);
 
                     }, function (error) {
                         if (error.status !== 404) {
@@ -82,11 +93,18 @@ angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.r
                         }
                     });
 
+                    outerPromises.push(promise);
+
                 });
 
-                $scope.hospitals.push({id: -1, name: "Other", abbreviation: "OTHER"});
+                if (!$scope.intern.is_outside_intern) {
+                    $scope.hospitals.push({id: -1, name: "Other", abbreviation: "OTHER"});
+                }
 
-                $scope.disableHospitalMenu = false;
+                $scope.loadingDepartmentInfo = $q.all(outerPromises);
+                $scope.loadingDepartmentInfo.then(function() {
+                    $scope.disableHospitalMenu = false;
+                });
             });
         };
 
@@ -100,7 +118,7 @@ angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.r
                         return obj.id == newValue;
                     });
 
-                    if (hospital.specialty_departments.length == 1) {
+                    if (hospital.specialty_departments.length === 1) {
                         $scope.showDepartmentMenu = false;
                         var department = hospital.specialty_departments[0];
                         $scope.rotationRequestData.department = department.id;

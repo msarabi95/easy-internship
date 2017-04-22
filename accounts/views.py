@@ -1,12 +1,14 @@
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import render
 from django.views.generic import View
-from userena.views import signup
+from userena.views import signup, profile_edit, profile_detail
 
 from rest_framework.decorators import list_route
 from rest_framework.response import Response
 
 from accounts.models import Profile, Intern, University
-from accounts.forms import ChooseUniversityForm, KSAUHSSignupForm, AGUSignupForm, OutsideSignupForm
+from accounts.forms import ChooseUniversityForm, KSAUHSSignupForm, AGUSignupForm, OutsideSignupForm, \
+    KSAUHSProfileEditForm, AGUProfileEditForm, OutsideProfileEditForm
 from accounts.permissions import IsStaff
 from accounts.serializers import ProfileSerializer, InternSerializer, UserSerializer, InternTableSerializer
 from django.contrib.auth.models import User
@@ -49,6 +51,55 @@ class SignupWrapper(View):
             university_id = int(request.POST.get('university'))
             signup_form = self.get_signup_form(university_id)
             return signup(request, signup_form=signup_form)
+
+
+class ProfileDetailWrapper(View):
+    def get_template_name(self, user):
+        intern_profile = user.profile.intern
+        if intern_profile.is_ksauhs_intern:
+            return 'accounts/profile_detail/ksauhs.html'
+        elif intern_profile.is_agu_intern:
+            return 'accounts/profile_detail/agu.html'
+        return 'accounts/profile_detail/outside.html'
+
+    def get(self, request, *args, **kwargs):
+        user = User.objects.get_by_natural_key(kwargs.get('username'))
+
+        if not hasattr(user.profile, 'intern'):
+            raise PermissionDenied
+
+        kwargs['template_name'] = self.get_template_name(user)
+        return profile_detail(request, *args, **kwargs)
+
+
+class ProfileEditWrapper(View):
+    def get_profile_edit_form(self, user):
+        intern_profile = user.profile.intern
+        if intern_profile.is_ksauhs_intern:
+            return KSAUHSProfileEditForm
+        if intern_profile.is_agu_intern:
+            return AGUProfileEditForm
+        return OutsideProfileEditForm
+
+    def get_template_name(self, user):
+        intern_profile = user.profile.intern
+        if intern_profile.is_ksauhs_intern:
+            return 'accounts/profile_form/ksauhs.html'
+        elif intern_profile.is_agu_intern:
+            return 'accounts/profile_form/agu.html'
+        return 'accounts/profile_form/outside.html'
+
+    def get(self, request, *args, **kwargs):
+        user = User.objects.get_by_natural_key(kwargs.get('username'))
+        kwargs['edit_profile_form'] = self.get_profile_edit_form(user)
+        kwargs['template_name'] = self.get_template_name(user)
+        return profile_edit(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        user = User.objects.get_by_natural_key(kwargs.get('username'))
+        kwargs['edit_profile_form'] = self.get_profile_edit_form(user)
+        kwargs['template_name'] = self.get_template_name(user)
+        return profile_edit(request, *args, **kwargs)
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):

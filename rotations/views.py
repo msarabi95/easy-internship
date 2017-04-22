@@ -114,17 +114,19 @@ class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
         return self.queryset.filter(internship__intern__profile__user=self.request.user)
 
     @list_route(methods=['get'], permission_classes=[permissions.IsAuthenticated, IsStaff])
-    def kamc_no_memo(self, request):
-        requests = self.get_queryset().unreviewed().filter(is_delete=False)\
-            .filter(requested_department__department__requires_memo=False)
-        serialized = self.get_serializer(requests, many=True)
-        return Response(serialized.data)
-
-    @list_route(methods=['get'], permission_classes=[permissions.IsAuthenticated, IsStaff])
     def kamc_memo(self, request):
         requests = self.get_queryset().unreviewed().filter(is_delete=False)\
             .filter(requested_department__department__hospital__is_kamc=True)\
             .filter(requested_department__department__requires_memo=True)
+
+        if request.query_params.get('university') == 'agu':
+            kw = {'internship__intern__batch__is_agu': True}
+        elif request.query_params.get('university') == 'outside':
+            kw = {'internship__intern__batch__is_ksauhs': False, 'internship__intern__batch__is_agu': False}
+        else:
+            kw = {'internship__intern__batch__is_ksauhs': True}
+        requests = requests.filter(**kw)
+
         serialized = ShortRotationRequestSerializer(requests, many=True)
         return Response(serialized.data)
 
@@ -133,6 +135,15 @@ class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
         requests = self.get_queryset().unreviewed().filter(is_delete=False)\
             .filter(requested_department__department__hospital__is_kamc=False)\
             .filter(requested_department__department__requires_memo=True)
+
+        if request.query_params.get('university') == 'agu':
+            kw = {'internship__intern__batch__is_agu': True}
+        elif request.query_params.get('university') == 'outside':
+            kw = {'internship__intern__batch__is_ksauhs': False, 'internship__intern__batch__is_agu': False}
+        else:
+            kw = {'internship__intern__batch__is_ksauhs': True}
+        requests = requests.filter(**kw)
+
         serialized = ShortRotationRequestSerializer(requests, many=True)
         return Response(serialized.data)
 
@@ -140,6 +151,15 @@ class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
     def cancellation(self, request):
         requests = self.get_queryset().unreviewed().filter(is_delete=True)
         serialized = ShortRotationRequestSerializer(requests, many=True)
+
+        if request.query_params.get('university') == 'agu':
+            kw = {'internship__intern__batch__is_agu': True}
+        elif request.query_params.get('university') == 'outside':
+            kw = {'internship__intern__batch__is_ksauhs': False, 'internship__intern__batch__is_agu': False}
+        else:
+            kw = {'internship__intern__batch__is_ksauhs': True}
+        requests = requests.filter(**kw)
+
         return Response(serialized.data)
 
     @detail_route(methods=['get'], permission_classes=[permissions.IsAuthenticated, IsStaff])
@@ -489,6 +509,15 @@ class AcceptanceListViewSet(viewsets.ViewSet):
             .filter(is_delete=False)\
             .filter(requested_department__department__hospital__is_kamc=True)\
             .filter(requested_department__department__requires_memo=False)
+
+        if request.query_params.get('university') == 'agu':
+            kw = {'internship__intern__batch__is_agu': True}
+        elif request.query_params.get('university') == 'outside':
+            kw = {'internship__intern__batch__is_ksauhs': False, 'internship__intern__batch__is_agu': False}
+        else:
+            kw = {'internship__intern__batch__is_ksauhs': True}
+        rotation_requests = rotation_requests.filter(**kw)
+
         departments_and_months = rotation_requests.values_list('requested_department__department', 'month')
         department_ids = rotation_requests.values_list('requested_department__department', flat=True)
         departments = Department.objects.filter(id__in=department_ids)

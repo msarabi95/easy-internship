@@ -411,7 +411,7 @@ class AcceptanceList(object):
 
         responses = list()
         rotations = list()
-        old_rotations = Q()  # A query to old rotations in order to delete them
+        old_rotations = Q(pk=None)  # A query to old rotations in order to delete them
 
         for request in self.auto_accepted:
             if hasattr(request, 'response'):

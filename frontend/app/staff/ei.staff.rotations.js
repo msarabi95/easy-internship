@@ -9,8 +9,8 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
 .config(["$routeProvider", function ($routeProvider) {
 
     $routeProvider
-        .when("/requests/:page?/", {
-            templateUrl: "static/partials/staff/rotations/rotation-request-list.html?v=0007",
+        .when("/requests/:university/:page?/", {
+            templateUrl: "static/partials/staff/rotations/rotation-request-list.html?v=0008",
             controller: "RotationRequestListCtrl"
         })
         .when("/memos/", {
@@ -69,6 +69,12 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
 .controller("RotationRequestListCtrl", ["$scope", "$filter", "$q", "$routeParams", "$location", "$timeout", "loadWithRelated", "AcceptanceList", "Department", "AcceptanceSettings", "Internship", "InternshipMonth", "Intern", "Profile", "RotationRequest", "RequestedDepartment", "Specialty", "Hospital", "FreezeRequest", "FreezeCancelRequest",
     function ($scope, $filter, $q, $routeParams, $location, $timeout, loadWithRelated, AcceptanceList, Department, AcceptanceSettings, Internship, InternshipMonth, Intern, Profile, RotationRequest, RequestedDepartment, Specialty, Hospital, FreezeRequest, FreezeCancelRequest) {
 
+        $scope.university = $routeParams.university;
+        console.log($scope.university);
+        if ( ['ksauhs', 'agu', 'outside'].indexOf($scope.university) === -1 ) {
+            throw "Incorrect university URL parameter passed.";
+        }
+
         $scope.page = $routeParams.page;
 
         function momentizeMonth(requests) {
@@ -104,26 +110,26 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
                     updateFilters($scope.acceptance_lists);
                 };
 
-                $scope.acceptance_lists = AcceptanceList.query(function (lists) {
+                $scope.acceptance_lists = AcceptanceList.query({university: $scope.university}, function (lists) {
                     updateFilters(lists);
                 }, function (error) {
                     toastr.error(error.statusText);
                 });
                 break;
             case 'kamc-memo':
-                $scope.requests = RotationRequest.kamc_memo(momentizeMonth);
+                $scope.requests = RotationRequest.kamc_memo({university: $scope.university}, momentizeMonth);
                 break;
             case 'outside':
-                $scope.requests = RotationRequest.non_kamc(momentizeMonth);
+                $scope.requests = RotationRequest.non_kamc({university: $scope.university}, momentizeMonth);
                 break;
             case 'cancellation':
-                $scope.requests = RotationRequest.cancellation(momentizeMonth);
+                $scope.requests = RotationRequest.cancellation({university: $scope.university}, momentizeMonth);
                 break;
             case 'freezes':
-                $scope.requests = FreezeRequest.open(momentizeMonth);
+                $scope.requests = FreezeRequest.open({university: $scope.university}, momentizeMonth);
                 break;
             case 'freezecancels':
-                $scope.requests = FreezeCancelRequest.open(momentizeMonth);
+                $scope.requests = FreezeCancelRequest.open({university: $scope.university}, momentizeMonth);
         }
 
         $scope.reverseOptions = [

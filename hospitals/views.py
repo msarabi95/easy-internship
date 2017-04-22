@@ -27,6 +27,11 @@ class HospitalViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Hospital.objects.all()
     permission_classes = [permissions.IsAuthenticated]
 
+    def get_queryset(self):
+        if hasattr(self.request.user.profile, 'intern') and self.request.user.profile.intern.is_outside_intern:
+            return self.queryset.filter(is_kamc=True)
+        return self.queryset.all()
+
 
 class SpecialtyViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = SpecialtySerializer

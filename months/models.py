@@ -66,7 +66,12 @@ class InternshipMonth(object):
         """
         start_month = self.internship.start_month
         freeze_count = self.intern.freezes.count()
-        return self.month - start_month > (11 + freeze_count)
+        if self.month - start_month > (11 + freeze_count):
+            return True
+        elif self.intern.profile.intern.is_outside_intern and not self.occupied and not self.requested:
+            rotation_count = self.internship.rotations.count()
+            request_count = self.internship.rotation_requests.open().count()
+            return rotation_count + request_count >= 6
 
 
 class Internship(models.Model):
@@ -87,45 +92,53 @@ class Internship(models.Model):
 
     def validate_internship_plan(self):
         """
-        Checks that:
+        For KSAU-HS and AGU interns, checks that:
         1- The internship plan doesn't exceed 12 months.
         2- Each specialty doesn't exceed its required months in non-elective rotations.
         3- Not more than 2 months are used for electives. (Electives can be any specialty)
+        
+        For outside interns, checks that rotation count does not exceed 6 months.
         """
         errors = []
-        if self.rotations.count() > 12:
-            errors.append(ValidationError("The internship plan should contain no more than 12 months."))
 
-        from hospitals.models import Specialty
+        if self.intern.is_ksauhs_intern or self.intern.is_agu_intern:
+            if self.rotations.count() > 12:
+                errors.append(ValidationError("The internship plan should contain no more than 12 months."))
 
-        # Get a list of general specialties.
-        general_specialties = Specialty.objects.general()
-        non_electives = filter(lambda rotation: not rotation.is_elective, self.rotations.all())
-        electives = filter(lambda rotation: rotation.is_elective, self.rotations.all())
+            from hospitals.models import Specialty
 
-        # Check that the internship plan contains at most 2 non-elective months of each general specialty.
-        for specialty in general_specialties:
-            rotations = filter(lambda rotation: rotation.specialty.get_general_specialty() == specialty,
-                               non_electives)
-            rotation_count = len(rotations)
+            # Get a list of general specialties.
+            general_specialties = Specialty.objects.general()
+            non_electives = filter(lambda rotation: not rotation.is_elective, self.rotations.all())
+            electives = filter(lambda rotation: rotation.is_elective, self.rotations.all())
 
-            if rotation_count > specialty.required_months:
-                errors.append(ValidationError("The internship plan should contain at most %d month(s) of %s.",
-                                              params=(specialty.required_months, specialty.name)))
+            # Check that the internship plan contains at most 2 non-elective months of each general specialty.
+            for specialty in general_specialties:
+                rotations = filter(lambda rotation: rotation.specialty.get_general_specialty() == specialty,
+                                   non_electives)
+                rotation_count = len(rotations)
 
-            general_rotations_count = len(filter(lambda rotation: rotation.specialty == specialty, rotations))
-            if rotation_count > 1 and general_rotations_count == 0:
-                errors.append(
-                    ValidationError(
-                        "The internship plan can't have 2 sub-specialty months of %s.",
-                        params=(specialty.name, )
+                if rotation_count > specialty.required_months:
+                    errors.append(ValidationError("The internship plan should contain at most %d month(s) of %s.",
+                                                  params=(specialty.required_months, specialty.name)))
+
+                general_rotations_count = len(filter(lambda rotation: rotation.specialty == specialty, rotations))
+                if rotation_count > 1 and general_rotations_count == 0:
+                    errors.append(
+                        ValidationError(
+                            "The internship plan can't have 2 sub-specialty months of %s.",
+                            params=(specialty.name, )
+                        )
                     )
-                )
 
-        # Check that the internship plan contains at most 2 months of electives.
-        if len(electives) > 2:
-            errors.append(ValidationError("The internship plan should contain at most %d month of %s.",
-                                          params=(2, "electives")))
+            # Check that the internship plan contains at most 2 months of electives.
+            if len(electives) > 2:
+                errors.append(ValidationError("The internship plan should contain at most %d month of %s.",
+                                              params=(2, "electives")))
+
+        elif self.intern.is_outside_intern:
+            if self.rotations.count() > 6:
+                errors.append(ValidationError("You can have up to 6 months of rotations only."))
 
         if errors:
             raise ValidationError({

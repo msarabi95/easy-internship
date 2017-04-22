@@ -227,6 +227,15 @@ class FreezeRequestViewSet(viewsets.ReadOnlyModelViewSet):
     @list_route(methods=["get"], permission_classes=[permissions.IsAuthenticated, IsStaff])
     def open(self, request):
         requests = self.queryset.open()
+
+        if request.query_params.get('university') == 'agu':
+            kw = {'intern__profile__intern__batch__is_agu': True}
+        elif request.query_params.get('university') == 'outside':
+            kw = {'intern__profile__intern__batch__is_ksauhs': False, 'intern__profile__intern__batch__is_agu': False}
+        else:
+            kw = {'intern__profile__intern__batch__is_ksauhs': True}
+        requests = requests.filter(**kw)
+
         serialized = self.serializer_class(requests, many=True)
         return Response(serialized.data)
 
@@ -303,6 +312,15 @@ class FreezeCancelRequestViewSet(viewsets.ReadOnlyModelViewSet):
     @list_route(methods=["get"], permission_classes=[permissions.IsAuthenticated, IsStaff])
     def open(self, request):
         requests = self.queryset.open()
+
+        if request.query_params.get('university') == 'agu':
+            kw = {'intern__profile__intern__batch__is_agu': True}
+        elif request.query_params.get('university') == 'outside':
+            kw = {'intern__profile__intern__batch__is_ksauhs': False, 'intern__profile__intern__batch__is_agu': False}
+        else:
+            kw = {'intern__profile__intern__batch__is_ksauhs': True}
+        requests = requests.filter(**kw)
+
         serialized = self.serializer_class(requests, many=True)
         return Response(serialized.data)
 

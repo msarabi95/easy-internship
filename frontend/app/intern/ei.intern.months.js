@@ -9,7 +9,7 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
 
     $routeProvider
         .when("/planner/", {
-            templateUrl: "static/partials/intern/months/month-list.html?v=0002",
+            templateUrl: "static/partials/intern/months/month-list.html?v=0004",
             controller: "MonthListCtrl"
         })
         .when("/planner/:month_id/", {
@@ -29,10 +29,13 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
 
 }])
 
-.controller("MonthListCtrl", ["$scope", "loadWithRelated", "InternshipMonth", "Rotation", "RotationRequest", "RequestedDepartment", "Department", "Hospital", "Specialty", "LeaveType", "Leave", "LeaveRequest", "LeaveCancelRequest",
-    function ($scope, loadWithRelated, InternshipMonth, Rotation, RotationRequest, RequestedDepartment, Department, Hospital, Specialty, LeaveType, Leave, LeaveRequest, LeaveCancelRequest) {
+.controller("MonthListCtrl", ["$scope", "loadWithRelated", "Intern", "InternshipMonth", "Rotation", "RotationRequest", "RequestedDepartment", "Department", "Hospital", "Specialty", "LeaveType", "Leave", "LeaveRequest", "LeaveCancelRequest",
+    function ($scope, loadWithRelated, Intern, InternshipMonth, Rotation, RotationRequest, RequestedDepartment, Department, Hospital, Specialty, LeaveType, Leave, LeaveRequest, LeaveCancelRequest) {
         $scope.moment = moment;
 
+        Intern.query(function (interns) {
+            $scope.intern = interns[0];
+        });
         $scope.months = InternshipMonth.query();
 
         $scope.months.$promise.then(function (results) {

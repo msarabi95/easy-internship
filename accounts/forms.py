@@ -446,86 +446,53 @@ class OutsideSignupForm(BaseSignupForm):
 
 
 class ChangeInternEmailForm(ChangeEmailForm):
-    def __init__(self, *args, **kw):
+    def __init__(self, user, *args, **kw):
         """
         Add an extra validator to the email field.
 
         """
-        super(ChangeInternEmailForm, self).__init__(*args, **kw)
+        super(ChangeInternEmailForm, self).__init__(user, *args, **kw)
 
-        self.fields['email'].validators.append(RegexValidator(
-            r'^\w+@ksau-hs.edu.sa$', message="Email must end in '@ksau-hs.edu.sa'."
-        ))
+        intern_profile = user.profile.intern
+        if intern_profile.is_ksauhs_intern:
+            self.fields['email'].validators.append(RegexValidator(
+                r'^\w+@ksau-hs.edu.sa$', message="Email must end in '@ksau-hs.edu.sa'."
+            ))
 
 
-class EditInternProfileForm(forms.ModelForm):
+class BaseProfileEditForm(forms.ModelForm):
     ar_first_name = forms.CharField(label="First name (Arabic)", max_length=32)
-    ar_middle_name = forms.CharField(label="Middle name (Arabic)", max_length=32)
+    ar_father_name = forms.CharField(label="Father name (Arabic)", max_length=32)
+    ar_grandfather_name = forms.CharField(label="Grandfather name (Arabic)", max_length=32)
     ar_last_name = forms.CharField(label="Last name (Arabic)", max_length=32)
 
     en_first_name = forms.CharField(label="First name (English)", max_length=32)
-    en_middle_name = forms.CharField(label="Middle name (English)", max_length=32)
+    en_father_name = forms.CharField(label="Father name (English)", max_length=32)
+    en_grandfather_name = forms.CharField(label="Grandfather name (English)", max_length=32)
     en_last_name = forms.CharField(label="Last name (English)", max_length=32)
 
-    student_number = forms.CharField(
-        max_length=9,
-        validators=[RegexValidator(r'^\d+$', message="Enter numbers only."), MinLengthValidator(9)]
-    )
-    badge_number = forms.CharField(
-        max_length=9,
-        validators=[RegexValidator(r'^\d+$', message="Enter numbers only."), MinLengthValidator(5)]
-    )
-    alt_email = forms.EmailField(label="Alternative email")
     phone_number = forms.CharField(
         max_length=16,
-        validators=[RegexValidator(r'^\+966\d{9}$', message="Phone number should follow the format +966XXXXXXXXX.")],
+        validators=[RegexValidator(r'^\+[1-9]{1}\d+$', message="Phone number should start with the area code (e.g. +966).")],
         required=False,
     )
     mobile_number = forms.CharField(
         max_length=16,
-        validators=[RegexValidator(r'^\+9665\d{8}$', message="Mobile number should follow the format +9665XXXXXXXX.")]
+        validators=[RegexValidator(r'^\+[1-9]{1}\d+$', message="Mobile number should start with the area code (e.g. +966).")]
     )
     address = forms.CharField(
         max_length=128,
         widget=forms.Textarea
     )
 
-    saudi_id_number = forms.CharField(
-        label="Saudi ID number",
+    id_number = forms.CharField(
+        label="ID number",
         max_length=10,
-        validators=[RegexValidator(r'^\d{10}$', message="Saudi ID should consist of 10 numbers only.")]
+        validators=[RegexValidator(r'^\d+$', message="ID should consist of numbers only.")]
     )
-    saudi_id = forms.ImageField(
-        label="Saudi ID image",
+    id_image = forms.ImageField(
+        label="ID image",
         help_text="Note that this will be visible to all medical internship unit staff members."
-    )
-
-    # Note that the following is a `has_no_passport`, opposite to the `has_passport` field on the `Intern `model
-    has_no_passport = forms.BooleanField(
-        required=False,
-        label="I don't have a valid passport."
-    )
-    passport_number = forms.CharField(
-        required=False,
-        max_length=32,
-        validators=[RegexValidator(
-            r'^\w{1}\d{6}$',
-            message="Passport number should consist of a letter followed by 6 numbers."
-        )]
-    )
-    passport = forms.ImageField(
-        required=False,
-        label="Passport image",
-        help_text="Note that this will be visible to all medical internship unit staff members."
-    )
-    passport_attachment = forms.FileField(
-        required=False,
-        label="Expired or no passport form",
-    )
-
-    medical_record_number = forms.CharField(
-        max_length=10,
-        validators=[RegexValidator(r'^\d+$', message="Enter numbers only.")]
     )
 
     contact_person_name = forms.CharField(
@@ -536,7 +503,7 @@ class EditInternProfileForm(forms.ModelForm):
     )
     contact_person_mobile = forms.CharField(
         max_length=16,
-        validators=[RegexValidator(r'^\+9665\d{8}$', message="Mobile number should follow the format +9665XXXXXXXX.")],
+        validators=[RegexValidator(r'^\+[1-9]{1}\d+$', message="Mobile number should start with the area code (e.g. +966).")],
     )
     contact_person_email = forms.EmailField(
         max_length=64
@@ -552,28 +519,18 @@ class EditInternProfileForm(forms.ModelForm):
         exclude = ["user", "role", "privacy"]
 
     def __init__(self, *args, **kwargs):
-        super(EditInternProfileForm, self).__init__(*args, **kwargs)
+        super(BaseProfileEditForm, self).__init__(*args, **kwargs)
 
         # Initialize values of Intern profile fields
 
         intern_profile = self.instance.intern
 
-        self.fields['alt_email'].initial = intern_profile.alt_email
-        self.fields['student_number'].initial = intern_profile.student_number
-        self.fields['badge_number'].initial = intern_profile.badge_number
         self.fields['phone_number'].initial = intern_profile.phone_number
         self.fields['mobile_number'].initial = intern_profile.mobile_number
         self.fields['address'].initial = intern_profile.address
 
-        self.fields['saudi_id_number'].initial = intern_profile.saudi_id_number
-        self.fields['saudi_id'].initial = intern_profile.saudi_id
-
-        self.fields['has_no_passport'].initial = not intern_profile.has_passport
-        self.fields['passport_number'].initial = intern_profile.passport_number
-        self.fields['passport'].initial = intern_profile.passport
-        self.fields['passport_attachment'].initial = intern_profile.passport_attachment
-
-        self.fields['medical_record_number'].initial = intern_profile.medical_record_number
+        self.fields['id_number'].initial = intern_profile.id_number
+        self.fields['id_image'].initial = intern_profile.id_image
 
         self.fields['contact_person_name'].initial = intern_profile.contact_person_name
         self.fields['contact_person_relation'].initial = intern_profile.contact_person_relation
@@ -582,11 +539,92 @@ class EditInternProfileForm(forms.ModelForm):
 
         self.fields['gpa'].initial = intern_profile.gpa
 
+    def save(self, *args, **kwargs):
+        profile = super(BaseProfileEditForm, self).save(*args, **kwargs)
+
+        intern_profile = profile.intern
+
+        intern_profile.phone_number = self.cleaned_data['phone_number']
+        intern_profile.mobile_number = self.cleaned_data['mobile_number']
+        intern_profile.address = self.cleaned_data['address']
+
+        intern_profile.id_number = self.cleaned_data['id_number']
+        intern_profile.id_image = self.cleaned_data['id_image']
+
+        intern_profile.contact_person_name = self.cleaned_data['contact_person_name']
+        intern_profile.contact_person_relation = self.cleaned_data['contact_person_relation']
+        intern_profile.contact_person_mobile = self.cleaned_data['contact_person_mobile']
+        intern_profile.contact_person_email = self.cleaned_data['contact_person_email']
+
+        intern_profile.gpa = self.cleaned_data['gpa']
+
+        intern_profile.save()
+
+        return profile
+
+
+class KSAUHSProfileEditForm(BaseProfileEditForm):
+    form_type = "ksauhs"
+
+    student_number = forms.CharField(
+        max_length=9,
+        validators=[RegexValidator(r'^\d+$', message="Enter numbers only."), MinLengthValidator(9)]
+    )
+    badge_number = forms.CharField(
+        max_length=9,
+        validators=[RegexValidator(r'^\d+$', message="Enter numbers only."), MinLengthValidator(5)]
+    )
+    alt_email = forms.EmailField(label="Alternative email")
+
+    # Note that the following is a `has_no_passport`, opposite to the `has_passport` field on the `Intern `model
+    has_no_passport = forms.BooleanField(
+        required=False,
+        label="I don't have a valid passport."
+    )
+    passport_number = forms.CharField(
+        required=False,
+        max_length=32,
+        validators=[RegexValidator(
+            r'^\w{1}\d{6}$',
+            message="Passport number should consist of a letter followed by 6 numbers."
+        )]
+    )
+    passport_image = forms.ImageField(
+        required=False,
+        label="Passport image",
+        help_text="Note that this will be visible to all medical internship unit staff members."
+    )
+    passport_attachment = forms.FileField(
+        required=False,
+        label="Expired or no passport form",
+    )
+
+    medical_record_number = forms.CharField(
+        max_length=10,
+        validators=[RegexValidator(r'^\d+$', message="Enter numbers only.")]
+    )
+
+    def __init__(self, *args, **kwargs):
+        super(KSAUHSProfileEditForm, self).__init__(*args, **kwargs)
+
+        intern_profile = self.instance.intern
+
+        self.fields['alt_email'].initial = intern_profile.alt_email
+        self.fields['student_number'].initial = intern_profile.student_number
+        self.fields['badge_number'].initial = intern_profile.badge_number
+
+        self.fields['has_no_passport'].initial = not intern_profile.has_passport
+        self.fields['passport_number'].initial = intern_profile.passport_number
+        self.fields['passport_image'].initial = intern_profile.passport_image
+        self.fields['passport_attachment'].initial = intern_profile.passport_attachment
+
+        self.fields['medical_record_number'].initial = intern_profile.medical_record_number
+
     def clean(self):
         """
         Validate passport fields.
         """
-        cleaned_data = super(EditInternProfileForm, self).clean()
+        cleaned_data = super(BaseProfileEditForm, self).clean()
         if cleaned_data.get('has_no_passport') is True:
             if cleaned_data.get('passport_attachment') is None:
 
@@ -599,39 +637,86 @@ class EditInternProfileForm(forms.ModelForm):
 
             if cleaned_data.get('passport_number') == "":
                 self.add_error('passport_number', forms.ValidationError("This field is required."))
-            if cleaned_data.get('passport') is None:
-                self.add_error('passport', forms.ValidationError("This field is required."))
+            if cleaned_data.get('passport_image') is None:
+                self.add_error('passport_image', forms.ValidationError("This field is required."))
         return cleaned_data
 
     def save(self, *args, **kwargs):
-        profile = super(EditInternProfileForm, self).save(*args, **kwargs)
+        profile = super(KSAUHSProfileEditForm, self).save(*args, **kwargs)
 
         intern_profile = profile.intern
 
         intern_profile.alt_email = self.cleaned_data['alt_email']
         intern_profile.student_number = self.cleaned_data['student_number']
         intern_profile.badge_number = self.cleaned_data['badge_number']
-        intern_profile.phone_number = self.cleaned_data['phone_number']
-        intern_profile.mobile_number = self.cleaned_data['mobile_number']
-        intern_profile.address = self.cleaned_data['address']
-
-        intern_profile.saudi_id_number = self.cleaned_data['saudi_id_number']
-        intern_profile.saudi_id = self.cleaned_data['saudi_id']
 
         intern_profile.has_passport = not self.cleaned_data.get('has_no_passport', False)
         intern_profile.passport_number = self.cleaned_data['passport_number']
-        intern_profile.passport = self.cleaned_data['passport']
+        intern_profile.passport_image = self.cleaned_data['passport_image']
         intern_profile.passport_attachment = self.cleaned_data['passport_attachment']
 
         intern_profile.medical_record_number = self.cleaned_data['medical_record_number']
 
-        intern_profile.contact_person_name = self.cleaned_data['contact_person_name']
-        intern_profile.contact_person_relation = self.cleaned_data['contact_person_relation']
-        intern_profile.contact_person_mobile = self.cleaned_data['contact_person_mobile']
-        intern_profile.contact_person_email = self.cleaned_data['contact_person_email']
+        intern_profile.save()
 
-        intern_profile.gpa = self.cleaned_data['gpa']
+        return profile
+
+
+class AGUProfileEditForm(BaseProfileEditForm):
+    form_type = "agu"
+
+    passport_number = forms.CharField(
+        required=False,
+        max_length=32,
+        # validators=[RegexValidator(
+        #     r'^\w{1}\d{6}$',
+        #     message="Passport number should consist of a letter followed by 6 numbers."
+        # )]
+    )
+    passport_image = forms.ImageField(
+        required=False,
+        label="Passport image",
+        help_text="Note that this will be visible to all medical internship unit staff members."
+    )
+
+    def __init__(self, *args, **kwargs):
+        super(AGUProfileEditForm, self).__init__(*args, **kwargs)
+
+        intern_profile = self.instance.intern
+
+        self.fields['passport_number'].initial = intern_profile.passport_number
+        self.fields['passport_image'].initial = intern_profile.passport_image
+
+    def save(self, *args, **kwargs):
+        profile = super(AGUProfileEditForm, self).save(*args, **kwargs)
+
+        intern_profile = profile.intern
+
+        intern_profile.passport_number = self.cleaned_data['passport_number']
+        intern_profile.passport_image = self.cleaned_data['passport_image']
 
         intern_profile.save()
 
         return profile
+
+
+class OutsideProfileEditForm(BaseProfileEditForm):
+    form_type = "outside"
+
+    graduation_year = forms.IntegerField()
+    graduation_month = forms.IntegerField(
+        widget=forms.Select(choices=BaseSignupForm.MONTH_CHOICES),
+    )
+
+    medical_checklist = forms.FileField()
+    academic_transcript = forms.FileField()
+
+    def __init__(self, *args, **kwargs):
+        super(OutsideProfileEditForm, self).__init__(*args, **kwargs)
+
+        intern_profile = self.instance.intern
+
+        self.fields['graduation_year'].initial = intern_profile.graduation_date.year
+        self.fields['graduation_month'].initial = intern_profile.graduation_date.month
+        self.fields['medical_checklist'].initial = intern_profile.medical_checklist
+        self.fields['academic_transcript'].initial = intern_profile.academic_transcript
