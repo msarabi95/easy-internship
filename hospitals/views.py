@@ -16,7 +16,7 @@ from hospitals.models import Hospital, Specialty, Department, MonthSettings, Dep
     DepartmentMonthSettings, AcceptanceSetting, SeatSetting
 from hospitals.serializers import HospitalSerializer, SpecialtySerializer, DepartmentSerializer, \
     MonthSettingsSerializer, DepartmentSettingsSerializer, DepartmentMonthSettingsSerializer, \
-    AcceptanceSettingSerializer, SeatSettingSerializer
+    AcceptanceSettingSerializer, SeatSettingSerializer, ExtendedHospitalSerializer
 from hospitals.utils import get_global_acceptance_criterion, set_global_acceptance_criterion, \
     get_global_acceptance_start_date_interval, set_global_acceptance_start_date_interval, \
     get_global_acceptance_end_date_interval, set_global_acceptance_end_date_interval
@@ -34,7 +34,23 @@ class HospitalViewSet(viewsets.ReadOnlyModelViewSet):
 
     @list_route(methods=['get'], url_path=r'with_specialty_details/(?P<specialty_id>\d+)')
     def with_specialty_details(self, request, specialty_id):
-        return self.list(request)
+        specialty = get_object_or_404(Specialty, id=specialty_id)
+        hospitals = self.get_queryset().prefetch_related(
+            'departments__acceptance_settings',
+            'departments__monthly_settings'
+        )
+        for hospital in hospitals:
+            hospital.specialty_departments = \
+                filter(lambda dep: dep.specialty == specialty, hospital.departments.all())
+
+            for dep in hospital.specialty_departments:
+                dep.acceptance_setting = AcceptanceSetting(
+                    dep,
+                    Month(2016, 9),
+                )
+
+        serialized = ExtendedHospitalSerializer(hospitals, many=True)
+        return Response(serialized.data)
 
 
 class SpecialtyViewSet(viewsets.ReadOnlyModelViewSet):

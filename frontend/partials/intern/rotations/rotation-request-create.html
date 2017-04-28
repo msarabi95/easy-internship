@@ -30,12 +30,12 @@
               </label>
               <ui-select id="id_hospital" name="hospital" ng-model="rotation_request.hospital" theme="bootstrap" ng-disabled="hospitals.$promise.$$state.status !== 1">
                 <ui-select-match placeholder="Select or search for a hospital in the list...">{{ $select.selected.name }}</ui-select-match>
-                <ui-select-choices repeat="hospital.id as hospital in hospitals | filter: {name: $select.search}" ui-disable-choice="hospital.specialty_departments.length == 1 && hospital.specialty_departments[0].acceptance_settings.can_submit_requests == false">
+                <ui-select-choices repeat="hospital.id as hospital in hospitals | filter: {name: $select.search}" ui-disable-choice="hospital.specialty_departments.length == 1 && hospital.specialty_departments[0].acceptance_setting.can_submit_requests == false">
                   <div ng-bind-html="hospital.name | highlight: $select.search"></div>
                   <small ng-if="hospital.specialty_departments.length > 1">
                     <i class="text-gray">Multiple departments available</i>
                   </small>
-                  <small ng-if="hospital.specialty_departments.length == 1" ng-init="$settings = hospital.specialty_departments[0].acceptance_settings"><i class="text-gray">
+                  <small ng-if="hospital.specialty_departments.length == 1" ng-init="$settings = hospital.specialty_departments[0].acceptance_setting"><i class="text-gray">
                     <span ng-if="$settings.can_submit_requests == true">
                       <span ng-if="$settings.total_seats == null">
                         Data on seat count and submission dates not available
@@ -74,12 +74,12 @@
               <ul class="djng-form-control-feedback djng-field-errors" ng-show="rotation_request_form.hospital.$dirty" ng-cloak><li ng-show="rotation_request_form['hospital'].$valid" class="valid"></li></ul><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotation_request_form.hospital.$pristine" ng-cloak><li ng-show="rotation_request_form.hospital.$message" class="invalid" ng-bind="rotation_request_form.hospital.$message"></li></ul>
             </div>
 
-            <div class="has-feedback form-group" ng-if="showDepartmentMenu"><label class="control-label" for="id_department">Department</label>
+            <div class="has-feedback form-group" ng-if="selected_hospital.specialty_departments.length > 1"><label class="control-label" for="id_department">Department</label>
               <ui-select id="id_department" name="department" ng-model="rotation_request.department" theme="bootstrap">
                 <ui-select-match placeholder="Select or search for a department in the list...">{{ $select.selected.name }}</ui-select-match>
-                <ui-select-choices repeat="department.id as department in departmentMenuHospital.specialty_departments | filter: {name: $select.search}" ui-disable-choice="department.acceptance_settings.can_submit_requests == false">
+                <ui-select-choices repeat="department.id as department in selected_hospital.specialty_departments | filter: {name: $select.search}" ui-disable-choice="department.acceptance_setting.can_submit_requests == false">
                   <div ng-bind-html="department.name | highlight: $select.search"></div>
-                  <small ng-if="!!department.acceptance_settings" ng-init="$settings = department.acceptance_settings"><i class="text-gray">
+                  <small ng-if="!!department.acceptance_setting" ng-init="$settings = department.acceptance_setting"><i class="text-gray">
                     <span ng-if="$settings.can_submit_requests == true">
                       <span ng-if="$settings.total_seats == null">
                         Data on seat count and submission dates not available
@@ -109,7 +109,7 @@
                       </span>
                     </span>
                   </i></small>
-                  <small ng-if="!department.acceptance_settings">
+                  <small ng-if="!department.acceptance_setting">
                     <i class="text-gray">Data on seat count and submission dates not available</i>
                   </small>
                 </ui-select-choices>

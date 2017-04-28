@@ -38,7 +38,17 @@ angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.r
 
         $scope.$watch('rotation_request.specialty', function (newValue, oldValue) {
             if (newValue !== undefined && newValue !== oldValue) {
+                $scope.selected_hospital = undefined;
+                $scope.rotation_request.hospital = undefined;
+                $scope.rotation_request.department = undefined;
                 $scope.hospitals = Hospital.query_with_specialty_details({specialty: newValue});
+            }
+        });
+
+        $scope.$watch('rotation_request.hospital', function (newValue, oldValue) {
+            if (newValue !== undefined && newValue !== oldValue) {
+                // FIXME: dirty hack
+                $scope.selected_hospital = $scope.hospitals.filter(function (hosp) {return hosp.id === newValue})[0];
             }
         });
 
