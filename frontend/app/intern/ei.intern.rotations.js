@@ -38,7 +38,7 @@ angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.r
 
         $scope.$watch('rotation_request.specialty', function (newValue, oldValue) {
             if (newValue !== undefined && newValue !== oldValue) {
-                $scope.hospitals = Hospital.query();
+                $scope.hospitals = Hospital.query_with_specialty_details({specialty: newValue});
             }
         });
 

@@ -32,6 +32,10 @@ class HospitalViewSet(viewsets.ReadOnlyModelViewSet):
             return self.queryset.filter(is_kamc=True)
         return self.queryset.all()
 
+    @list_route(methods=['get'], url_path=r'with_specialty_details/(?P<specialty_id>\d+)')
+    def with_specialty_details(self, request, specialty_id):
+        return self.list(request)
+
 
 class SpecialtyViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = SpecialtySerializer
