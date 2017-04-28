@@ -5,18 +5,13 @@
         <div class="modal-content">
 
           <div class="modal-header">
-            {% verbatim %}
             <h3 class="modal-title">Request a rotation for {{ internshipMonth.label }}</h3>
-            {% endverbatim %}
           </div>
 
           <div class="modal-body">
 
             <p>Please select the specialty and hospital you want to rotate in from the lists below.</p>
 
-            {# FIXME: This is not a DRY solution. There is no need ideally for the fields to be redefined again here. #}
-
-            {% verbatim %}
             <div class="has-feedback form-group"><label class="control-label" for="id_department_specialty">Specialty</label>
 
               <ui-select id="id_department_specialty" name="department_specialty" ng-model="rotationRequestData.department_specialty" theme="bootstrap">
@@ -122,7 +117,6 @@
 
               <ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.department_hospital.$dirty" ng-cloak><li ng-show="rotationRequestForm['department_hospital'].$valid" class="valid"></li></ul><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.department_hospital.$pristine" ng-cloak><li ng-show="rotationRequestForm.department_hospital.$message" class="invalid" ng-bind="rotationRequestForm.department_hospital.$message"></li></ul>
             </div>
-            {% endverbatim %}
 
             <div class="has-feedback form-group"><label class="checkbox-inline"><input id="id_is_elective" name="is_elective" ng-model="rotationRequestData[&#39;is_elective&#39;]" type="checkbox" /> <span class="text-bold">This is an elective.</span> (Check this box if this is an elective rotation.)</label><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.is_elective.$dirty" ng-cloak><li ng-show="rotationRequestForm['is_elective'].$valid" class="valid"></li></ul><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.is_elective.$pristine" ng-cloak><li ng-show="rotationRequestForm.is_elective.$message" class="invalid" ng-bind="rotationRequestForm.is_elective.$message"></li></ul>
 
@@ -142,8 +136,8 @@
               <div class="has-feedback form-group"><label class="control-label" for="id_new_hospital_phone">Phone</label><input class="form-control" id="id_new_hospital_phone" placeholder="Optional" maxlength="128" name="new_hospital_phone" ng-maxlength="128" ng-model="rotationRequestData[&#39;new_hospital_phone&#39;]" type="text" /><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.new_hospital_phone.$dirty" ng-cloak><li ng-show="rotationRequestForm['new_hospital_phone'].$error.maxlength" class="invalid">Ensure this value has at most 128 characters</li><li ng-show="rotationRequestForm['new_hospital_phone'].$valid" class="valid"></li></ul><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.new_hospital_phone.$pristine" ng-cloak><li ng-show="rotationRequestForm.new_hospital_phone.$message" class="invalid" ng-bind="rotationRequestForm.new_hospital_phone.$message"></li></ul></div>
               <div class="has-feedback form-group"><label class="control-label" for="id_new_hospital_extension">Extension</label><input class="form-control" id="id_new_hospital_extension" placeholder="Optional" maxlength="128" name="new_hospital_extension" ng-maxlength="128" ng-model="rotationRequestData[&#39;new_hospital_extension&#39;]" type="text" /><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.new_hospital_extension.$dirty" ng-cloak><li ng-show="rotationRequestForm['new_hospital_extension'].$error.maxlength" class="invalid">Ensure this value has at most 128 characters</li><li ng-show="rotationRequestForm['new_hospital_extension'].$valid" class="valid"></li></ul><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotationRequestForm.new_hospital_extension.$pristine" ng-cloak><li ng-show="rotationRequestForm.new_hospital_extension.$message" class="invalid" ng-bind="rotationRequestForm.new_hospital_extension.$message"></li></ul></div>
             </div>
-              
-              
+
+
             <div ng-if="rotationRequestData.is_in_database == false">
 
               <hr>

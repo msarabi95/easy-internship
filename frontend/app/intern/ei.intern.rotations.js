@@ -9,7 +9,7 @@ angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.r
 
     $routeProvider
         .when("/planner/:month_id/new/", {
-            templateUrl: "planner/rotation-request-form/",
+            templateUrl: "static/partials/intern/rotations/rotation-request-create.html",
             controller: "RotationRequestCreateCtrl"
         })
         .when("/planner/:month_id/history/", {
