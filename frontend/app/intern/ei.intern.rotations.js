@@ -24,8 +24,8 @@ angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.r
 }])
 
 
-.controller("RotationRequestCreateCtrl", ["$scope", "$routeParams", "Specialty", "Intern", "InternshipMonth",
-    function ($scope, $routeParams, Specialty, Intern, InternshipMonth) {
+.controller("RotationRequestCreateCtrl", ["$scope", "$routeParams", "Specialty", "Hospital", "Intern", "InternshipMonth",
+    function ($scope, $routeParams, Specialty, Hospital, Intern, InternshipMonth) {
         // Basic info about month and intern
         $scope.internshipMonth = InternshipMonth.get({month_id: $routeParams.month_id});
         Intern.query(function (interns) {
@@ -36,7 +36,11 @@ angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.r
         $scope.rotation_request = {};
         $scope.specialties = Specialty.query();
 
-
+        $scope.$watch('rotation_request.specialty', function (newValue, oldValue) {
+            if (newValue !== undefined && newValue !== oldValue) {
+                $scope.hospitals = Hospital.query();
+            }
+        });
 
         // This will be used in the template
         $scope.moment = moment;
