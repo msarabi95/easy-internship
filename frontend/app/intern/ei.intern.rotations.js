@@ -24,151 +24,22 @@ angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.r
 }])
 
 
-.controller("RotationRequestCreateCtrl", ["$scope", "$q", "$routeParams", "$location", "Specialty", "Hospital", "Department",
-    "RequestedDepartment", "RotationRequest", "Intern", "InternshipMonth", "djangoForm", "$http", "$compile", "AcceptanceSettings",
-    function ($scope, $q, $routeParams, $location, Specialty, Hospital, Department, RequestedDepartment, RotationRequest, Intern, InternshipMonth, djangoForm, $http, $compile, AcceptanceSettings) {
+.controller("RotationRequestCreateCtrl", ["$scope", "$routeParams", "Specialty", "Intern", "InternshipMonth",
+    function ($scope, $routeParams, Specialty, Intern, InternshipMonth) {
+        // Basic info about month and intern
         $scope.internshipMonth = InternshipMonth.get({month_id: $routeParams.month_id});
         Intern.query(function (interns) {
             $scope.intern = interns[0];
         });
 
-        $scope.showHospitalFields = false;
-        $scope.disableHospitalMenu = true;
-        $scope.rotationRequestData = {};
+        // Initialize request data to an empty object; load specialties
+        $scope.rotation_request = {};
         $scope.specialties = Specialty.query();
 
-        $scope.$watch('rotationRequestData.department_specialty', function (newValue, oldValue) {
-            if (newValue !== oldValue) {
-                $scope.disableHospitalMenu = true;
-                $scope.showDepartmentMenu = false;
-                if (newValue !== undefined && newValue !== "") {
-                    $scope.getDepartments();
-                } else {
-                    $scope.rotationRequestData = {};  // reset form when specialty selection is changed
-                }
-            }
-        });
 
-        $scope.getDepartments = function () {
-            // Load hospital data, each with the department corresponding to the selected specialty
 
-            $scope.hospitals = Hospital.query(function (hospitals) {
-                var outerPromises = [];
-
-                angular.forEach(hospitals, function (hospital, index) {
-                    $scope.hospitals[index].specialty_departments = Department.get_by_specialty_and_hospital({
-                        specialty: $scope.rotationRequestData.department_specialty,
-                        hospital: $scope.hospitals[index].id
-                    });
-
-                    var promise = $scope.hospitals[index].specialty_departments.$promise.then(function (departments) {
-
-                        var innerPromises = [];
-
-                        angular.forEach(departments, function (department, dIndex) {
-
-                            // Get acceptance settings
-                            $scope.hospitals[index].specialty_departments[dIndex].acceptance_settings = AcceptanceSettings.get({}, {
-                                department: department.id,
-                                month: $scope.internshipMonth.month
-                            });
-                            innerPromises.push($scope.hospitals[index].specialty_departments[dIndex].acceptance_settings.$promise);
-
-                            $scope.hospitals[index].specialty_departments[dIndex].acceptance_settings.$promise.then(
-                                function (settings) {},
-                                function (error) {
-                                    if (error.status !== 404) {
-                                        toastr.error(error.statusText);
-                                        console.error(error.statusText);
-                                    }
-                                });
-                            });
-
-                            return $q.all(innerPromises);
-
-                    }, function (error) {
-                        if (error.status !== 404) {
-                            toastr.error(error.statusText);
-                            console.error(error.statusText);
-                        }
-                    });
-
-                    outerPromises.push(promise);
-
-                });
-
-                if (!$scope.intern.is_outside_intern) {
-                    $scope.hospitals.push({id: -1, name: "Other", abbreviation: "OTHER"});
-                }
-
-                $scope.loadingDepartmentInfo = $q.all(outerPromises);
-                $scope.loadingDepartmentInfo.then(function() {
-                    $scope.disableHospitalMenu = false;
-                });
-            });
-        };
-
-        $scope.$watch('rotationRequestData.department_hospital', function (newValue, oldValue) {
-            // Show or hide department detail fields based on whether department info is present in db or not
-            if (newValue !== undefined && newValue !== oldValue) {
-                if (newValue !== -1) {
-                    $scope.showHospitalFields = false;
-
-                    var hospital = $scope.hospitals.find(function (obj, index) {
-                        return obj.id == newValue;
-                    });
-
-                    if (hospital.specialty_departments.length === 1) {
-                        $scope.showDepartmentMenu = false;
-                        var department = hospital.specialty_departments[0];
-                        $scope.rotationRequestData.department = department.id;
-                        $scope.rotationRequestData.is_in_database = true;
-                    } else if (hospital.specialty_departments.length > 1) {
-                        $scope.showDepartmentMenu = true;
-                        $scope.rotationRequestData.is_in_database = true;
-                        $scope.departmentMenuHospital = hospital;
-                    } else {
-                        $scope.showDepartmentMenu = false;
-                        $scope.rotationRequestData.is_in_database = false;
-                    }
-                } else {
-                    $scope.rotationRequestData.is_in_database = true;
-                    $scope.showHospitalFields = true;
-                }
-
-            }
-        });
-
-        $scope.$watch('rotationRequestForm.$message', function (newValue, oldValue) {
-            if (newValue !== undefined && newValue !== "") {
-                toastr.warning(newValue);
-                $scope.rotationRequestForm.$message = undefined;
-            }
-        });
-
-        $scope.submit = function () {
-            if ($scope.rotationRequestData) {
-
-                $scope.rotationRequestData.month = $routeParams.month_id;
-
-                $http.post(
-                    "/planner/rotation-request-form/",
-                    $scope.rotationRequestData
-                ).success(function (out_data) {
-                    if (!djangoForm.setErrors($scope.rotationRequestForm, out_data.errors)) {
-                        $location.path("/planner");
-                    }
-                }).error(function (error) {
-                    console.log(error);
-                    toastr.error(error);
-                })
-            }
-
-            return false;
-        };
-
+        // This will be used in the template
         $scope.moment = moment;
-
 }])
 
 .controller("RotationRequestHistoryCtrl", ["$scope", "$routeParams", "loadWithRelated", "InternshipMonth", "RotationRequest", "RotationRequestResponse", "RotationRequestForward", "Specialty", "RequestedDepartment", "Department", "Hospital", "FreezeRequest", "FreezeRequestResponse", "FreezeCancelRequest", "FreezeCancelRequestResponse",
