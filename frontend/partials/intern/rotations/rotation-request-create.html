@@ -14,7 +14,7 @@
 
             <div class="has-feedback form-group"><label class="control-label" for="id_specialty">Specialty</label>
 
-              <ui-select id="id_specialty" name="specialty" ng-model="rotation_request.specialty" theme="bootstrap">
+              <ui-select id="id_specialty" name="specialty" ng-model="rotation_request.specialty" theme="bootstrap" required>
                 <ui-select-match placeholder="Select or search for a specialty in the list...">{{ $select.selected.name }}</ui-select-match>
                 <ui-select-choices repeat="specialty.id as specialty in specialties | filter: {name: $select.search} | orderBy: 'name'">
                   <div ng-bind-html="specialty.name | highlight: $select.search"></div>
@@ -28,7 +28,7 @@
                 Hospital
                 <img ng-show="hospitals.$promise.$$state.status == 0" src="/static/loading.gif" height="20" />
               </label>
-              <ui-select id="id_hospital" name="hospital" ng-model="rotation_request.hospital" theme="bootstrap" ng-disabled="hospitals.$promise.$$state.status !== 1">
+              <ui-select id="id_hospital" name="hospital" ng-model="rotation_request.hospital" theme="bootstrap" required ng-disabled="hospitals.$promise.$$state.status !== 1">
                 <ui-select-match placeholder="Select or search for a hospital in the list...">{{ $select.selected.name }}</ui-select-match>
                 <ui-select-choices repeat="hospital.id as hospital in hospitals | filter: {name: $select.search}" ui-disable-choice="hospital.specialty_departments.length == 1 && hospital.specialty_departments[0].acceptance_setting.can_submit_requests == false">
                   <div ng-bind-html="hospital.name | highlight: $select.search"></div>
@@ -75,7 +75,7 @@
             </div>
 
             <div class="has-feedback form-group" ng-if="selected_hospital.specialty_departments.length > 1"><label class="control-label" for="id_department">Department</label>
-              <ui-select id="id_department" name="department" ng-model="rotation_request.department" theme="bootstrap">
+              <ui-select id="id_department" name="department" ng-model="rotation_request.department" theme="bootstrap" required>
                 <ui-select-match placeholder="Select or search for a department in the list...">{{ $select.selected.name }}</ui-select-match>
                 <ui-select-choices repeat="department.id as department in selected_hospital.specialty_departments | filter: {name: $select.search}" ui-disable-choice="department.acceptance_setting.can_submit_requests == false">
                   <div ng-bind-html="department.name | highlight: $select.search"></div>
@@ -119,7 +119,7 @@
             </div>
 
             <div ng-if="intern.is_ksauhs_intern || intern.is_agu_intern" class="has-feedback form-group"><label class="checkbox-inline"><input id="id_is_elective" name="is_elective" ng-model="rotation_request[&#39;is_elective&#39;]" type="checkbox" /> <span class="text-bold">This is an elective.</span> (Check this box if this is an elective rotation.)</label><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotation_request_form.is_elective.$dirty" ng-cloak><li ng-show="rotation_request_form['is_elective'].$valid" class="valid"></li></ul><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotation_request_form.is_elective.$pristine" ng-cloak><li ng-show="rotation_request_form.is_elective.$message" class="invalid" ng-bind="rotation_request_form.is_elective.$message"></li></ul></div>
-            <div ng-if="intern.is_outside_intern" class="has-feedback form-group"><label for="id_request_memo">Request memo</label><input type="file" id="id_request_memo" ngf-select accept="application/pdf" name="request_memo" ng-model="rotation_request[&#39;request_memo&#39;]" class="required" required /><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotation_request_form.request_memo.$dirty" ng-cloak><li ng-show="rotation_request_form['request_memo'].$valid" class="valid"></li></ul><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotation_request_form.request_memo.$pristine" ng-cloak><li ng-show="rotation_request_form.request_memo.$message" class="invalid" ng-bind="rotation_request_form.request_memo.$message"></li></ul></div>
+            <div ng-if="intern.is_outside_intern" class="has-feedback form-group"><label for="id_request_memo">Request memo</label><input type="file" id="id_request_memo" ngf-select valid-pdf accept="application/pdf" name="request_memo" ng-model="rotation_request[&#39;request_memo&#39;]" class="required" required /><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotation_request_form.request_memo.$dirty" ng-cloak><li ng-show="rotation_request_form['request_memo'].$valid" class="valid"></li></ul><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotation_request_form.request_memo.$pristine" ng-cloak><li ng-show="rotation_request_form.request_memo.$message" class="invalid" ng-bind="rotation_request_form.request_memo.$message"></li></ul></div>
 
             <div ng-if="showHospitalFields">
 

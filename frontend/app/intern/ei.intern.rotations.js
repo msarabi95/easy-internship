@@ -3,7 +3,7 @@
  */
 angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.rotations.models", "ei.leaves.models",
                               "ei.utils", "djng.forms", "ngResource", "ngRoute", "ngSanitize", "ngAnimate",
-                              "ui.bootstrap", "ui.select"])
+                              "ui.bootstrap", "ui.select", "ei.rotations.directives"])
 
 .config(["$routeProvider", function ($routeProvider) {
 
@@ -51,6 +51,11 @@ angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.r
                 $scope.selected_hospital = $scope.hospitals.filter(function (hosp) {return hosp.id === newValue})[0];
             }
         });
+
+        $scope.submit = function() {
+            console.log($scope.rotation_request);
+            console.log($scope.rotation_request_form.$valid);
+        };
 
         // This will be used in the template
         $scope.moment = moment;
