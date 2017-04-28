@@ -147,6 +147,7 @@
                 </div>
 
               </div>
+
             </div><!-- /.box-body -->
 
             <div class="box-footer">
@@ -160,7 +161,7 @@
                       <span class="sr-only">Toggle Dropdown</span>
                     </button>
                     <ul class="dropdown-menu">
-                      <li><a href="#/planner/{{ months[i].month }}/freeze/">Request a freeze</a></li>
+                      <li ng-if="intern.is_ksauhs_intern || intern.is_agu_intern"><a href="#/planner/{{ months[i].month }}/freeze/">Request a freeze</a></li>
                       <li><a href="#/planner/{{ months[i].month }}/history/">See previous requests for this month</a></li>
                     </ul>
                   </div>
