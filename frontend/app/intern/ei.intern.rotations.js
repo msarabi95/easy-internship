@@ -3,7 +3,7 @@
  */
 angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.rotations.models", "ei.leaves.models",
                               "ei.utils", "djng.forms", "ngResource", "ngRoute", "ngSanitize", "ngAnimate",
-                              "ui.bootstrap", "ui.select", "ei.rotations.directives"])
+                              "ui.bootstrap", "ui.select", "ei.rotations.directives", "ngFileUpload"])
 
 .config(["$routeProvider", function ($routeProvider) {
 
@@ -24,8 +24,8 @@ angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.r
 }])
 
 
-.controller("RotationRequestCreateCtrl", ["$scope", "$routeParams", "Specialty", "Hospital", "Intern", "InternshipMonth", "RotationRequest",
-    function ($scope, $routeParams, Specialty, Hospital, Intern, InternshipMonth, RotationRequest) {
+.controller("RotationRequestCreateCtrl", ["$scope", "$routeParams", "$location", "Upload", "Specialty", "Hospital", "Intern", "InternshipMonth", "RotationRequest",
+    function ($scope, $routeParams, $location, Upload, Specialty, Hospital, Intern, InternshipMonth, RotationRequest) {
         // Basic info about month and intern
         $scope.internshipMonth = InternshipMonth.get({month_id: $routeParams.month_id});
         Intern.query(function (interns) {
@@ -56,18 +56,24 @@ angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.r
             $scope.rotation_request.month = $scope.internshipMonth.month;
             $scope.rotation_request.internship = $scope.intern.internship;
 
+            // Set the department value if it hasn't been chosen through the department menu
             if ($scope.rotation_request_form.$valid && $scope.rotation_request.department === undefined) {
                 $scope.rotation_request.department = $scope.selected_hospital.specialty_departments[0].id;
             }
 
-            var rotation_request = new RotationRequest($scope.rotation_request);
-            rotation_request.$save(function (data) {
-                console.log(data);
-            }, function (err) {
-                console.log(err);
+            // Submit
+            $scope.upload = Upload.upload({
+                url: '/api/rotation_requests/',
+                data: $scope.rotation_request,
+                method: "POST"
             });
-            console.log($scope.rotation_request);
-            console.log($scope.rotation_request_form.$valid);
+            $scope.upload.then(function (resp) {
+                $location.path('/planner');
+
+            }, function (resp) {
+                console.log(resp);
+                toastr.error(resp);
+            });
         };
 
         // This will be used in the template

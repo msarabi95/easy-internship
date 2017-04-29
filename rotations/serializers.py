@@ -49,6 +49,15 @@ class UpdatedRotationRequestSerializer(serializers.Serializer):
     is_elective = serializers.BooleanField(required=False)
     request_memo = serializers.FileField(required=False)
 
+    def validate(self, data):
+        """
+        Check that a memo is supplied if the user is an outside intern
+        """
+        intern = data['internship'].intern
+        if intern.is_outside_intern and data.get('request_memo') is None:
+            raise serializers.ValidationError({'request_memo': ['This field is required.']})
+        return data
+
     def create(self, validated_data):
         requested_department = RequestedDepartment.objects.create(
             is_in_database=True,
@@ -61,7 +70,7 @@ class UpdatedRotationRequestSerializer(serializers.Serializer):
             requested_department=requested_department,
             specialty=requested_department.department.specialty,
             is_elective=validated_data.get('is_elective', False),
-            # request_memo=validated_data.get('request_memo'),  # FIXME
+            request_memo=validated_data.get('request_memo'),
         )
 
         return rotation_request
