@@ -20,7 +20,6 @@ from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK, HTTP_201_CR
 from accounts.permissions import IsStaff
 from misc.models import DocumentTemplate
 from rotations.exceptions import ResponseExists, ForwardExists, ForwardExpected, ForwardNotExpected
-from rotations.forms import RotationRequestForm
 from rotations.models import Rotation, RequestedDepartment, RotationRequest, RotationRequestResponse, \
     RotationRequestForward, AcceptanceList
 from hospitals.models import Department, AcceptanceSetting, Hospital, Specialty, DepartmentMonthSettings, MonthSettings, \
