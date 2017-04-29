@@ -182,10 +182,11 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
 
             $scope.freezeRequestData.month = $routeParams.month_id;
 
-            $http.post(
+            $scope.submission = $http.post(
                 "/api/internship_months/" + $scope.month.month + "/request_freeze/",
                 $scope.freezeRequestData
-            ).success(function (out_data) {
+            );
+            $scope.submission.success(function (out_data) {
                 if (!djangoForm.setErrors($scope.freezeRequestForm, out_data.errors)) {
                     $location.path("/planner");
                 }

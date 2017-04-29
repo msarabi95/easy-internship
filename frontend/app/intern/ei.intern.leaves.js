@@ -56,10 +56,11 @@ angular.module("ei.leaves", ["ngRoute", "djng.forms", "ui.select", "ei.utils",
 
                 $scope.leaveRequestData.month = $routeParams.month_id;
 
-                $http.post(
+                $scope.submission = $http.post(
                     "/leaves/leave-request-form/",
                     $scope.leaveRequestData
-                ).success(function (out_data) {
+                );
+                $scope.submission.success(function (out_data) {
                     if (!djangoForm.setErrors($scope.leaveRequestForm, out_data.errors)) {
                         $location.path("/planner/" + $scope.month.month);
                     }
