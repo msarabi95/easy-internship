@@ -116,16 +116,35 @@ class RotationRequestViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
 
-        # TODO: Do some permission checks first
+        # TODO: Do some checks
+        # (1) Check there isn't another open request already
+        # (2) Check that submission is open
+        # (3) Check that submitted request satisfies internship requirements
 
         serializer = UpdatedRotationRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        rotation_request = serializer.save()
 
-        # TODO: Notifications
+        # Notify MIU and show success message
+        self.notify_and_message(request, rotation_request)
 
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=HTTP_201_CREATED, headers=headers)
+
+    def notify_and_message(self, request, rotation_request):
+        # Subscribe user to receive update notifications on the request
+        subscribe(request.user.settings_set.first(), "rotation_request_approved", object_id=rotation_request.id)
+        subscribe(request.user.settings_set.first(), "rotation_request_declined", object_id=rotation_request.id)
+
+        # Notify medical internship unit of the request
+        notify(
+            "A new rotation request has been submitted by %s" % (request.user.profile.get_en_full_name()),
+            "rotation_request_submitted",
+            url="/interns/%d/" % rotation_request.internship.id,
+        )  # FIXME: avoid sending a lot of simultaneous notifications
+
+        # Display success message to user
+        messages.success(request._request, "Your request has been submitted successfully.")
 
     def update(self, request, *args, **kwargs):
         raise MethodNotAllowed
