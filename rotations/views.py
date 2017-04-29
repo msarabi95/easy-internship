@@ -13,7 +13,7 @@ from docxtpl import DocxTemplate
 from month import Month
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import detail_route, list_route
-from rest_framework.exceptions import ParseError
+from rest_framework.exceptions import ParseError, MethodNotAllowed
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK
 
@@ -27,7 +27,8 @@ from hospitals.models import Department, AcceptanceSetting, Hospital, Specialty,
     DepartmentSettings, GlobalSettings
 from rotations.serializers import RotationSerializer, RequestedDepartmentSerializer, RotationRequestSerializer, \
     RotationRequestResponseSerializer, RotationRequestForwardSerializer, AcceptanceListSerializer, \
-    ShortRotationRequestForwardSerializer, ShortRotationRequestSerializer, FullRotationSerializer
+    ShortRotationRequestForwardSerializer, ShortRotationRequestSerializer, FullRotationSerializer, \
+    UpdatedRotationRequestSerializer
 
 
 class RotationViewSet(viewsets.ReadOnlyModelViewSet):
@@ -103,7 +104,7 @@ class RequestedDepartmentViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
 
-class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
+class RotationRequestViewSet(viewsets.ModelViewSet):
     serializer_class = RotationRequestSerializer
     queryset = RotationRequest.objects.all()
     permission_classes = [permissions.IsAuthenticated]
@@ -112,6 +113,28 @@ class RotationRequestViewSet(viewsets.ReadOnlyModelViewSet):
         if self.request.user.has_perm("rotations.rotation_request.view_all"):
             return self.queryset.all()
         return self.queryset.filter(internship__intern__profile__user=self.request.user)
+
+    # def create(self, request, *args, **kwargs):
+    #     internship = request.user.profile.intern.internship
+    #     instance = RotationRequest(internship=internship)
+    #     serializer = UpdatedRotationRequestSerializer(request.data, instance=instance)
+    #     serializer.is_valid(raise_exception=True)
+    #     serializer.save()
+    #     return Response(serializer.data, status=HTTP_200_OK)
+    #
+    # def get_serializer(self, *args, **kwargs):
+    #     serializer_class = self.get_serializer_class()
+    #     kwargs['context'] = self.get_serializer_context()
+    #     return serializer_class(*args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        raise MethodNotAllowed
+
+    def partial_update(self, request, *args, **kwargs):
+        raise MethodNotAllowed
+
+    def destroy(self, request, *args, **kwargs):
+        raise MethodNotAllowed
 
     @list_route(methods=['get'], permission_classes=[permissions.IsAuthenticated, IsStaff])
     def kamc_memo(self, request):

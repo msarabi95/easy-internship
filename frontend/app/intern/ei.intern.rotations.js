@@ -53,6 +53,8 @@ angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.r
         });
 
         $scope.submit = function() {
+            $scope.rotation_request.month = $scope.internshipMonth.month;
+            $scope.rotation_request.internship = $scope.intern.internship;
             console.log($scope.rotation_request);
             console.log($scope.rotation_request_form.$valid);
         };

@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from easy_internship.serializers import MonthField
 from hospitals.models import Department
+from months.models import Internship
 from months.serializers import FullInternshipSerializer
 from rotations.models import Rotation, RequestedDepartment, RotationRequest, RotationRequestResponse, \
     RotationRequestForward
@@ -33,6 +34,23 @@ class RotationRequestSerializer(serializers.ModelSerializer):
         fields = ('id', 'internship', 'month', 'specialty',
                   'requested_department', 'is_delete', 'is_elective', 'submission_datetime',
                   'status', 'response', 'forward')
+
+
+class UpdatedRotationRequestSerializer(serializers.Serializer):
+    """
+    This is used by the rotation request creation form.
+    """
+    internship = serializers.PrimaryKeyRelatedField(queryset=Internship.objects.all())
+    month = MonthField()
+    department = serializers.PrimaryKeyRelatedField(queryset=Department.objects.all())
+    is_elective = serializers.BooleanField()
+    request_memo = serializers.FileField()
+
+    def create(self, validated_data):
+        pass
+
+    def update(self, instance, validated_data):
+        pass
 
 
 class RotationRequestResponseSerializer(serializers.ModelSerializer):
