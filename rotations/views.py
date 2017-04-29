@@ -15,7 +15,7 @@ from rest_framework import viewsets, permissions
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.exceptions import ParseError, MethodNotAllowed
 from rest_framework.response import Response
-from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK
+from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK, HTTP_201_CREATED
 
 from accounts.permissions import IsStaff
 from misc.models import DocumentTemplate
@@ -114,18 +114,18 @@ class RotationRequestViewSet(viewsets.ModelViewSet):
             return self.queryset.all()
         return self.queryset.filter(internship__intern__profile__user=self.request.user)
 
-    # def create(self, request, *args, **kwargs):
-    #     internship = request.user.profile.intern.internship
-    #     instance = RotationRequest(internship=internship)
-    #     serializer = UpdatedRotationRequestSerializer(request.data, instance=instance)
-    #     serializer.is_valid(raise_exception=True)
-    #     serializer.save()
-    #     return Response(serializer.data, status=HTTP_200_OK)
-    #
-    # def get_serializer(self, *args, **kwargs):
-    #     serializer_class = self.get_serializer_class()
-    #     kwargs['context'] = self.get_serializer_context()
-    #     return serializer_class(*args, **kwargs)
+    def create(self, request, *args, **kwargs):
+
+        # TODO: Do some permission checks first
+
+        serializer = UpdatedRotationRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        # TODO: Notifications
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=HTTP_201_CREATED, headers=headers)
 
     def update(self, request, *args, **kwargs):
         raise MethodNotAllowed

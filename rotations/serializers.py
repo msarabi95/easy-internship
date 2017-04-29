@@ -42,12 +42,29 @@ class UpdatedRotationRequestSerializer(serializers.Serializer):
     """
     internship = serializers.PrimaryKeyRelatedField(queryset=Internship.objects.all())
     month = MonthField()
-    department = serializers.PrimaryKeyRelatedField(queryset=Department.objects.all())
-    is_elective = serializers.BooleanField()
-    request_memo = serializers.FileField()
+    department = serializers.PrimaryKeyRelatedField(
+        queryset=Department.objects.all(),
+        source='requested_department.department'
+    )
+    is_elective = serializers.BooleanField(required=False)
+    request_memo = serializers.FileField(required=False)
 
     def create(self, validated_data):
-        pass
+        requested_department = RequestedDepartment.objects.create(
+            is_in_database=True,
+            department=validated_data['requested_department']['department'],
+        )
+
+        rotation_request = RotationRequest.objects.create(
+            internship=validated_data['internship'],
+            month=validated_data['month'],
+            requested_department=requested_department,
+            specialty=requested_department.department.specialty,
+            is_elective=validated_data.get('is_elective', False),
+            # request_memo=validated_data.get('request_memo'),  # FIXME
+        )
+
+        return rotation_request
 
     def update(self, instance, validated_data):
         pass

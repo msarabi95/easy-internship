@@ -24,8 +24,8 @@ angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.r
 }])
 
 
-.controller("RotationRequestCreateCtrl", ["$scope", "$routeParams", "Specialty", "Hospital", "Intern", "InternshipMonth",
-    function ($scope, $routeParams, Specialty, Hospital, Intern, InternshipMonth) {
+.controller("RotationRequestCreateCtrl", ["$scope", "$routeParams", "Specialty", "Hospital", "Intern", "InternshipMonth", "RotationRequest",
+    function ($scope, $routeParams, Specialty, Hospital, Intern, InternshipMonth, RotationRequest) {
         // Basic info about month and intern
         $scope.internshipMonth = InternshipMonth.get({month_id: $routeParams.month_id});
         Intern.query(function (interns) {
@@ -55,6 +55,17 @@ angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.r
         $scope.submit = function() {
             $scope.rotation_request.month = $scope.internshipMonth.month;
             $scope.rotation_request.internship = $scope.intern.internship;
+
+            if ($scope.rotation_request_form.$valid && $scope.rotation_request.department === undefined) {
+                $scope.rotation_request.department = $scope.selected_hospital.specialty_departments[0].id;
+            }
+
+            var rotation_request = new RotationRequest($scope.rotation_request);
+            rotation_request.$save(function (data) {
+                console.log(data);
+            }, function (err) {
+                console.log(err);
+            });
             console.log($scope.rotation_request);
             console.log($scope.rotation_request_form.$valid);
         };
