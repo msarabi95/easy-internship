@@ -1,7 +1,9 @@
+from django.core import exceptions as django_exceptions
+
 from rest_framework import serializers
 
 from easy_internship.serializers import MonthField
-from hospitals.models import Department
+from hospitals.models import Department, AcceptanceSetting
 from months.models import Internship
 from months.serializers import FullInternshipSerializer
 from rotations.models import Rotation, RequestedDepartment, RotationRequest, RotationRequestResponse, \
@@ -53,9 +55,49 @@ class UpdatedRotationRequestSerializer(serializers.Serializer):
         """
         Check that a memo is supplied if the user is an outside intern
         """
-        intern = data['internship'].intern
-        if intern.is_outside_intern and data.get('request_memo') is None:
+        # Do some checks
+        # (1) Check there isn't another open request already
+        # (2) Check that submission is open
+        # (3) Check that submitted request satisfies internship requirements
+
+        internship = data['internship']
+        department = data['requested_department']['department']
+        month = data['month']
+        acceptance_setting = AcceptanceSetting(department, month)
+
+        errors = []
+
+        if internship.rotation_requests.current_for_month(month):
+            errors.append("There is a rotation request for this month already.")
+
+        if not acceptance_setting.can_submit_requests():
+            errors.append(
+                "Submission is closed for %s during %s." % (department.name, month.first_day().strftime("%B %Y"))
+            )
+
+        requested_department = RequestedDepartment(is_in_database=True, department=department)
+        rotation_request = RotationRequest(
+            internship=internship,
+            month=month,
+            requested_department=requested_department,
+            specialty=department.specialty,
+            is_elective=data.get('is_elective', False),
+            request_memo=data.get('request_memo'),
+        )
+        try:
+            rotation_request.validate_request()
+        except django_exceptions.ValidationError as e:
+            for error in e.message_dict[django_exceptions.NON_FIELD_ERRORS]:
+                errors.append(error)
+
+        if internship.intern.is_outside_intern and data.get('request_memo') is None:
+            # This error is raised immediately, rather than added to the `errors` list and raised with other errors
+            # because otherwise it will be added to the "non_field_errors" list, which not correct
             raise serializers.ValidationError({'request_memo': ['This field is required.']})
+
+        if errors:
+            raise serializers.ValidationError(errors)
+
         return data
 
     def create(self, validated_data):
