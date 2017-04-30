@@ -1,4 +1,11 @@
 <div class="example-modal">
+
+  <style>
+    [ng-repeat].alert.ng-enter {
+      animation: fadeIn 1s;
+    }
+  </style>
+
   <div class="modal">
     <div class="modal-dialog">
       <form name="rotation_request_form" novalidate>
@@ -9,6 +16,10 @@
           </div>
 
           <div class="modal-body">
+
+            <div class="alert alert-warning" ng-repeat="message in rotation_request_form.$message" ng-animate>
+              <p>{{ message }}</p>
+            </div>
 
             <p>Please select the specialty and hospital you want to rotate in from the lists below.</p>
 

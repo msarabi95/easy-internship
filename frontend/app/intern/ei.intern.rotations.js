@@ -71,8 +71,24 @@ angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.r
                 $location.path('/planner');
 
             }, function (resp) {
-                console.log(resp);
-                toastr.error(resp);
+                if (resp.status !== 400) {
+                    console.log(resp);
+                    toastr.error(resp);
+                } else {
+                    $scope.rotation_request_form.$message = resp.data.non_field_errors;
+                    const fields = ['specialty', 'hospital', 'is_elective', 'request_memo', 'department'];
+                    for (var i in fields) {
+                        var item = fields[i];
+                        if (!$scope.rotation_request_form[item]) {
+                            continue;
+                        }
+
+                        $scope.rotation_request_form[item].$message = resp.data[item];
+                        if (!!$scope.rotation_request_form[item].$message) {
+                            $scope.rotation_request_form[item].$setPristine(true);
+                        }
+                    }
+                }
             });
         };
 
