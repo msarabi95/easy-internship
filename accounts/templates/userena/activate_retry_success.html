@@ -1,0 +1,17 @@
+{% extends 'userena/base_userena.html' %}
+{% load i18n %}{% load bootstrap3 %}
+
+{% block title %}{% trans "Activation email sent" %}{% endblock %}
+
+{% block content_title %}<h2>{% trans "Resend activation email" %}</h2>{% endblock %}
+
+{% block content %}
+  <p>
+    <b>You have been sent a new activation email.</b>
+    Use it to activate your account within {{ userena_activation_days }} days.
+  </p>
+  <p>
+    If you still can't find it or if you face any other problems, please
+    <a href="mailto:{{ SUPPORT_EMAIL_ADDRESS }}"><i class="glyphicon glyphicon-new-window"></i> contact us</a> at <b>support@easyinternship.net</b>.
+  </p>
+{% endblock %}
