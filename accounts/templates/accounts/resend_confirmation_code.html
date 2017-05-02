@@ -1,0 +1,26 @@
+{% extends 'userena/base_userena.html' %}
+{% load i18n %}{% load bootstrap3 %}{% load staticfiles %}
+
+{% block title %}{% trans "Resend activation email" %}{% endblock %}
+
+{% block content_title %}
+  <p class="login-box-msg">
+    Please enter your email
+  </p>
+{% endblock %}
+
+{% block content %}
+
+<form action="" method="post">
+  {% csrf_token %}
+
+  {% bootstrap_form form show_label=False %}
+
+  <div class="row">
+    <div class="col-xs-7 col-xs-offset-5">
+      <button type="submit" class="btn btn-primary btn-block btn-flat">Resend activation email</button>
+    </div><!-- /.col -->
+  </div>
+</form>
+
+{% endblock %}

@@ -1,14 +1,20 @@
+from django.conf import settings
 from django.core.exceptions import PermissionDenied
-from django.shortcuts import render
-from django.views.generic import View
+from django.core.urlresolvers import reverse_lazy
+from django.shortcuts import render, redirect
+from django.views.generic import View, TemplateView
+from django.views.generic.edit import FormView
+
+from userena.models import UserenaSignup
 from userena.views import signup, profile_edit, profile_detail
+from userena import settings as userena_settings
 
 from rest_framework.decorators import list_route
 from rest_framework.response import Response
 
 from accounts.models import Profile, Intern, University
 from accounts.forms import ChooseUniversityForm, KSAUHSSignupForm, AGUSignupForm, OutsideSignupForm, \
-    KSAUHSProfileEditForm, AGUProfileEditForm, OutsideProfileEditForm
+    KSAUHSProfileEditForm, AGUProfileEditForm, OutsideProfileEditForm, ResendForm
 from accounts.permissions import IsStaff
 from accounts.serializers import ProfileSerializer, InternSerializer, UserSerializer, InternTableSerializer
 from django.contrib.auth.models import User
@@ -100,6 +106,29 @@ class ProfileEditWrapper(View):
         kwargs['edit_profile_form'] = self.get_profile_edit_form(user)
         kwargs['template_name'] = self.get_template_name(user)
         return profile_edit(request, *args, **kwargs)
+
+
+class ResendConfirmationKey(FormView):
+    template_name = "accounts/resend_confirmation_code.html"
+    form_class = ResendForm
+    success_url = reverse_lazy('resend_activation_complete')
+
+    def form_valid(self, form):
+        """
+        Issue a new activation if form is valid.
+        """
+        UserenaSignup.objects.reissue_activation(form.user.userena_signup.activation_key)
+        return redirect(self.get_success_url())
+
+
+class ResendConfirmationKeyComplete(TemplateView):
+    template_name = "userena/activate_retry_success.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(ResendConfirmationKeyComplete, self).get_context_data(**kwargs)
+        context['userena_activation_days'] = userena_settings.USERENA_ACTIVATION_DAYS
+        context['SUPPORT_EMAIL_ADDRESS'] = settings.SUPPORT_EMAIL_ADDRESS
+        return context
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):

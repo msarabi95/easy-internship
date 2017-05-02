@@ -19,7 +19,8 @@ from django.contrib import admin
 from django_nyt.urls import get_pattern as get_nyt_pattern
 from rest_framework import routers
 
-from accounts.views import SignupWrapper, ProfileEditWrapper, ProfileDetailWrapper
+from accounts.views import SignupWrapper, ProfileEditWrapper, ProfileDetailWrapper, ResendConfirmationKey, \
+    ResendConfirmationKeyComplete
 from accounts.forms import ChangeInternEmailForm
 from accounts.urls import api_urls as accounts_urls
 from leaves.urls import api_urls as leaves_urls
@@ -56,6 +57,8 @@ urlpatterns = [
     url(r'^leaves/', include("leaves.urls")),
 
     url(r'^accounts/activate/(?P<activation_key>\w+)/$', 'userena.views.activate', {'success_url': '/'}),
+    url(r'^accounts/resend/$', ResendConfirmationKey.as_view()),
+    url(r'^accounts/resend/complete/$', ResendConfirmationKeyComplete.as_view(), name="resend_activation_complete"),
     url(r'^accounts/(?P<username>[\@\.\w-]+)/email/$', 'userena.views.email_change', {'email_form': ChangeInternEmailForm}),
     url(r'^accounts/(?P<username>[\@\.\w-]+)/edit/$', ProfileEditWrapper.as_view()),
     url(r'^accounts/(?P<username>(?!(signout|signup|signin)/)[\@\.\w-]+)/$', ProfileDetailWrapper.as_view()),

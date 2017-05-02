@@ -720,3 +720,23 @@ class OutsideProfileEditForm(BaseProfileEditForm):
         self.fields['graduation_month'].initial = intern_profile.graduation_date.month
         self.fields['medical_checklist'].initial = intern_profile.medical_checklist
         self.fields['academic_transcript'].initial = intern_profile.academic_transcript
+
+
+class ResendForm(forms.Form):
+    email = forms.EmailField()
+
+    def clean(self):
+        cleaned_data = super(ResendForm, self).clean()
+
+        email = cleaned_data.get('email')
+        try:
+            user = User.objects.get(email__iexact=email)
+        except User.DoesNotExist:
+            raise forms.ValidationError("There is no user associated with this email.")
+
+        if user.is_active:
+            raise forms.ValidationError("The user associated with this email is already active.")
+
+        self.user = user
+
+        return cleaned_data
