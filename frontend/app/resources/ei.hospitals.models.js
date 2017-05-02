@@ -5,9 +5,9 @@ angular.module("ei.hospitals.models", ["ngResource", "ei.interceptors"])
 
 .factory("Hospital", ["$resource", function($resource) {
     return $resource('/api/hospitals/:id', {id: '@id'}, {
-        query_with_specialty_details: {
+        query_with_acceptance_details: {
             method: 'get',
-            url: '/api/hospitals/with_specialty_details/:specialty/',
+            url: '/api/hospitals/with_acceptance_details/:month/:specialty/',
             isArray: true
         }
     });

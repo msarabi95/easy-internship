@@ -40,8 +40,9 @@ class HospitalViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         raise MethodNotAllowed
 
-    @list_route(methods=['get'], url_path=r'with_specialty_details/(?P<specialty_id>\d+)')
-    def with_specialty_details(self, request, specialty_id):
+    @list_route(methods=['get'], url_path=r'with_acceptance_details/(?P<month_id>\d+)/(?P<specialty_id>\d+)')
+    def with_specialty_details(self, request, month_id, specialty_id):
+        month = Month.from_int(int(month_id))
         specialty = get_object_or_404(Specialty, id=specialty_id)
         hospitals = self.get_queryset().prefetch_related('departments')
         for hospital in hospitals:
@@ -51,7 +52,7 @@ class HospitalViewSet(viewsets.ModelViewSet):
             for dep in hospital.specialty_departments:
                 dep.acceptance_setting = AcceptanceSetting(
                     dep,
-                    Month(2016, 9),
+                    month,
                 )
 
         serialized = ExtendedHospitalSerializer(hospitals, many=True)
