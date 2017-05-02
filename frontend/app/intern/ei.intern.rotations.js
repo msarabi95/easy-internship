@@ -93,7 +93,17 @@ angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.r
             $scope.hospitalChosen.promise.then(function() {
                 // Set the department value if it hasn't been chosen through the department menu
                 if ($scope.rotation_request_form.$valid && $scope.rotation_request.department === undefined) {
-                    $scope.rotation_request.department = $scope.selected_hospital.specialty_departments[0].id;
+                    try {
+                        $scope.rotation_request.department = $scope.selected_hospital.specialty_departments[0].id;
+                    } catch (err) {
+                        console.error(err);
+                        toastr.warning(
+                            "It seems we have a problem with getting your request information right. " +
+                            "This shouldn't usually happen. " +
+                            "Please contact us at support@easyinternship.net to fix it."
+                        );
+                        throw "Missing department info.";
+                    }
                 }
 
                 // Submit
