@@ -41,7 +41,10 @@ angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.r
                 $scope.selected_hospital = undefined;
                 $scope.rotation_request.hospital = undefined;
                 $scope.rotation_request.department = undefined;
-                $scope.hospitals = Hospital.query_with_specialty_details({specialty: newValue});
+                $scope.hospitals = Hospital.query_with_acceptance_details({
+                    month: $scope.internshipMonth.month,
+                    specialty: newValue
+                });
 
                 if ($scope.intern.is_ksauhs_intern || $scope.intern.is_agu_intern) {
                     $scope.hospitals.$promise.then(function() {
@@ -68,7 +71,8 @@ angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.r
                 var newHospital = new Hospital($scope.new_hospital);
                 var resp = newHospital.$save();
                 resp.then(function (response) {
-                    $scope.hospitals = Hospital.query_with_specialty_details({
+                    $scope.hospitals = Hospital.query_with_acceptance_details({
+                        month: $scope.internshipMonth.month,
                         specialty: $scope.rotation_request.specialty
                     });
                     if ($scope.intern.is_ksauhs_intern || $scope.intern.is_agu_intern) {
