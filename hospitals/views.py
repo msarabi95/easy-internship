@@ -43,10 +43,7 @@ class HospitalViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get'], url_path=r'with_specialty_details/(?P<specialty_id>\d+)')
     def with_specialty_details(self, request, specialty_id):
         specialty = get_object_or_404(Specialty, id=specialty_id)
-        hospitals = self.get_queryset().prefetch_related(
-            'departments__acceptance_settings',
-            'departments__monthly_settings'
-        )
+        hospitals = self.get_queryset().prefetch_related('departments')
         for hospital in hospitals:
             hospital.specialty_departments = \
                 filter(lambda dep: dep.specialty == specialty, hospital.departments.all())

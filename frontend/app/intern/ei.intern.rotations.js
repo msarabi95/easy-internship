@@ -71,8 +71,16 @@ angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.r
                     $scope.hospitals = Hospital.query_with_specialty_details({
                         specialty: $scope.rotation_request.specialty
                     });
+                    if ($scope.intern.is_ksauhs_intern || $scope.intern.is_agu_intern) {
+                        $scope.hospitals.$promise.then(function() {
+                            $scope.hospitals.push({id: -1, name: "Other", abbreviation: "OTHER"});
+                        })
+                    }
                     $scope.hospitals.$promise.then(function () {
                         $scope.rotation_request.hospital = response.id;
+                        $scope.new_hospital = {};
+                        $scope.new_hospital_form.$setUntouched();
+                        $scope.new_hospital_form.$setPristine();
                         // FIXME: dirty hack
                         $scope.selected_hospital = $scope.hospitals.filter(function (hosp) {return hosp.id === response.id})[0];
                         $scope.hospitalChosen.resolve();
