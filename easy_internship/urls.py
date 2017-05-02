@@ -57,7 +57,7 @@ urlpatterns = [
     url(r'^leaves/', include("leaves.urls")),
 
     url(r'^accounts/activate/(?P<activation_key>\w+)/$', 'userena.views.activate', {'success_url': '/'}),
-    url(r'^accounts/resend/$', ResendConfirmationKey.as_view()),
+    url(r'^accounts/resend/$', ResendConfirmationKey.as_view(), name="resend_activation"),
     url(r'^accounts/resend/complete/$', ResendConfirmationKeyComplete.as_view(), name="resend_activation_complete"),
     url(r'^accounts/(?P<username>[\@\.\w-]+)/email/$', 'userena.views.email_change', {'email_form': ChangeInternEmailForm}),
     url(r'^accounts/(?P<username>[\@\.\w-]+)/edit/$', ProfileEditWrapper.as_view()),

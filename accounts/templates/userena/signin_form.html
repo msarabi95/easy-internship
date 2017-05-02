@@ -30,6 +30,7 @@
     </div>
   </form>
 
+  <a href="{% url 'resend_activation' %}" title="{% trans 'Didn\'t receive your activation email?' %}" style="color: orangered;">{% trans "Didn't receive your activation email?" %}</a><br>
   <a href="{% url 'userena_password_reset' %}" title="{% trans 'Forgot your password?' %}">{% trans "Forgot your password?" %}</a><br>
   <a href="{% url 'userena_signup' %}" class="text-center">Not registered? Sign up</a>
 
