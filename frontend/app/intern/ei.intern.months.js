@@ -9,7 +9,7 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
 
     $routeProvider
         .when("/planner/", {
-            templateUrl: "static/partials/intern/months/month-list.html?v=0004",
+            templateUrl: "static/partials/intern/months/month-list.html?v=0005",
             controller: "MonthListCtrl"
         })
         .when("/planner/:month_id/", {
