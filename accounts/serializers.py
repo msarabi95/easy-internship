@@ -41,7 +41,7 @@ class InternSerializer(serializers.ModelSerializer):
                   'address', 'id_number', 'id_image', 'has_passport', 'passport_number', 'passport_image', 'passport_attachment',
                   'medical_record_number', 'contact_person_name', 'contact_person_relation',
                   'contact_person_mobile', 'contact_person_email', 'gpa',
-                  'is_ksauhs_intern', 'is_agu_intern', 'is_outside_intern',)
+                  'is_ksauhs_intern', 'is_agu_intern', 'is_outside_intern', 'internship')
 
 
 class InternTableSerializer(serializers.ModelSerializer):

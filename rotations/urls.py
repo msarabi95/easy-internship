@@ -11,7 +11,3 @@ api_urls = (
     (r'rotation_request_forwards', views.RotationRequestForwardViewSet),
     (r'acceptance_lists', views.AcceptanceListViewSet, 'acceptancelist'),
 )
-
-urlpatterns = [
-    url(r'^rotation-request-form/$', views.RotationRequestFormView.as_view()),
-]

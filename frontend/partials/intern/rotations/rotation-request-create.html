@@ -1,0 +1,266 @@
+<div class="example-modal">
+
+  <style>
+    [ng-repeat].alert.ng-enter {
+      animation: fadeIn 1s;
+    }
+
+    form[ng-show].ng-hide-remove {
+      animation: fadeInDown 0.5s;
+    }
+    form[ng-show].ng-hide-add {
+      animation: fadeOutUp 0.5s;
+    }
+  </style>
+
+  <div class="modal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+
+        <div class="modal-header">
+          <h3 class="modal-title">Request a rotation for {{ internshipMonth.label }}</h3>
+        </div>
+
+        <div class="modal-body">
+
+          <div class="alert alert-warning" ng-repeat="message in rotation_request_form.$message" ng-animate>
+            <p>{{ message }}</p>
+          </div>
+
+          <form name="rotation_request_form" novalidate>
+
+            <p>Please select the specialty and hospital you want to rotate in from the lists below.</p>
+
+            <div class="has-feedback form-group"><label class="control-label" for="id_specialty">Specialty</label>
+
+              <ui-select id="id_specialty" name="specialty" ng-model="rotation_request.specialty" theme="bootstrap" required>
+                <ui-select-match placeholder="Select or search for a specialty in the list...">{{ $select.selected.name }}</ui-select-match>
+                <ui-select-choices repeat="specialty.id as specialty in specialties | filter: {name: $select.search} | orderBy: 'name'">
+                  <div ng-bind-html="specialty.name | highlight: $select.search"></div>
+                </ui-select-choices>
+              </ui-select>
+              <ul class="djng-form-control-feedback djng-field-errors" ng-show="rotation_request_form.specialty.$dirty" ng-cloak><li ng-show="rotation_request_form['specialty'].$valid" class="valid"></li></ul><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotation_request_form.specialty.$pristine" ng-cloak><li ng-show="rotation_request_form.specialty.$message" class="invalid" ng-bind="rotation_request_form.specialty.$message"></li></ul>
+            </div>
+
+            <div class="has-feedback form-group">
+              <label class="control-label" for="id_hospital">
+                Hospital
+                <img ng-show="hospitals.$promise.$$state.status == 0" src="/static/loading.gif" height="20" />
+              </label>
+              <ui-select id="id_hospital" name="hospital" ng-model="rotation_request.hospital" theme="bootstrap" required ng-disabled="hospitals.$promise.$$state.status !== 1">
+                <ui-select-match placeholder="Select or search for a hospital in the list...">{{ $select.selected.name }}</ui-select-match>
+                <ui-select-choices repeat="hospital.id as hospital in hospitals | filter: {name: $select.search}" ui-disable-choice="hospital.specialty_departments.length == 1 && hospital.specialty_departments[0].acceptance_setting.can_submit_requests == false">
+                  <div ng-bind-html="hospital.name | highlight: $select.search"></div>
+                  <small ng-if="hospital.specialty_departments.length > 1">
+                    <i class="text-gray">Multiple departments available</i>
+                  </small>
+                  <small ng-if="hospital.specialty_departments.length == 1" ng-init="$settings = hospital.specialty_departments[0].acceptance_setting"><i class="text-gray">
+                    <span ng-if="$settings.can_submit_requests == true">
+                      <span ng-if="$settings.total_seats == null">
+                        Data on seat count and submission dates not available
+                      </span>
+                      <span ng-if="$settings.total_seats !== null">
+                        <span class="text-bold">Submission OPEN</span> | Acceptance Criterion: {{ $settings.criterion }} | Total Seats: {{ $settings.total_seats }}
+
+                        <span ng-if="$settings.criterion == 'FCFS'">
+                          | Available: {{ $settings.available_seats }}
+                        </span>
+
+                        <span ng-if="$settings.criterion == 'GPA' && moment().isBefore($settings.start_or_end_date)">
+                          | Will close on {{ $settings.start_or_end_date.format('D MMMM YYYY hh:mm a') }}
+                        </span>
+                      </span>
+                    </span>
+                    <span ng-if="$settings.can_submit_requests == false">
+                      Acceptance Criterion: {{ $settings.criterion }}
+                      <span ng-if="$settings.criterion == 'FCFS' && $settings.available_seats == 0">
+                        | No available seats
+                      </span>
+                      <span ng-if="$settings.criterion == 'FCFS' && moment().isBefore($settings.start_or_end_date)">
+                        | Submission will open on {{ $settings.start_or_end_date.format('D MMMM YYYY hh:mm a') }} | Total Seats: {{ $settings.total_seats }}
+                      </span>
+                      <span ng-if="$settings.criterion == 'GPA' && moment().isSameOrAfter($settings.start_or_end_date)">
+                        | Submission was closed on {{ $settings.start_or_end_date.format('D MMMM YYYY hh:mm a') }}  | Total Seats: {{ $settings.total_seats }}
+                      </span>
+                    </span>
+                  </i></small>
+                  <small ng-if="hospital.specialty_departments.length == 0">
+                    <i class="text-gray">Data on seat count and submission dates not available</i>
+                  </small>
+                </ui-select-choices>
+              </ui-select>
+
+              <ul class="djng-form-control-feedback djng-field-errors" ng-show="rotation_request_form.hospital.$dirty" ng-cloak><li ng-show="rotation_request_form['hospital'].$valid" class="valid"></li></ul><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotation_request_form.hospital.$pristine" ng-cloak><li ng-show="rotation_request_form.hospital.$message" class="invalid" ng-bind="rotation_request_form.hospital.$message"></li></ul>
+            </div>
+
+            <div class="has-feedback form-group" ng-if="selected_hospital.specialty_departments.length > 1"><label class="control-label" for="id_department">Department</label>
+              <ui-select id="id_department" name="department" ng-model="rotation_request.department" theme="bootstrap" required>
+                <ui-select-match placeholder="Select or search for a department in the list...">{{ $select.selected.name }}</ui-select-match>
+                <ui-select-choices repeat="department.id as department in selected_hospital.specialty_departments | filter: {name: $select.search}" ui-disable-choice="department.acceptance_setting.can_submit_requests == false">
+                  <div ng-bind-html="department.name | highlight: $select.search"></div>
+                  <small ng-if="!!department.acceptance_setting" ng-init="$settings = department.acceptance_setting"><i class="text-gray">
+                    <span ng-if="$settings.can_submit_requests == true">
+                      <span ng-if="$settings.total_seats == null">
+                        Data on seat count and submission dates not available
+                      </span>
+                      <span ng-if="$settings.total_seats !== null">
+                        <span class="text-bold">Submission OPEN</span> | Acceptance Criterion: {{ $settings.criterion }} | Total Seats: {{ $settings.total_seats }}
+
+                        <span ng-if="$settings.criterion == 'FCFS'">
+                          | Available: {{ $settings.available_seats }}
+                        </span>
+
+                        <span ng-if="$settings.criterion == 'GPA' && moment().isBefore($settings.start_or_end_date)">
+                          | Will close on {{ $settings.start_or_end_date.format('D MMMM YYYY hh:mm a') }}
+                        </span>
+                      </span>
+                    </span>
+                    <span ng-if="$settings.can_submit_requests == false">
+                      Acceptance Criterion: {{ $settings.criterion }}
+                      <span ng-if="$settings.criterion == 'FCFS' && $settings.available_seats == 0">
+                        | No available seats
+                      </span>
+                      <span ng-if="$settings.criterion == 'FCFS' && moment().isBefore($settings.start_or_end_date)">
+                        | Submission will open on {{ $settings.start_or_end_date.format('D MMMM YYYY hh:mm a') }} | Total Seats: {{ $settings.total_seats }}
+                      </span>
+                      <span ng-if="$settings.criterion == 'GPA' && moment().isSameOrAfter($settings.start_or_end_date)">
+                        | Submission was closed on {{ $settings.start_or_end_date.format('D MMMM YYYY hh:mm a') }}  | Total Seats: {{ $settings.total_seats }}
+                      </span>
+                    </span>
+                  </i></small>
+                  <small ng-if="!department.acceptance_setting">
+                    <i class="text-gray">Data on seat count and submission dates not available</i>
+                  </small>
+                </ui-select-choices>
+              </ui-select>
+
+              <ul class="djng-form-control-feedback djng-field-errors" ng-show="rotation_request_form.hospital.$dirty" ng-cloak><li ng-show="rotation_request_form['hospital'].$valid" class="valid"></li></ul><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotation_request_form.hospital.$pristine" ng-cloak><li ng-show="rotation_request_form.hospital.$message" class="invalid" ng-bind="rotation_request_form.hospital.$message"></li></ul>
+            </div>
+
+            <div ng-if="intern.is_ksauhs_intern || intern.is_agu_intern" class="has-feedback form-group"><label class="checkbox-inline"><input id="id_is_elective" name="is_elective" ng-model="rotation_request[&#39;is_elective&#39;]" type="checkbox" /> <span class="text-bold">This is an elective.</span> (Check this box if this is an elective rotation.)</label><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotation_request_form.is_elective.$dirty" ng-cloak><li ng-show="rotation_request_form['is_elective'].$valid" class="valid"></li></ul><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotation_request_form.is_elective.$pristine" ng-cloak><li ng-show="rotation_request_form.is_elective.$message" class="invalid" ng-bind="rotation_request_form.is_elective.$message"></li></ul></div>
+            <div ng-if="intern.is_outside_intern" class="has-feedback form-group"><label for="id_request_memo">Request memo (as PDF)</label><input type="file" id="id_request_memo" ngf-select valid-pdf accept="application/pdf" name="request_memo" ng-model="rotation_request[&#39;request_memo&#39;]" class="required" required /><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotation_request_form.request_memo.$dirty" ng-cloak><li ng-show="rotation_request_form['request_memo'].$valid" class="valid"></li></ul><ul class="djng-form-control-feedback djng-field-errors" ng-show="rotation_request_form.request_memo.$pristine" ng-cloak><li ng-show="rotation_request_form.request_memo.$message" class="invalid" ng-bind="rotation_request_form.request_memo.$message"></li></ul></div>
+
+          </form>
+
+          <form name="new_hospital_form" ng-show="rotation_request.hospital === -1" novalidate>
+            <hr>
+
+            <p>
+              Please enter the details of the new hospital below.
+            </p>
+
+            <div class="has-feedback form-group">
+              <label class="control-label" for="id_name">New Hospital Name</label>
+              <input class="form-control" id="id_name" maxlength="128" name="name" ng-maxlength="128" ng-model="new_hospital[&#39;name&#39;]" type="text" required />
+              <ul class="djng-form-control-feedback djng-field-errors" ng-show="new_hospital_form.name.$dirty" ng-cloak>
+                <li ng-show="new_hospital_form['name'].$error.required" class="invalid">This field is required.</li>
+                <li ng-show="new_hospital_form['name'].$error.maxlength" class="invalid">Ensure this value has at most 128 characters</li>
+                <li ng-show="new_hospital_form['name'].$valid" class="valid"></li>
+              </ul>
+              <ul class="djng-form-control-feedback djng-field-errors" ng-show="new_hospital_form.name.$pristine" ng-cloak>
+                <li ng-show="new_hospital_form.name.$message" class="invalid" ng-bind="new_hospital_form.name.$message"></li>
+              </ul>
+            </div>
+            <div class="has-feedback form-group">
+              <label class="control-label" for="id_abbreviation">New Hospital Abbreviation</label>
+              <input class="form-control" id="id_abbreviation" placeholder="e.g. KAMC, KASCH, etc." maxlength="128" name="abbreviation" ng-maxlength="128" ng-model="new_hospital[&#39;abbreviation&#39;]" type="text" required />
+              <ul class="djng-form-control-feedback djng-field-errors" ng-show="new_hospital_form.abbreviation.$dirty" ng-cloak>
+                <li ng-show="new_hospital_form['abbreviation'].$error.required" class="invalid">This field is required.</li>
+                <li ng-show="new_hospital_form['abbreviation'].$error.maxlength" class="invalid">Ensure this value has at most 128 characters</li>
+                <li ng-show="new_hospital_form['abbreviation'].$valid" class="valid"></li>
+              </ul>
+              <ul class="djng-form-control-feedback djng-field-errors" ng-show="new_hospital_form.abbreviation.$pristine" ng-cloak>
+                <li ng-show="new_hospital_form.abbreviation.$message" class="invalid" ng-bind="new_hospital_form.abbreviation.$message"></li>
+              </ul>
+            </div>
+            <div class="has-feedback form-group">
+              <label class="control-label" for="id_contact_name">Name of contact person in new hospital</label>
+              <input class="form-control" id="id_contact_name" placeholder="Optional" maxlength="128" name="contact_name" ng-maxlength="128" ng-model="new_hospital[&#39;contact_name&#39;]" type="text" />
+              <ul class="djng-form-control-feedback djng-field-errors" ng-show="new_hospital_form.contact_name.$dirty" ng-cloak>
+                <li ng-show="new_hospital_form['contact_name'].$error.maxlength" class="invalid">Ensure this value has at most 128 characters</li>
+                <li ng-show="new_hospital_form['contact_name'].$valid" class="valid"></li>
+              </ul>
+              <ul class="djng-form-control-feedback djng-field-errors" ng-show="new_hospital_form.contact_name.$pristine" ng-cloak>
+                <li ng-show="new_hospital_form.contact_name.$message" class="invalid" ng-bind="new_hospital_form.contact_name.$message"></li>
+              </ul>
+            </div>
+            <div class="has-feedback form-group">
+              <label class="control-label" for="id_contact_position">Position of contact person in new hospital</label>
+              <input class="form-control" id="id_contact_position" placeholder="Optional" maxlength="128" name="contact_position" ng-maxlength="128" ng-model="new_hospital[&#39;contact_position&#39;]" type="text" />
+              <ul class="djng-form-control-feedback djng-field-errors" ng-show="new_hospital_form.contact_position.$dirty" ng-cloak>
+                <li ng-show="new_hospital_form['contact_position'].$error.maxlength" class="invalid">Ensure this value has at most 128 characters</li>
+                <li ng-show="new_hospital_form['contact_position'].$valid" class="valid"></li>
+              </ul>
+              <ul class="djng-form-control-feedback djng-field-errors" ng-show="new_hospital_form.contact_position.$pristine" ng-cloak>
+                <li ng-show="new_hospital_form.contact_position.$message" class="invalid" ng-bind="new_hospital_form.contact_position.$message"></li>
+              </ul>
+            </div>
+            <div class="has-feedback form-group">
+              <label class="control-label" for="id_email">Email</label>
+              <input class="form-control" email-pattern="(^[-!#$%&amp;&#39;*+/=?^_`{}|~0-9A-Z]+(\.[-!#$%&amp;&#39;*+/=?^_`{}|~0-9A-Z]+)*@|^&quot;([\001-\010\013\014\016-\037!#-\[\]-\177]|\\[\001-\011\013\014\016-\177])*&quot;@)(localhost$|((?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+)(?:[A-Z0-9-]{2,63})$)" id="id_email" placeholder="Optional" maxlength="128" name="email" ng-maxlength="128" ng-model="new_hospital[&#39;email&#39;]" type="email" />
+              <ul class="djng-form-control-feedback djng-field-errors" ng-show="new_hospital_form.email.$dirty" ng-cloak>
+                <li ng-show="new_hospital_form['email'].$error.email" class="invalid">Please enter a valid email address.</li>
+                <li ng-show="new_hospital_form['email'].$error.maxlength" class="invalid">Ensure this value has at most 128 characters</li>
+                <li ng-show="new_hospital_form['email'].$valid" class="valid"></li>
+              </ul>
+              <ul class="djng-form-control-feedback djng-field-errors" ng-show="new_hospital_form.email.$pristine" ng-cloak>
+                <li ng-show="new_hospital_form.email.$message" class="invalid" ng-bind="new_hospital_form.email.$message"></li>
+              </ul>
+            </div>
+            <div class="has-feedback form-group">
+              <label class="control-label" for="id_phone">Phone</label>
+              <input class="form-control" id="id_phone" placeholder="Optional" maxlength="128" name="phone" ng-maxlength="128" ng-model="new_hospital[&#39;phone&#39;]" type="text" />
+              <ul class="djng-form-control-feedback djng-field-errors" ng-show="new_hospital_form.phone.$dirty" ng-cloak>
+                <li ng-show="new_hospital_form['phone'].$error.maxlength" class="invalid">Ensure this value has at most 128 characters</li>
+                <li ng-show="new_hospital_form['phone'].$valid" class="valid"></li>
+              </ul>
+              <ul class="djng-form-control-feedback djng-field-errors" ng-show="new_hospital_form.phone.$pristine" ng-cloak>
+                <li ng-show="new_hospital_form.phone.$message" class="invalid" ng-bind="new_hospital_form.phone.$message"></li>
+              </ul>
+            </div>
+            <div class="has-feedback form-group">
+              <label class="control-label" for="id_extension">Extension</label>
+              <input class="form-control" id="id_extension" placeholder="Optional" maxlength="128" name="extension" ng-maxlength="128" ng-model="new_hospital[&#39;extension&#39;]" type="text" />
+              <ul class="djng-form-control-feedback djng-field-errors" ng-show="new_hospital_form.extension.$dirty" ng-cloak>
+                <li ng-show="new_hospital_form['extension'].$error.maxlength" class="invalid">Ensure this value has at most 128 characters</li>
+                <li ng-show="new_hospital_form['extension'].$valid" class="valid"></li>
+              </ul>
+              <ul class="djng-form-control-feedback djng-field-errors" ng-show="new_hospital_form.extension.$pristine" ng-cloak>
+                <li ng-show="new_hospital_form.extension.$message" class="invalid" ng-bind="new_hospital_form.extension.$message"></li>
+              </ul>
+            </div>
+
+          </form>
+
+          <div></div>
+
+          <div ng-if="rotation_request.is_in_database == false">
+
+            <hr>
+
+            <p>
+              It appears we don't have the contact details for this specialty's department within the hospital you chose.
+              This shouldn't usually happen.
+              Kindly contact us at <a href="mailto:support@easyinternship.net">support@easyinternship.net</a> to resolve this issue.
+            </p>
+
+          </div>
+
+        </div><!-- /.modal-body -->
+
+        <div class="modal-footer">
+          <a type="button" class="btn btn-default pull-left" href="javascript:history.back()">Back</a>
+
+          <img ng-show="hospitalChosen.promise.$$state.status == 0 || upload.$$state.status == 0" src="/static/loading.gif" height="20" />
+          <button type="button" class="btn btn-primary" ng-click="submit()" ng-disabled="rotation_request_form.$invalid || hospitalChosen.promise.$$state.status == 0 || upload.$$state.status === 0">Submit</button>
+          <hr>
+          <p class="text-yellow text-center">Please note that once submitted, this request <span class="text-bold">cannot</span> be modified until it's reviewed by the medical internship unit.</p>
+        </div>
+
+      </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+  </div>
+</div>
+
+
+

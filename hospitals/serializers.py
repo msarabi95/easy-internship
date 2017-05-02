@@ -96,6 +96,26 @@ class AcceptanceSettingSerializer(serializers.Serializer):
         pass
 
 
+class ExtendedDepartmentSerializer(serializers.ModelSerializer):
+    acceptance_setting = AcceptanceSettingSerializer()
+
+    class Meta:
+        model = Department
+        fields = ['id', 'name', 'contact_name', 'contact_position', 'email', 'phone', 'extension', 'requires_memo',
+                  'memo_handed_by_intern', 'has_requirement', 'requirement_description', 'requirement_file',
+                  'parent_department', 'acceptance_setting']
+
+
+class ExtendedHospitalSerializer(serializers.ModelSerializer):
+    specialty_departments = ExtendedDepartmentSerializer(many=True)
+
+    class Meta:
+        model = Hospital
+        fields = ['id', 'name', 'abbreviation', 'is_kamc', 'contact_name', 'contact_position', 'email',
+                  'phone', 'extension', 'has_requirement', 'requirement_description', 'requirement_file',
+                  'specialty_departments']
+
+
 class SeatSettingSerializer(serializers.Serializer):
     month = MonthField()
     department = serializers.PrimaryKeyRelatedField(read_only=True)
