@@ -1,7 +1,10 @@
+from django.core import exceptions as django_exceptions
+
 from rest_framework import serializers
 
 from easy_internship.serializers import MonthField
-from hospitals.models import Department
+from hospitals.models import Department, AcceptanceSetting
+from months.models import Internship
 from months.serializers import FullInternshipSerializer
 from rotations.models import Rotation, RequestedDepartment, RotationRequest, RotationRequestResponse, \
     RotationRequestForward
@@ -33,6 +36,89 @@ class RotationRequestSerializer(serializers.ModelSerializer):
         fields = ('id', 'internship', 'month', 'specialty',
                   'requested_department', 'is_delete', 'is_elective', 'submission_datetime',
                   'status', 'response', 'forward')
+
+
+class UpdatedRotationRequestSerializer(serializers.Serializer):
+    """
+    This is used by the rotation request creation form.
+    """
+    internship = serializers.PrimaryKeyRelatedField(queryset=Internship.objects.all())
+    month = MonthField()
+    department = serializers.PrimaryKeyRelatedField(
+        queryset=Department.objects.all(),
+        source='requested_department.department'
+    )
+    is_elective = serializers.BooleanField(required=False)
+    request_memo = serializers.FileField(required=False)
+
+    def validate(self, data):
+        """
+        Check that a memo is supplied if the user is an outside intern
+        """
+        # Do some checks
+        # (1) Check there isn't another open request already
+        # (2) Check that submission is open
+        # (3) Check that submitted request satisfies internship requirements
+
+        internship = data['internship']
+        department = data['requested_department']['department']
+        month = data['month']
+        acceptance_setting = AcceptanceSetting(department, month)
+
+        errors = []
+
+        if internship.rotation_requests.current_for_month(month):
+            errors.append("There is a rotation request for this month already.")
+
+        if not acceptance_setting.can_submit_requests():
+            errors.append(
+                "Submission is closed for %s during %s." % (department.name, month.first_day().strftime("%B %Y"))
+            )
+
+        requested_department = RequestedDepartment(is_in_database=True, department=department)
+        rotation_request = RotationRequest(
+            internship=internship,
+            month=month,
+            requested_department=requested_department,
+            specialty=department.specialty,
+            is_elective=data.get('is_elective', False),
+            request_memo=data.get('request_memo'),
+        )
+        try:
+            rotation_request.validate_request()
+        except django_exceptions.ValidationError as e:
+            for error in e.message_dict[django_exceptions.NON_FIELD_ERRORS]:
+                errors.append(error)
+
+        if internship.intern.is_outside_intern and data.get('request_memo') is None:
+            # This error is raised immediately, rather than added to the `errors` list and raised with other errors
+            # because otherwise it will be added to the "non_field_errors" list, which not correct
+            raise serializers.ValidationError({'request_memo': ['This field is required.']})
+
+        if errors:
+            raise serializers.ValidationError(errors)
+
+        return data
+
+    def create(self, validated_data):
+        requested_department = RequestedDepartment.objects.create(
+            is_in_database=True,
+            department=validated_data['requested_department']['department'],
+        )
+
+        rotation_request = RotationRequest.objects.create(
+            internship=validated_data['internship'],
+            month=validated_data['month'],
+            requested_department=requested_department,
+            specialty=requested_department.department.specialty,
+            is_elective=validated_data.get('is_elective', False),
+            request_memo=validated_data.get('request_memo'),
+        )
+
+        return rotation_request
+
+    def update(self, instance, validated_data):
+        pass
 
 
 class RotationRequestResponseSerializer(serializers.ModelSerializer):

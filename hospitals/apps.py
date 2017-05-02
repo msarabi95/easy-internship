@@ -5,3 +5,6 @@ from django.apps import AppConfig
 
 class HospitalsConfig(AppConfig):
     name = 'hospitals'
+
+    def ready(self):
+        from . import signals

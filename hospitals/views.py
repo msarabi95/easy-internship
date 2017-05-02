@@ -3,26 +3,25 @@ from datetime import datetime
 from django.contrib import messages
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.shortcuts import get_object_or_404, get_list_or_404
-
-# Create your views here.
 from django.utils import timezone
+
 from month import Month
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import list_route
-from rest_framework.exceptions import ParseError
+from rest_framework.exceptions import ParseError, MethodNotAllowed
 from rest_framework.response import Response
 
 from hospitals.models import Hospital, Specialty, Department, MonthSettings, DepartmentSettings, \
     DepartmentMonthSettings, AcceptanceSetting, SeatSetting
 from hospitals.serializers import HospitalSerializer, SpecialtySerializer, DepartmentSerializer, \
     MonthSettingsSerializer, DepartmentSettingsSerializer, DepartmentMonthSettingsSerializer, \
-    AcceptanceSettingSerializer, SeatSettingSerializer
+    AcceptanceSettingSerializer, SeatSettingSerializer, ExtendedHospitalSerializer
 from hospitals.utils import get_global_acceptance_criterion, set_global_acceptance_criterion, \
     get_global_acceptance_start_date_interval, set_global_acceptance_start_date_interval, \
     get_global_acceptance_end_date_interval, set_global_acceptance_end_date_interval
 
 
-class HospitalViewSet(viewsets.ReadOnlyModelViewSet):
+class HospitalViewSet(viewsets.ModelViewSet):
     serializer_class = HospitalSerializer
     queryset = Hospital.objects.all()
     permission_classes = [permissions.IsAuthenticated]
@@ -31,6 +30,32 @@ class HospitalViewSet(viewsets.ReadOnlyModelViewSet):
         if hasattr(self.request.user.profile, 'intern') and self.request.user.profile.intern.is_outside_intern:
             return self.queryset.filter(is_kamc=True)
         return self.queryset.all()
+
+    def update(self, request, *args, **kwargs):
+        raise MethodNotAllowed
+
+    def partial_update(self, request, *args, **kwargs):
+        raise MethodNotAllowed
+
+    def destroy(self, request, *args, **kwargs):
+        raise MethodNotAllowed
+
+    @list_route(methods=['get'], url_path=r'with_specialty_details/(?P<specialty_id>\d+)')
+    def with_specialty_details(self, request, specialty_id):
+        specialty = get_object_or_404(Specialty, id=specialty_id)
+        hospitals = self.get_queryset().prefetch_related('departments')
+        for hospital in hospitals:
+            hospital.specialty_departments = \
+                filter(lambda dep: dep.specialty == specialty, hospital.departments.all())
+
+            for dep in hospital.specialty_departments:
+                dep.acceptance_setting = AcceptanceSetting(
+                    dep,
+                    Month(2016, 9),
+                )
+
+        serialized = ExtendedHospitalSerializer(hospitals, many=True)
+        return Response(serialized.data)
 
 
 class SpecialtyViewSet(viewsets.ReadOnlyModelViewSet):
@@ -43,37 +68,6 @@ class DepartmentViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = DepartmentSerializer
     queryset = Department.objects.all()
     permission_classes = [permissions.IsAuthenticated]
-
-
-class DepartmentBySpecialtyAndHospital(viewsets.ViewSet):
-    serializer_class = DepartmentSerializer
-    queryset = Department.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
-
-    def list(self, request, *args, **kwargs):
-        departments = self.get_queryset()
-        serializer = self.get_serializer(departments, many=True)
-        return Response(serializer.data)
-
-    def get_serializer(self, *args, **kwargs):
-        serializer_class = self.get_serializer_class()
-        kwargs['context'] = self.get_serializer_context()
-        return serializer_class(*args, **kwargs)
-
-    def get_serializer_class(self):
-        return self.serializer_class
-
-    def get_serializer_context(self):
-        return {
-            'request': self.request,
-            'format': self.format_kwarg,
-            'view': self
-        }
-
-    def get_queryset(self):
-        specialty = Specialty.objects.get(id=self.kwargs['specialty'])
-        hospital = Hospital.objects.get(id=self.kwargs['hospital'])
-        return get_list_or_404(Department, specialty=specialty, hospital=hospital)
 
 
 class GlobalSettingsViewSet(viewsets.ViewSet):

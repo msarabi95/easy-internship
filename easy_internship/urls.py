@@ -20,7 +20,7 @@ from django_nyt.urls import get_pattern as get_nyt_pattern
 from rest_framework import routers
 
 from accounts.views import SignupWrapper, ProfileEditWrapper, ProfileDetailWrapper
-from accounts.forms import BaseProfileEditForm, ChangeInternEmailForm
+from accounts.forms import ChangeInternEmailForm
 from accounts.urls import api_urls as accounts_urls
 from leaves.urls import api_urls as leaves_urls
 from rotations.urls import api_urls as rotations_urls
@@ -53,7 +53,6 @@ urlpatterns = [
     url(r'^messages/$', views.GetMessages.as_view()),
     url(r'^notifications/', get_nyt_pattern()),
 
-    url(r'^planner/', include("rotations.urls")),  # FIXME: update url in front-end
     url(r'^leaves/', include("leaves.urls")),
 
     url(r'^accounts/activate/(?P<activation_key>\w+)/$', 'userena.views.activate', {'success_url': '/'}),

@@ -174,8 +174,8 @@ class RotationRequest(models.Model):
     requested_department = models.OneToOneField(RequestedDepartment)
     is_delete = models.BooleanField(default=False)  # Flag to determine if this is a "delete" request
     # FIXME: Maybe department & specialty should be optional with delete=True
-    # FIXME: The name `delete` conflicts with the api function `delete()`
     is_elective = models.BooleanField(default=False)
+    request_memo = models.FileField(null=True, blank=True, upload_to='request_memos')  # required for outside interns
     submission_datetime = models.DateTimeField(auto_now_add=True)
 
     objects = RotationRequestQuerySet().as_manager()
