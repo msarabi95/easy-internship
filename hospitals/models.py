@@ -16,11 +16,11 @@ class Hospital(models.Model):
     abbreviation = models.CharField(max_length=16)
     is_kamc = models.BooleanField(default=False)
 
-    contact_name = models.CharField(max_length=128)
-    contact_position = models.CharField(max_length=128)
-    email = models.EmailField(max_length=128)
-    phone = models.CharField(max_length=128)
-    extension = models.CharField(max_length=16)
+    contact_name = models.CharField(max_length=128, blank=True)
+    contact_position = models.CharField(max_length=128, blank=True)
+    email = models.EmailField(max_length=128, blank=True)
+    phone = models.CharField(max_length=128, blank=True)
+    extension = models.CharField(max_length=16, blank=True)
 
     has_requirement = models.BooleanField("Has special requirements?", default=False)
     requirement_description = models.TextField(blank=True, null=True)

@@ -24,8 +24,8 @@ angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.r
 }])
 
 
-.controller("RotationRequestCreateCtrl", ["$scope", "$routeParams", "$location", "Upload", "Specialty", "Hospital", "Intern", "InternshipMonth", "RotationRequest",
-    function ($scope, $routeParams, $location, Upload, Specialty, Hospital, Intern, InternshipMonth, RotationRequest) {
+.controller("RotationRequestCreateCtrl", ["$scope", "$q", "$routeParams", "$location", "Upload", "Specialty", "Hospital", "Intern", "InternshipMonth", "RotationRequest",
+    function ($scope, $q, $routeParams, $location, Upload, Specialty, Hospital, Intern, InternshipMonth, RotationRequest) {
         // Basic info about month and intern
         $scope.internshipMonth = InternshipMonth.get({month_id: $routeParams.month_id});
         Intern.query(function (interns) {
@@ -42,6 +42,12 @@ angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.r
                 $scope.rotation_request.hospital = undefined;
                 $scope.rotation_request.department = undefined;
                 $scope.hospitals = Hospital.query_with_specialty_details({specialty: newValue});
+
+                if ($scope.intern.is_ksauhs_intern || $scope.intern.is_agu_intern) {
+                    $scope.hospitals.$promise.then(function() {
+                        $scope.hospitals.push({id: -1, name: "Other", abbreviation: "OTHER"});
+                    })
+                }
             }
         });
 
@@ -56,39 +62,61 @@ angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.r
             $scope.rotation_request.month = $scope.internshipMonth.month;
             $scope.rotation_request.internship = $scope.intern.internship;
 
-            // Set the department value if it hasn't been chosen through the department menu
-            if ($scope.rotation_request_form.$valid && $scope.rotation_request.department === undefined) {
-                $scope.rotation_request.department = $scope.selected_hospital.specialty_departments[0].id;
+            $scope.hospitalChosen = $q.defer();
+
+            if ($scope.rotation_request.hospital === -1 && $scope.new_hospital_form.$valid) {
+                var newHospital = new Hospital($scope.new_hospital);
+                var resp = newHospital.$save();
+                resp.then(function (response) {
+                    $scope.hospitals = Hospital.query_with_specialty_details({
+                        specialty: $scope.rotation_request.specialty
+                    });
+                    $scope.hospitals.$promise.then(function () {
+                        $scope.rotation_request.hospital = response.id;
+                        // FIXME: dirty hack
+                        $scope.selected_hospital = $scope.hospitals.filter(function (hosp) {return hosp.id === response.id})[0];
+                        $scope.hospitalChosen.resolve();
+                    });
+                });
+            } else {
+                $scope.hospitalChosen.resolve();
             }
 
-            // Submit
-            $scope.upload = Upload.upload({
-                url: '/api/rotation_requests/',
-                data: $scope.rotation_request,
-                method: "POST"
-            });
-            $scope.upload.then(function (resp) {
-                $location.path('/planner');
+            $scope.hospitalChosen.promise.then(function() {
+                // Set the department value if it hasn't been chosen through the department menu
+                if ($scope.rotation_request_form.$valid && $scope.rotation_request.department === undefined) {
+                    $scope.rotation_request.department = $scope.selected_hospital.specialty_departments[0].id;
+                }
 
-            }, function (resp) {
-                if (resp.status !== 400) {
-                    console.log(resp);
-                    toastr.error(resp);
-                } else {
-                    $scope.rotation_request_form.$message = resp.data.non_field_errors;
-                    const fields = ['specialty', 'hospital', 'is_elective', 'request_memo', 'department'];
-                    for (var i in fields) {
-                        var item = fields[i];
-                        if (!$scope.rotation_request_form[item]) {
-                            continue;
-                        }
+                // Submit
+                $scope.upload = Upload.upload({
+                    url: '/api/rotation_requests/',
+                    data: $scope.rotation_request,
+                    method: "POST"
+                });
+                $scope.upload.then(function (resp) {
+                    $location.path('/planner');
 
-                        $scope.rotation_request_form[item].$message = resp.data[item];
-                        if (!!$scope.rotation_request_form[item].$message) {
-                            $scope.rotation_request_form[item].$setPristine(true);
+                }, function (resp) {
+                    if (resp.status !== 400) {
+                        console.log(resp);
+                        toastr.error(resp);
+                    } else {
+                        $scope.rotation_request_form.$message = resp.data.non_field_errors;
+                        const fields = ['specialty', 'hospital', 'is_elective', 'request_memo', 'department'];
+                        for (var i in fields) {
+                            var item = fields[i];
+                            if (!$scope.rotation_request_form[item]) {
+                                continue;
+                            }
+
+                            $scope.rotation_request_form[item].$message = resp.data[item];
+                            if (!!$scope.rotation_request_form[item].$message) {
+                                $scope.rotation_request_form[item].$setPristine(true);
+                            }
                         }
                     }
-                }
+                });
             });
         };
 

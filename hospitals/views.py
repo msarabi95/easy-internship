@@ -3,13 +3,12 @@ from datetime import datetime
 from django.contrib import messages
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.shortcuts import get_object_or_404, get_list_or_404
-
-# Create your views here.
 from django.utils import timezone
+
 from month import Month
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import list_route
-from rest_framework.exceptions import ParseError
+from rest_framework.exceptions import ParseError, MethodNotAllowed
 from rest_framework.response import Response
 
 from hospitals.models import Hospital, Specialty, Department, MonthSettings, DepartmentSettings, \
@@ -22,7 +21,7 @@ from hospitals.utils import get_global_acceptance_criterion, set_global_acceptan
     get_global_acceptance_end_date_interval, set_global_acceptance_end_date_interval
 
 
-class HospitalViewSet(viewsets.ReadOnlyModelViewSet):
+class HospitalViewSet(viewsets.ModelViewSet):
     serializer_class = HospitalSerializer
     queryset = Hospital.objects.all()
     permission_classes = [permissions.IsAuthenticated]
@@ -31,6 +30,15 @@ class HospitalViewSet(viewsets.ReadOnlyModelViewSet):
         if hasattr(self.request.user.profile, 'intern') and self.request.user.profile.intern.is_outside_intern:
             return self.queryset.filter(is_kamc=True)
         return self.queryset.all()
+
+    def update(self, request, *args, **kwargs):
+        raise MethodNotAllowed
+
+    def partial_update(self, request, *args, **kwargs):
+        raise MethodNotAllowed
+
+    def destroy(self, request, *args, **kwargs):
+        raise MethodNotAllowed
 
     @list_route(methods=['get'], url_path=r'with_specialty_details/(?P<specialty_id>\d+)')
     def with_specialty_details(self, request, specialty_id):
