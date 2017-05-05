@@ -1,20 +1,29 @@
 <!-- Content Header (Page header) -->
 <section class="content-header">
-  <h1>Internship Planner</h1>
+  <h1>Interns</h1>
 </section>
+
+<style type="text/css">
+  [ng-repeat].ng-enter {
+    animation: fadeInRight 1s;
+  }
+</style>
 
 <!-- Main content -->
 <section class="content">
-  <div class="row">
+  <div ng-hide="batches.$promise.$$state.status == 1" style="height: 150px;">
+    <img src="/static/loading.gif" height="50" style="position: relative; top: 50%; left: 50%; margin-left: -15px; margin-top: -15px;" />
+  </div>
+  <div class="row" ng-repeat="batch in batches">
     <div class="col-xs-12">
 
       <div class="box box-solid">
         <div class="box-header">
-          <h4 class="box-title">All interns</h4>
+          <h4 class="box-title">{{ batch.name }}</h4>
         </div>
         <div class="box-body">
 
-          <table datatable="" class="table" dt-options="dtOptions" dt-columns="dtColumns" style="width: 100%"></table>
+          <table datatable="" class="table" dt-options="dtOptions['batch_' + batch.id]" dt-columns="dtColumns" style="width: 100%"></table>
 
         </div>
       </div>

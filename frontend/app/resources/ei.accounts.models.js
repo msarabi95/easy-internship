@@ -1,17 +1,17 @@
 /**
  * Created by MSArabi on 9/22/16.
  */
-var accountsModule = angular.module('ei.accounts.models', ["ngResource"]);
+angular.module('ei.accounts.models', ["ngResource"])
 
-accountsModule.factory("User", ["$resource", function ($resource) {
+.factory("User", ["$resource", function ($resource) {
     return $resource('/api/users/:id', {id: '@id'});
-}]);
+}])
 
-accountsModule.factory("Profile", ["$resource", function($resource) {
+.factory("Profile", ["$resource", function($resource) {
     return $resource('/api/profiles/:id', {id: '@id'});
-}]);
+}])
 
-accountsModule.factory("Intern", ["$resource", function($resource) {
+.factory("Intern", ["$resource", function($resource) {
     return $resource('/api/interns/:id', {id: '@id'}, {
         as_table: {
             method: 'get',
@@ -19,4 +19,14 @@ accountsModule.factory("Intern", ["$resource", function($resource) {
             isArray: true
         }
     });
+}])
+
+.factory("Batch", ["$resource", function($resource) {
+    return $resource('/api/batches/:id', {id: '@id'}, {
+        interns: {
+            method: 'get',
+            url: '/api/batches/:id/interns',
+            isArray: true
+        }
+    })
 }]);
