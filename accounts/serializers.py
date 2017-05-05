@@ -1,4 +1,4 @@
-from accounts.models import Profile, Intern
+from accounts.models import Profile, Intern, Batch
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
@@ -42,6 +42,13 @@ class InternSerializer(serializers.ModelSerializer):
                   'medical_record_number', 'contact_person_name', 'contact_person_relation',
                   'contact_person_mobile', 'contact_person_email', 'gpa',
                   'is_ksauhs_intern', 'is_agu_intern', 'is_outside_intern', 'internship')
+
+
+class BatchSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Batch
+        fields = '__all__'
 
 
 class InternTableSerializer(serializers.ModelSerializer):

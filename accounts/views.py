@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse_lazy
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import View, TemplateView
 from django.views.generic.edit import FormView
 
@@ -9,14 +9,15 @@ from userena.models import UserenaSignup
 from userena.views import signup, profile_edit, profile_detail
 from userena import settings as userena_settings
 
-from rest_framework.decorators import list_route
+from rest_framework.decorators import list_route, detail_route
 from rest_framework.response import Response
 
-from accounts.models import Profile, Intern, University
+from accounts.models import Profile, Intern, University, Batch
 from accounts.forms import ChooseUniversityForm, KSAUHSSignupForm, AGUSignupForm, OutsideSignupForm, \
     KSAUHSProfileEditForm, AGUProfileEditForm, OutsideProfileEditForm, ResendForm
 from accounts.permissions import IsStaff
-from accounts.serializers import ProfileSerializer, InternSerializer, UserSerializer, InternTableSerializer
+from accounts.serializers import ProfileSerializer, InternSerializer, UserSerializer, InternTableSerializer, \
+    BatchSerializer
 from django.contrib.auth.models import User
 from rest_framework import viewsets, permissions
 
@@ -166,5 +167,18 @@ class InternViewSet(viewsets.ReadOnlyModelViewSet):
     @list_route(methods=['get'], permission_classes=[permissions.IsAuthenticated, IsStaff])
     def as_table(self, request, *args, **kwargs):
         interns = self.queryset.all().prefetch_related('profile__user', 'internship')
+        serialized = InternTableSerializer(interns, many=True)
+        return Response(serialized.data)
+
+
+class BatchViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = BatchSerializer
+    queryset = Batch.objects.all()
+    permission_classes = [permissions.IsAuthenticated, IsStaff]
+
+    @detail_route(methods=['get'], permission_classes=[permissions.IsAuthenticated, IsStaff])
+    def interns(self, request, pk, *args, **kwargs):
+        batch = get_object_or_404(Batch, id=pk)
+        interns = Intern.objects.filter(batch=batch).prefetch_related('profile__user', 'internship')
         serialized = InternTableSerializer(interns, many=True)
         return Response(serialized.data)
