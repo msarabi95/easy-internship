@@ -10,7 +10,7 @@ angular.module("ei.months.directives", ["ei.months.models"])
             request: "=freezeRequest",
             moveToPastRequests: "&onResponse"
         },
-        templateUrl: "/static/app/directives/templates/months/freeze-request-response-card.html",
+        templateUrl: "/static/app/directives/templates/months/freeze-request-response-card.html?v=0001",
         link: function (scope, element, attrs) {
 
             scope.response = {};
