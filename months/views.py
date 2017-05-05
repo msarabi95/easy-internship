@@ -195,13 +195,6 @@ class InternshipViewSet(viewsets.ReadOnlyModelViewSet):
             return self.queryset.all()
         return self.queryset.filter(intern__profile__user=self.request.user)
 
-    @list_route(methods=['get'], permission_classes=[permissions.IsAuthenticated, IsStaff])
-    def with_unreviewed_requests(self, request):
-        internships = Internship.objects.all()
-        unreviewed_requests = RotationRequest.objects.unreviewed()
-        filtered = filter(lambda i: any([r in unreviewed_requests for r in i.rotation_requests.all()]), internships)
-        return Response(self.get_serializer(filtered, many=True).data)
-
 
 class FreezeViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = FreezeSerializer
