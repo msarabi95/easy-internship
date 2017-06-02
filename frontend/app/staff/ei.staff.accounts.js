@@ -13,7 +13,7 @@ angular.module("ei.staff.accounts", ["ei.months.models", "ei.accounts.models",
             controller: "InternListCtrl"
         })
         .when("/interns/:id/", {
-            templateUrl: "static/partials/staff/interns/intern-detail.html?v=0004",
+            templateUrl: "static/partials/staff/interns/intern-detail.html?v=0005",
             controller: "InternDetailCtrl"
         });
 }])
