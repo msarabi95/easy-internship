@@ -248,4 +248,8 @@ angular.module("ei.staff.accounts", ["ei.months.models", "ei.accounts.models",
                 return "danger";
             }
         }
+}])
+
+.controller("PlansSummaryCtrl", ["$scope", "Batch", function ($scope, Batch) {
+    $scope.batches = Batch.query();
 }]);

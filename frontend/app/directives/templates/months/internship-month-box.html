@@ -1,5 +1,5 @@
 <div class="box" ng-class="'box-' + getBoxClass()">
-  <div class="box-header with-border">
+  <div class="box-header with-border" ng-if="showMonthLabel == true">
     <h3 ng-if="size == 'lg'" class="box-title">{{ month.label }}</h3>
     <h6 ng-if="size == 'sm'" class="box-title">{{ month.label_short }}</h6>
 

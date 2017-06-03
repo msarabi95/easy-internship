@@ -6,4 +6,47 @@
 <!-- Main content -->
 <section class="content">
 
+  <style>
+    .box {
+      margin-bottom: 10px;
+    }
+  </style>
+
+  <img src="/static/loading.gif" height="30" ng-hide="true" />
+
+  <p ng-show="internship.months.$promise.$$state.status == 1">
+    This is a snapshot of {{ internship.intern.profile.en_full_name }}'s current internship plan.
+    Each box represents a specific month. Changes in <span class="text-yellow">orange</span> or
+    <span class="text-red">red</span> color are pending review.
+  </p>
+
+  <div class="row" ng-repeat="batch in batches">
+    <div class="col-xs-12">
+      <div class="box box-solid">
+        <div class="box-header">
+          <h4 class="box-title">{{ batch.name }}</h4>
+        </div>
+        <div class="box-body">
+
+          <div  style="background-color: #ecf0f5; border-radius: 3px; padding: 5px;" ng-show="true">
+            <div class="row" ng-repeat="intern in [1, 2, 3] track by $index" style="padding-left: 15px; padding-right: 15px;">
+              <div class="col-xs-1">
+                <!--<hr style="border-color: lightgray; margin-top: 0; margin-bottom: 0;">-->
+                <h4>Name</h4>
+              </div>
+              <div class="col-xs-11">
+                <div class="row">
+                  <div class="col-xs-1" ng-repeat="month in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]" style="padding-left: 5px; padding-right: 5px;">
+                    <internship-month-box internship-month="month" show-month-label="false" size="'sm'"></internship-month-box>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
 </section>
