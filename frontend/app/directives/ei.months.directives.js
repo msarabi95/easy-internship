@@ -83,7 +83,7 @@ angular.module("ei.months.directives", ["ei.months.models"])
             '    <span class="sr-only">Toggle Dropdown</span>' +
             '  </button>' +
             '  <ul class="dropdown-menu">' +
-            '    <li ng-repeat="button in buttons" ng-if="!$first" ng-class="{divider: button == DIVIDER}">' +
+            '    <li ng-repeat="button in buttons" ng-if="!$first" ng-class="{divider: button == DIVIDER}" ng-style="button == DIVIDER && {\'margin-top\': \'5px\', \'margin-bottom\': \'5px\'}">' +
             '       <a ng-if="button !== DIVIDER" href="{{ renderUrl(button) }}">{{ renderLabel(button) }}</a>' +
             '    </li>' +
             '  </ul>' +
