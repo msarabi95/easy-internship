@@ -4,14 +4,17 @@
       <div class="modal-content">
 
         <div class="modal-header">
-          <h3 class="modal-title">Request to cancel {{ leave.type.name }} during {{ month.label }}</h3>
+          <h3 class="modal-title">Delete pending rotation request for {{ month.label }}</h3>
         </div>
 
         <div class="modal-body">
           <p>
-            You are requesting to <span class="text-red text-bold">cancel your {{ leave.type.name }}</span>
+            You are deleting your rotation request for <span class="text-yellow text-bold">{{ department_or_specialty_name }}</span>
+            in <span class="text-yellow text-bold">{{ hospital_name }}</span>
             during the month <span class="text-red text-bold">{{ month.label }}</span>.
             <br>
+            Your seat will no longer be reserved and will be available for anyone to request.
+            <br><br>
             Are you sure you want to continue?
           </p>
         </div><!-- /.modal-body -->
@@ -21,14 +24,11 @@
             No, take me back
           </a>
           <button class="btn btn-danger" ng-click="submit()">
-            Yes, I want to cancel this leave
+            Yes, I want to delete this request
           </button>
-          <hr>
-          <p class="text-yellow text-center">Please note that once submitted, this request <span class="text-bold">cannot</span> be modified until it's reviewed by the medical internship unit.</p>
         </div>
 
       </div><!-- /.modal-content -->
     </div><!-- /.modal-dialog -->
   </div>
 </div>
-

@@ -13,7 +13,7 @@ angular.module("ei.months.directives", ["ei.months.models"])
             showActionButtons: "=?showActionButtons",
             boxStyle: "=?boxStyle"
         },
-        templateUrl: "/static/app/directives/templates/months/internship-month-box.html",
+        templateUrl: "/static/app/directives/templates/months/internship-month-box.html?v=0001",
         link: function (scope, element, attrs) {
 
             // Assert `size` is either 'lg' or 'sm'; default to 'lg' if not specified
@@ -114,53 +114,53 @@ angular.module("ei.months.directives", ["ei.months.models"])
                 // ---------------------------------
                 'req-rota': {
                     label: "Request a rotation",
-                    url: "#/planner/%(month_id)%/new/"
+                    url: "#/planner/%(month_id)%/request-rota/"
                 },
                 'req-rota-change': {
                     label: "Request a different rotation",  // Only difference is label
-                    url: "#/planner/%(month_id)%/new/"
+                    url: "#/planner/%(month_id)%/request-rota/"
                 },
                 'req-rota-cancel': {
                     label: "Cancel this rotation",
-                    url: "#/planner/%(month_id)%/cancel/"  // TODO: ??
+                    url: "#/planner/%(month_id)%/cancel-rota/"
                 },
                 'req-freeze': {
                     label: "Request a freeze",
-                    url: "#/planner/%(month_id)%/freeze/"
+                    url: "#/planner/%(month_id)%/request-freeze/"
                 },
                 'req-freeze-cancel': {
                     label: "Cancel this freeze",
-                    url: "#/planner/%(month_id)%/freeze/cancel/"  // TODO: ??
+                    url: "#/planner/%(month_id)%/cancel-freeze/"
                 },
                 // ------------------------------
                 // ---- Request cancellation ----
                 // ------------------------------
-                'cancel-rota-req': {
-                    label: "Cancel my pending rotation request",
-                    url: "#/planner/%(month_id)%/??/"  // TODO: Specify a URL
+                'delete-rota-req': {
+                    label: "Delete my pending rotation request",
+                    url: "#/planner/%(month_id)%/request-rota/delete/"
                 },
-                'cancel-rota-cancel-req': {
-                    label: "Cancel my cancellation request",
-                    url: "#/planner/%(month_id)%/??/"  // TODO: Specify a URL
+                'delete-rota-cancel-req': {
+                    label: "Delete my cancellation request",
+                    url: "#/planner/%(month_id)%/cancel-rota/delete/"
                 },
-                'cancel-freeze-req': {
-                    label: "Cancel my pending freeze request",
-                    url: "#/planner/%(month_id)%/??/"  // TODO: Specify a URL
+                'delete-freeze-req': {
+                    label: "Delete my pending freeze request",
+                    url: "#/planner/%(month_id)%/request-freeze/delete/"
                 },
-                'cancel-freeze-cancel-req': {
-                    label: "Cancel my freeze cancellation request",
-                    url: "#/planner/%(month_id)%/??/"  // TODO: Specify a URL
+                'delete-freeze-cancel-req': {
+                    label: "Delete my freeze cancellation request",
+                    url: "#/planner/%(month_id)%/cancel-freeze/delete/"
                 },
                 // ----------------
                 // ---- Leaves ----
                 // ----------------
                 'req-leave': {
                     label: "Request a leave",
-                    url: "#/planner/%(month_id)%/leaves/new/"  // TODO: ??
+                    url: "#/planner/%(month_id)%/request-leave/"
                 },
                 'manage-leaves': {
                     label: "Manage leaves during this month",
-                    url: "#/planner/%(month_id)%/"  // TODO: ??
+                    url: "#/planner/%(month_id)%/"
                 }
             };
 
