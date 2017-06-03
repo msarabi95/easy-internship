@@ -137,44 +137,9 @@
             <div  style="background-color: #ecf0f5; border-radius: 3px; padding: 5px;" ng-show="internship.months.$promise.$$state.status == 1">
               <div id="internship-plan-grid" class="row" ng-repeat="month in internship.months track by $index" ng-if="$index % 5 == 0">
                 <div class="col-md-2 internship-plan-box" ng-class="{'col-md-offset-1': $index % 5 == 0}" ng-repeat="i in [$index, $index + 1, $index + 2, $index + 3, $index + 4]">
-                  <div class="box box-primary">
-                    <div class="box-header with-border">
-                      <h7 class="box-title">{{ months[i].label_short }}</h7>
-                    </div>
-                    <div class="box-body">
-                      <div ng-if="!months[i].requested && !months[i].occupied">
-                        <h5 class="text-gray text-center"><i>No rotation</i></h5>
-                      </div>
 
-                      <div ng-if="months[i].requested && !months[i].occupied">
-                        <h4 class="text-yellow text-center">{{ months[i].current_request.specialty.abbreviation }}</h4>
-                        <h5 class="text-center">{{ months[i].current_request.requested_department.department.hospital.abbreviation}}</h5>
-                      </div>
+                  <internship-month-box internship-month="months[i]" size="'sm'"></internship-month-box>
 
-                      <div ng-if="!months[i].requested && months[i].occupied">
-                        <h4 class="text-blue text-center">{{ months[i].current_rotation.specialty.abbreviation }}</h4>
-                        <h5 class="text-center">{{ months[i].current_rotation.department.hospital.abbreviation}}</h5>
-                      </div>
-
-                      <div ng-if="months[i].requested && months[i].occupied">
-                        <h5 class="text-center">
-                          <span class="text-blue">{{ months[i].current_rotation.specialty.abbreviation }}</span>
-                          @
-                          {{ months[i].current_rotation.department.hospital.abbreviation }}
-                        </h5>
-                        <hr style="margin-top: 2px; margin-bottom: 2px;">
-                        <h5 class="text-center" ng-if="!months[i].current_request.is_delete">
-                          <span class="text-yellow">{{ months[i].current_request.specialty.abbreviation }}</span>
-                          @
-                          {{ months[i].current_request.requested_department.department.hospital.abbreviation }}
-                        </h5>
-                        <h5 class="text-center" ng-if="months[i].current_request.is_delete">
-                          <span class="text-red">To cancel</span>
-                        </h5>
-                      </div>
-
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>

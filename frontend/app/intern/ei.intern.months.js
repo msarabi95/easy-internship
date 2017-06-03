@@ -3,7 +3,7 @@
  */
 angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rotations.models", "ei.leaves.models",
                               "ei.utils", "djng.forms", "ngAnimate", "ngResource", "ngRoute", "ngSanitize",
-                              "ui.bootstrap", "ui.select"])
+                              "ui.bootstrap", "ui.select", "ei.months.directives"])
 
 .config(["$routeProvider", function ($routeProvider) {
 

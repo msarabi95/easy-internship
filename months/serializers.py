@@ -20,22 +20,27 @@ class InternshipMonthSerializer(serializers.Serializer):
     rotation_request_history = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
     rotation_cancel_request_history = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
 
-    current_leaves = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
-    current_leave_requests = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
-    current_leave_cancel_requests = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
-    leave_request_history = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
-    leave_cancel_request_history = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
-
     current_freeze = serializers.PrimaryKeyRelatedField(read_only=True)
     current_freeze_request = serializers.PrimaryKeyRelatedField(read_only=True)
     current_freeze_cancel_request = serializers.PrimaryKeyRelatedField(read_only=True)
     freeze_request_history = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
     freeze_cancel_request_history = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
 
+    current_leaves = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
+    current_leave_requests = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
+    current_leave_cancel_requests = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
+    leave_request_history = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
+    leave_cancel_request_history = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
+
+    empty = serializers.BooleanField(read_only=True)
     occupied = serializers.BooleanField(read_only=True)
-    requested = serializers.BooleanField(read_only=True)
     disabled = serializers.BooleanField(read_only=True)
     frozen = serializers.BooleanField(read_only=True)
+
+    has_rotation_request = serializers.BooleanField(read_only=True)
+    has_rotation_cancel_request = serializers.BooleanField(read_only=True)
+    has_freeze_request = serializers.BooleanField(read_only=True)
+    has_freeze_cancel_request = serializers.BooleanField(read_only=True)
 
     def create(self, validated_data):
         pass

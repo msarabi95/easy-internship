@@ -20,16 +20,10 @@ class InternshipMonth(object):
         self.label_short = month.first_day().strftime("%b. %Y")  # TODO: Remove
 
         self.current_rotation = self.internship.rotations.current_for_month(month)
-        self.current_request = self.internship.rotation_requests.current_for_month(month)  # TODO: Change to `current_rotation_request` (is_delete=False)
+        self.current_request = self.internship.rotation_requests.filter(is_delete=False).current_for_month(month)  # TODO: Change to `current_rotation_request` (is_delete=False)
         self.current_rotation_cancel_request = self.internship.rotation_requests.filter(is_delete=True).current_for_month(month)
         self.rotation_request_history = self.internship.rotation_requests.filter(is_delete=False).month(month).closed()
         self.rotation_cancel_request_history = self.internship.rotation_requests.filter(is_delete=True).month(month).closed()
-
-        self.current_leaves = self.intern.leaves.current_for_month(month)
-        self.current_leave_requests = self.intern.leave_requests.current_for_month(month)
-        self.current_leave_cancel_requests = self.intern.leave_cancel_requests.current_for_month(month)
-        self.leave_request_history = self.intern.leave_requests.month(month).closed()
-        self.leave_cancel_request_history = self.intern.leave_cancel_requests.month(month).closed()
 
         self.current_freeze = self.intern.freezes.current_for_month(month)
         self.current_freeze_request = self.intern.freeze_requests.current_for_month(month)
@@ -37,28 +31,21 @@ class InternshipMonth(object):
         self.freeze_request_history = self.intern.freeze_requests.month(month).closed()
         self.freeze_cancel_request_history = self.intern.freeze_cancel_requests.month(month).closed()
 
+        self.current_leaves = self.intern.leaves.current_for_month(month)
+        self.current_leave_requests = self.intern.leave_requests.current_for_month(month)
+        self.current_leave_cancel_requests = self.intern.leave_cancel_requests.current_for_month(month)
+        self.leave_request_history = self.intern.leave_requests.month(month).closed()
+        self.leave_cancel_request_history = self.intern.leave_cancel_requests.month(month).closed()
+
+        self.has_rotation_request = self.current_request is not None
+        self.has_rotation_cancel_request = self.current_rotation_cancel_request is not None
+        self.has_freeze_request = self.current_freeze_request is not None
+        self.has_freeze_cancel_request = self.current_freeze_cancel_request is not None
+
         self.occupied = self.current_rotation is not None
-        self.requested = self.current_request is not None
         self.disabled = self._is_disabled()
         self.frozen = self.current_freeze is not None
-
-    def request_rotation(self):
-        pass
-
-    def request_rotation_cancel(self):
-        pass
-
-    def request_leave(self):
-        pass
-
-    def request_leave_cancel(self):
-        pass
-
-    def request_freeze(self):
-        pass
-
-    def request_freeze_cancel(self):
-        pass
+        self.empty = not (self.occupied or self.disabled or self.frozen)
 
     def _is_disabled(self):
         """
@@ -68,7 +55,7 @@ class InternshipMonth(object):
         freeze_count = self.intern.freezes.count()
         if self.month - start_month > (11 + freeze_count):
             return True
-        elif self.intern.profile.intern.is_outside_intern and not self.occupied and not self.requested:
+        elif self.intern.profile.intern.is_outside_intern and not self.occupied and not (self.has_rotation_request or self.has_rotation_cancel_request):
             rotation_count = self.internship.rotations.count()
             request_count = self.internship.rotation_requests.open().count()
             return rotation_count + request_count >= 6

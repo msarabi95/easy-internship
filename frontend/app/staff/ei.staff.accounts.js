@@ -2,8 +2,8 @@
  * Created by MSArabi on 12/4/16.
  */
 angular.module("ei.staff.accounts", ["ei.months.models", "ei.accounts.models",
-                                     "ei.utils", "ei.rotations.directives", "ngRoute",
-                                     "datatables", "datatables.bootstrap",
+                                     "ei.utils", "ei.rotations.directives", "ei.months.directives",
+                                     "ngRoute", "datatables", "datatables.bootstrap",
                                      "ui.bootstrap", "ui.select"])
 
 .config(["$routeProvider", function ($routeProvider) {
@@ -11,6 +11,10 @@ angular.module("ei.staff.accounts", ["ei.months.models", "ei.accounts.models",
         .when("/interns/", {
             templateUrl: "static/partials/staff/interns/intern-list.html?v=0001",
             controller: "InternListCtrl"
+        })
+        .when("/interns/summary/", {
+            templateUrl: "static/partials/staff/interns/plans-summary.html",
+            controller: "PlansSummaryCtrl"
         })
         .when("/interns/:id/", {
             templateUrl: "static/partials/staff/interns/intern-detail.html?v=0005",
