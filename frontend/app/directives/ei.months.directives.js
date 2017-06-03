@@ -1,7 +1,7 @@
 /**
  * Created by MSArabi on 3/3/17.
  */
-angular.module("ei.months.directives", ["ei.months.models"])
+angular.module("ei.months.directives", ["ei.months.models", "ui.bootstrap"])
 
 .directive("internshipMonthBox", [function () {
     return {
@@ -13,7 +13,7 @@ angular.module("ei.months.directives", ["ei.months.models"])
             showActionButtons: "=?showActionButtons",
             boxStyle: "=?boxStyle"
         },
-        templateUrl: "/static/app/directives/templates/months/internship-month-box.html?v=0002",
+        templateUrl: "/static/app/directives/templates/months/internship-month-box.html?v=0003",
         link: function (scope, element, attrs) {
 
             // Assert `size` is either 'lg' or 'sm'; default to 'lg' if not specified
@@ -61,6 +61,24 @@ angular.module("ei.months.directives", ["ei.months.models"])
                 return scope.size == 'lg' ? '130px' : '80px';
             };
 
+            scope.getForwardTooltipMessage = function () {
+                if (!scope.month.current_request.is_forwarded) {
+                    return "";
+                }
+
+                // Use a try-catch statement to account for async loading of month data
+                try {
+                    var memoHandedByIntern = scope.month.current_request.requested_department.department.memo_handed_by_intern;
+                    if (memoHandedByIntern === true) {
+                        return "Awaiting response from requested department or hospital (to be provided by intern)"
+                    } else if (memoHandedByIntern === false) {
+                        return "Awaiting response from requested department or hospital (to be provided by the medical internship unit)"
+                    }
+                } catch (e) {
+                    return "...";
+                }
+            }
+
         }
     }
 }])
@@ -88,7 +106,7 @@ angular.module("ei.months.directives", ["ei.months.models"])
             '    </li>' +
             '  </ul>' +
             '</div>'
-        ,
+        ,  // For conditional styling, see: https://stackoverflow.com/a/18910653/6797938
         link: function (scope, element, attrs) {
 
             scope.DIVIDER = "$DIV$";

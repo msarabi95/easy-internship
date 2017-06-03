@@ -101,6 +101,47 @@ class Department(models.Model):
     requirement_description = models.TextField(blank=True, null=True)
     requirement_file = models.FileField(upload_to='hospital_requirements', blank=True, null=True)
 
+    @property
+    def display_label(self):
+        """
+        A little hack to display specialty name with location name if needed.
+        """
+        expected_dept_name = "Department of %s" % self.specialty.name
+        if expected_dept_name != self.name:
+            try:
+                return "%s @ %s" % (
+                    self.specialty.name,
+                    self.name.split(expected_dept_name + " - ")[1],
+                )
+            except IndexError:
+                pass
+        return self.specialty.name
+
+    @property
+    def display_label_short(self):
+        """
+        Another little hack to shorten the specialty name while preserving the name of the subspecialty & location.
+        This is used to save some space when displaying the name.
+        
+        E.g. 'Internal Medicine' => 'MED'
+        E.g. 'Obstetrics & Gynecology - General' => 'OBGY (General)'
+        E.g. 'Family Medicine @ Ummalhamam' => 'FM @ Ummalhamam'
+        E.g. 'Surgery - Orthopedics @ Surgical Tower' => 'SURG (Orthopedics) @ Surgical Tower'
+        """
+        display_label = self.display_label
+        short_label = [self.specialty.abbreviation]
+
+        if " - " in display_label:
+            specialty_name = display_label.split(" @ ")[0] if " @ " in display_label else display_label
+            subspecialty = specialty_name.split(" - ")[1]
+            short_label.append("(%s)" % subspecialty)
+
+        if " @ " in display_label:
+            location = display_label.split(" @ ")[1]
+            short_label.append("@ %s" % location)
+
+        return " ".join(short_label)
+
     def get_available_seats(self, month):
         """
         Return the number of available seats for a specific month.

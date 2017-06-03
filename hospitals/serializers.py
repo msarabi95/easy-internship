@@ -20,6 +20,8 @@ class SpecialtySerializer(serializers.ModelSerializer):
 
 
 class DepartmentSerializer(serializers.ModelSerializer):
+    display_label = serializers.CharField(read_only=True)
+    display_label_short = serializers.CharField(read_only=True)
 
     class Meta:
         model = Department
