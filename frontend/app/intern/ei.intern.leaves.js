@@ -7,7 +7,7 @@ angular.module("ei.leaves", ["ngRoute", "djng.forms", "ui.select", "ei.utils",
 .config(["$routeProvider", function ($routeProvider) {
 
     $routeProvider
-        .when("/planner/:month_id/leaves/new/", {
+        .when("/planner/:month_id/request-leave/", {
             templateUrl: "leaves/leave-request-form/",
             controller: "LeaveRequestCreateCtrl"
         })
@@ -16,7 +16,7 @@ angular.module("ei.leaves", ["ngRoute", "djng.forms", "ui.select", "ei.utils",
             controller: "LeaveRequestHistoryCtrl"
         })
         .when("/planner/:month_id/leaves/:leave_id/cancel/", {
-            templateUrl: "static/partials/intern/leaves/leave-request-cancel.html",
+            templateUrl: "static/partials/intern/leaves/request-leave-cancel.html",
             controller: "LeaveRequestCancelCtrl"
         })
 

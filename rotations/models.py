@@ -184,6 +184,10 @@ class RotationRequest(models.Model):
     FORWARDED_STATUS = "F"
     REVIEWED_STATUS = "R"
 
+    @property
+    def is_forwarded(self):
+        return hasattr(self, 'forward')
+
     def validate_request(self):
         """
         Checks that:

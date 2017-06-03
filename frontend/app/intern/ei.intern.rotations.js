@@ -8,23 +8,31 @@ angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.r
 .config(["$routeProvider", function ($routeProvider) {
 
     $routeProvider
-        .when("/planner/:month_id/new/", {
-            templateUrl: "static/partials/intern/rotations/rotation-request-create.html",
-            controller: "RotationRequestCreateCtrl"
-        })
         .when("/planner/:month_id/history/", {
             templateUrl: "static/partials/intern/rotations/rotation-request-history.html?v=0005",
             controller: "RotationRequestHistoryCtrl"
         })
-        .when("/planner/:month_id/cancel/", {
-            templateUrl: "static/partials/intern/rotations/rotation-cancel-request-create.html?v=0001",
-            controller: "DeletionRequestCtrl"
+        .when("/planner/:month_id/request-rota/", {
+            templateUrl: "static/partials/intern/rotations/request-rotation.html",
+            controller: "RequestRotationCtrl"
+        })
+        .when("/planner/:month_id/cancel-rota/", {
+            templateUrl: "static/partials/intern/rotations/request-rotation-cancel.html",
+            controller: "RequestRotationCancelCtrl"
+        })
+        .when("/planner/:month_id/request-rota/delete/", {
+            templateUrl: "static/partials/intern/rotations/delete-rotation-request.html",
+            controller: "DeleteRotationRequestCtrl"
+        })
+        .when("/planner/:month_id/cancel-rota/delete/", {
+            templateUrl: "static/partials/intern/rotations/delete-rotation-cancel-request.html",
+            controller: "DeleteRotationCancelRequestCtrl"
         })
 
 }])
 
 
-.controller("RotationRequestCreateCtrl", ["$scope", "$q", "$routeParams", "$location", "Upload", "Specialty", "Hospital", "Intern", "InternshipMonth", "RotationRequest",
+.controller("RequestRotationCtrl", ["$scope", "$q", "$routeParams", "$location", "Upload", "Specialty", "Hospital", "Intern", "InternshipMonth", "RotationRequest",
     function ($scope, $q, $routeParams, $location, Upload, Specialty, Hospital, Intern, InternshipMonth, RotationRequest) {
         // Basic info about month and intern
         $scope.internshipMonth = InternshipMonth.get({month_id: $routeParams.month_id});
@@ -210,7 +218,7 @@ angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.r
         });
 }])
 
-.controller("DeletionRequestCtrl", ["$scope", "$routeParams", "$location", "InternshipMonth",
+.controller("RequestRotationCancelCtrl", ["$scope", "$routeParams", "$location", "InternshipMonth",
     function ($scope, $routeParams, $location, InternshipMonth) {
     $scope.month = InternshipMonth.get({month_id: $routeParams.month_id});
 
@@ -223,4 +231,12 @@ angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.r
         });
 
     };
+}])
+
+.controller("DeleteRotationRequestCtrl", ["$scope", function ($scope) {
+    // TODO
+}])
+
+.controller("DeleteRotationCancelRequestCtrl", ["$scope", function ($scope) {
+    // TODO
 }]);

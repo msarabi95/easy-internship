@@ -4,13 +4,12 @@
       <div class="modal-content">
 
         <div class="modal-header">
-          <h3 class="modal-title">Freeze request for {{ month.label }}</h3>
+          <h3 class="modal-title">Delete freeze cancellation request for {{ month.label }}</h3>
         </div>
 
         <div class="modal-body">
           <p>
-            You are requesting to <span class="text-light-blue text-bold">freeze your internship</span>
-            during the month <span class="text-light-blue text-bold">{{ month.label }}</span>.
+            You are <span class="text-red text-bold">deleting your freeze cancellation request</span> during the month <span class="text-red text-bold">{{ month.label }}</span>.
             <br>
             Are you sure you want to continue?
           </p>
@@ -20,15 +19,12 @@
           <a class="btn btn-default pull-left" href="javascript:history.back()">
             No, take me back
           </a>
-          <button class="btn btn-primary" ng-click="submit()">
-            Yes, I want to freeze this month
+          <button class="btn btn-danger" ng-click="submit()">
+            Yes, I want to delete this request
           </button>
-          <hr>
-          <p class="text-yellow text-center">Please note that once submitted, this request <span class="text-bold">cannot</span> be modified until it's reviewed by the medical internship unit.</p>
         </div>
 
       </div><!-- /.modal-content -->
     </div><!-- /.modal-dialog -->
   </div>
 </div>
-

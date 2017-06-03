@@ -13,19 +13,27 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
             controller: "MonthListCtrl"
         })
         .when("/planner/:month_id/", {
-            templateUrl: "static/partials/intern/months/month-detail.html?v=0005",
+            templateUrl: "static/partials/intern/months/month-detail.html?v=0006",
             controller: "MonthDetailCtrl"
         })
-        .when("/planner/:month_id/freeze/", {
+        .when("/planner/:month_id/request-freeze/", {
             templateUrl: function (params) {
                 return "/api/internship_months/" + params[0] + "/request_freeze/";
             },
-            controller: "FreezeRequestCreateCtrl"
+            controller: "RequestFreezeCtrl"
         })
-        .when("/planner/:month_id/freeze/cancel/", {
-            templateUrl: "static/partials/intern/months/freeze-cancel-request-create.html",
-            controller: "FreezeCancelRequestCreateCtrl"
+        .when("/planner/:month_id/cancel-freeze/", {
+            templateUrl: "static/partials/intern/months/request-freeze-cancel.html",
+            controller: "RequestFreezeCancelCtrl"
         })
+        .when("/planner/:month_id/request-freeze/delete/", {
+            templateUrl: "static/partials/intern/months/delete-freeze-request.html",
+            controller: "DeleteFreezeRequestCtrl"
+        })
+        .when("/planner/:month_id/cancel-freeze/delete/", {
+            templateUrl: "static/partials/intern/months/delete-freeze-cancel-request.html",
+            controller: "DeleteFreezeCancelRequestCtrl"
+        });
 
 }])
 
@@ -173,7 +181,7 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
 
 }])
 
-.controller("FreezeRequestCreateCtrl", ["$scope", "$http", "$routeParams", "$location", "djangoForm", "InternshipMonth", function ($scope, $http, $routeParams, $location, djangoForm, InternshipMonth) {
+.controller("RequestFreezeCtrl", ["$scope", "$http", "$routeParams", "$location", "djangoForm", "InternshipMonth", function ($scope, $http, $routeParams, $location, djangoForm, InternshipMonth) {
     $scope.month = InternshipMonth.get({month_id: $routeParams.month_id});
 
     $scope.submit = function () {
@@ -201,7 +209,7 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
     };
 }])
 
-.controller("FreezeCancelRequestCreateCtrl", ["$scope", "$routeParams", "$location", "InternshipMonth", function ($scope, $routeParams, $location, InternshipMonth) {
+.controller("RequestFreezeCancelCtrl", ["$scope", "$routeParams", "$location", "InternshipMonth", function ($scope, $routeParams, $location, InternshipMonth) {
     $scope.month = InternshipMonth.get({month_id: $routeParams.month_id});
 
     $scope.submit = function () {
@@ -213,4 +221,12 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
         });
 
     };
+}])
+
+.controller("DeleteFreezeRequestCtrl", ["$scope", function ($scope) {
+    // TODO
+}])
+
+.controller("DeleteFreezeCancelRequestCtrl", ["$scope", function ($scope) {
+    // TODO
 }]);

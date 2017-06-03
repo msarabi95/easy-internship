@@ -1,7 +1,7 @@
 /**
  * Created by MSArabi on 3/3/17.
  */
-angular.module("ei.months.directives", ["ei.months.models"])
+angular.module("ei.months.directives", ["ei.months.models", "ui.bootstrap"])
 
 .directive("internshipMonthBox", [function () {
     return {
@@ -13,7 +13,7 @@ angular.module("ei.months.directives", ["ei.months.models"])
             showActionButtons: "=?showActionButtons",
             boxStyle: "=?boxStyle"
         },
-        templateUrl: "/static/app/directives/templates/months/internship-month-box.html",
+        templateUrl: "/static/app/directives/templates/months/internship-month-box.html?v=0003",
         link: function (scope, element, attrs) {
 
             // Assert `size` is either 'lg' or 'sm'; default to 'lg' if not specified
@@ -61,6 +61,24 @@ angular.module("ei.months.directives", ["ei.months.models"])
                 return scope.size == 'lg' ? '130px' : '80px';
             };
 
+            scope.getForwardTooltipMessage = function () {
+                if (!scope.month.current_request.is_forwarded) {
+                    return "";
+                }
+
+                // Use a try-catch statement to account for async loading of month data
+                try {
+                    var memoHandedByIntern = scope.month.current_request.requested_department.department.memo_handed_by_intern;
+                    if (memoHandedByIntern === true) {
+                        return "Awaiting response from requested department or hospital (to be provided by intern)"
+                    } else if (memoHandedByIntern === false) {
+                        return "Awaiting response from requested department or hospital (to be provided by the medical internship unit)"
+                    }
+                } catch (e) {
+                    return "...";
+                }
+            }
+
         }
     }
 }])
@@ -72,22 +90,23 @@ angular.module("ei.months.directives", ["ei.months.models"])
             buttons: "=buttons",
             params: "=params",
             color: "=?color",  // A bootstrap class color
-            size: "=?size"
+            size: "=?size",
+            dropup: "=?dropup"
         },
         template:
-            '<div class="btn-group">' +
+            '<div class="btn-group" ng-class="{dropup: dropup == true}">' +
             '  <a type="button" class="btn btn-{{ color }} btn-flat {{ getSizeClass() }}" href="{{ renderUrl(buttons[0]) }}">{{ renderLabel(buttons[0]) }}</a>' +
             '  <button type="button" class="btn btn-{{ color }} btn-flat dropdown-toggle {{ getSizeClass() }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
             '    <span class="caret"></span>' +
             '    <span class="sr-only">Toggle Dropdown</span>' +
             '  </button>' +
             '  <ul class="dropdown-menu">' +
-            '    <li ng-repeat="button in buttons" ng-if="!$first" ng-class="{divider: button == DIVIDER}">' +
+            '    <li ng-repeat="button in buttons" ng-if="!$first" ng-class="{divider: button == DIVIDER}" ng-style="button == DIVIDER && {\'margin-top\': \'5px\', \'margin-bottom\': \'5px\'}">' +
             '       <a ng-if="button !== DIVIDER" href="{{ renderUrl(button) }}">{{ renderLabel(button) }}</a>' +
             '    </li>' +
             '  </ul>' +
             '</div>'
-        ,
+        ,  // For conditional styling, see: https://stackoverflow.com/a/18910653/6797938
         link: function (scope, element, attrs) {
 
             scope.DIVIDER = "$DIV$";
@@ -114,53 +133,53 @@ angular.module("ei.months.directives", ["ei.months.models"])
                 // ---------------------------------
                 'req-rota': {
                     label: "Request a rotation",
-                    url: "#/planner/%(month_id)%/new/"
+                    url: "#/planner/%(month_id)%/request-rota/"
                 },
                 'req-rota-change': {
                     label: "Request a different rotation",  // Only difference is label
-                    url: "#/planner/%(month_id)%/new/"
+                    url: "#/planner/%(month_id)%/request-rota/"
                 },
                 'req-rota-cancel': {
                     label: "Cancel this rotation",
-                    url: "#/planner/%(month_id)%/cancel/"  // TODO: ??
+                    url: "#/planner/%(month_id)%/cancel-rota/"
                 },
                 'req-freeze': {
                     label: "Request a freeze",
-                    url: "#/planner/%(month_id)%/freeze/"
+                    url: "#/planner/%(month_id)%/request-freeze/"
                 },
                 'req-freeze-cancel': {
                     label: "Cancel this freeze",
-                    url: "#/planner/%(month_id)%/freeze/cancel/"  // TODO: ??
+                    url: "#/planner/%(month_id)%/cancel-freeze/"
                 },
                 // ------------------------------
                 // ---- Request cancellation ----
                 // ------------------------------
-                'cancel-rota-req': {
-                    label: "Cancel my pending rotation request",
-                    url: "#/planner/%(month_id)%/??/"  // TODO: Specify a URL
+                'delete-rota-req': {
+                    label: "Delete my pending rotation request",
+                    url: "#/planner/%(month_id)%/request-rota/delete/"
                 },
-                'cancel-rota-cancel-req': {
-                    label: "Cancel my cancellation request",
-                    url: "#/planner/%(month_id)%/??/"  // TODO: Specify a URL
+                'delete-rota-cancel-req': {
+                    label: "Delete my cancellation request",
+                    url: "#/planner/%(month_id)%/cancel-rota/delete/"
                 },
-                'cancel-freeze-req': {
-                    label: "Cancel my pending freeze request",
-                    url: "#/planner/%(month_id)%/??/"  // TODO: Specify a URL
+                'delete-freeze-req': {
+                    label: "Delete my pending freeze request",
+                    url: "#/planner/%(month_id)%/request-freeze/delete/"
                 },
-                'cancel-freeze-cancel-req': {
-                    label: "Cancel my freeze cancellation request",
-                    url: "#/planner/%(month_id)%/??/"  // TODO: Specify a URL
+                'delete-freeze-cancel-req': {
+                    label: "Delete my freeze cancellation request",
+                    url: "#/planner/%(month_id)%/cancel-freeze/delete/"
                 },
                 // ----------------
                 // ---- Leaves ----
                 // ----------------
                 'req-leave': {
                     label: "Request a leave",
-                    url: "#/planner/%(month_id)%/leaves/new/"  // TODO: ??
+                    url: "#/planner/%(month_id)%/request-leave/"
                 },
                 'manage-leaves': {
                     label: "Manage leaves during this month",
-                    url: "#/planner/%(month_id)%/"  // TODO: ??
+                    url: "#/planner/%(month_id)%/"
                 }
             };
 
@@ -178,6 +197,11 @@ angular.module("ei.months.directives", ["ei.months.models"])
                 scope.size = "sm";
             } else if (scope.size !== 'sm' && scope.size !== 'lg') {
                 throw "`size` must be equal to either 'lg' or 'sm'."
+            }
+
+            // If dropup flag is not defined, default it to false
+            if (scope.dropup === undefined) {
+                scope.dropup = false;
             }
 
             // Verifications
