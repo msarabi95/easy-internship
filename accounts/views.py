@@ -21,6 +21,9 @@ from accounts.serializers import ProfileSerializer, InternSerializer, UserSerial
 from django.contrib.auth.models import User
 from rest_framework import viewsets, permissions
 
+from months.models import Internship
+from months.serializers import FullInternshipSerializer2
+
 
 class SignupWrapper(View):
     def get(self, request, *args, **kwargs):
@@ -181,4 +184,19 @@ class BatchViewSet(viewsets.ReadOnlyModelViewSet):
         batch = get_object_or_404(Batch, id=pk)
         interns = Intern.objects.filter(batch=batch).prefetch_related('profile__user', 'internship')
         serialized = InternTableSerializer(interns, many=True)
+        return Response(serialized.data)
+
+    @detail_route(methods=['get'], permission_classes=[permissions.IsAuthenticated, IsStaff])
+    def plans(self, request, pk, *args, **kwargs):
+        batch = get_object_or_404(Batch, id=pk)
+        plans = Internship.objects.filter(intern__batch=batch).prefetch_related(
+            'rotation_requests__requested_department__department__hospital',
+            'rotation_requests__requested_department__department__specialty',
+            'rotations__department__specialty',
+            'rotations__department__hospital',
+            'intern__profile__user__freezes',
+            'intern__profile__user__freeze_requests',
+            'intern__profile__user__freeze_cancel_requests',
+        )
+        serialized = FullInternshipSerializer2(plans, many=True)
         return Response(serialized.data)

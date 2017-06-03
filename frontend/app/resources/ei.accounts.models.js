@@ -34,7 +34,12 @@ angular.module('ei.accounts.models', ["ngResource", "ei.interceptors"])
     return $resource('/api/batches/:id', {id: '@id'}, {
         interns: {
             method: 'get',
-            url: '/api/batches/:id/interns',
+            url: '/api/batches/:id/interns/',
+            isArray: true
+        },
+        plans: {
+            method: 'get',
+            url: '/api/batches/:id/plans/',
             isArray: true
         }
     })

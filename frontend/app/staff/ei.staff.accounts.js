@@ -252,4 +252,9 @@ angular.module("ei.staff.accounts", ["ei.months.models", "ei.accounts.models",
 
 .controller("PlansSummaryCtrl", ["$scope", "Batch", function ($scope, Batch) {
     $scope.batches = Batch.query();
+    $scope.batches.$promise.then(function (batches) {
+        angular.forEach(batches, function (batch, index) {
+            batch.plans = Batch.plans({id: batch.id});
+        })
+    });
 }]);

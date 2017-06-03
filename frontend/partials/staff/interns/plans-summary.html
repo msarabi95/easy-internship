@@ -29,15 +29,15 @@
         <div class="box-body">
 
           <div  style="background-color: #ecf0f5; border-radius: 3px; padding: 5px;" ng-show="true">
-            <div class="row" ng-repeat="intern in [1, 2, 3] track by $index" style="padding-left: 15px; padding-right: 15px;">
+            <div class="row" ng-repeat="plan in batch.plans" ng-init="row = $index" style="padding-left: 15px; padding-right: 15px;">
               <div class="col-xs-1">
                 <!--<hr style="border-color: lightgray; margin-top: 0; margin-bottom: 0;">-->
-                <h4>Name</h4>
+                <h5 ng-style="row == 0 && {'margin-top': '50px'}">{{ plan.intern.profile.en_full_name }}</h5>
               </div>
               <div class="col-xs-11">
                 <div class="row">
-                  <div class="col-xs-1" ng-repeat="month in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]" style="padding-left: 5px; padding-right: 5px;">
-                    <internship-month-box internship-month="month" show-month-label="false" size="'sm'"></internship-month-box>
+                  <div class="col-xs-1" ng-repeat="month in plan.months | limitTo: 12" style="padding-left: 5px; padding-right: 5px;">
+                    <internship-month-box internship-month="month" show-month-label="row == 0" size="'sm'"></internship-month-box>
                   </div>
                 </div>
               </div>

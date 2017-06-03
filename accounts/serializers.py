@@ -31,7 +31,10 @@ class InternSerializer(serializers.ModelSerializer):
 
     def get_passport_image_url(self, obj):
         if (obj.is_ksauhs_intern and obj.has_passport) or (obj.is_agu_intern and obj.passport_image):
-            return obj.passport_image.url
+            try:
+                return obj.passport_image.url
+            except ValueError:
+                return None
         return None
 
     def get_passport_attachment_url(self, obj):
