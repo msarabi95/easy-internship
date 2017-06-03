@@ -13,7 +13,7 @@ angular.module("ei.months.directives", ["ei.months.models"])
             showActionButtons: "=?showActionButtons",
             boxStyle: "=?boxStyle"
         },
-        templateUrl: "/static/app/directives/templates/months/internship-month-box.html?v=0001",
+        templateUrl: "/static/app/directives/templates/months/internship-month-box.html?v=0002",
         link: function (scope, element, attrs) {
 
             // Assert `size` is either 'lg' or 'sm'; default to 'lg' if not specified
@@ -72,10 +72,11 @@ angular.module("ei.months.directives", ["ei.months.models"])
             buttons: "=buttons",
             params: "=params",
             color: "=?color",  // A bootstrap class color
-            size: "=?size"
+            size: "=?size",
+            dropup: "=?dropup"
         },
         template:
-            '<div class="btn-group">' +
+            '<div class="btn-group" ng-class="{dropup: dropup == true}">' +
             '  <a type="button" class="btn btn-{{ color }} btn-flat {{ getSizeClass() }}" href="{{ renderUrl(buttons[0]) }}">{{ renderLabel(buttons[0]) }}</a>' +
             '  <button type="button" class="btn btn-{{ color }} btn-flat dropdown-toggle {{ getSizeClass() }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
             '    <span class="caret"></span>' +
@@ -178,6 +179,11 @@ angular.module("ei.months.directives", ["ei.months.models"])
                 scope.size = "sm";
             } else if (scope.size !== 'sm' && scope.size !== 'lg') {
                 throw "`size` must be equal to either 'lg' or 'sm'."
+            }
+
+            // If dropup flag is not defined, default it to false
+            if (scope.dropup === undefined) {
+                scope.dropup = false;
             }
 
             // Verifications

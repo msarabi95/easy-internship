@@ -266,30 +266,75 @@
           <a class="btn btn-default pull-left" href="#/planner/">
             Back to Planner
           </a>
-
-          <div class="btn-group dropup">
-            <a class="btn btn-default" href="#/planner/{{ month.month }}/history/">
-              See previous requests for this month
-            </a>
-            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              <span class="caret"></span>
-              <span class="sr-only">Toggle Dropdown</span>
-            </button>
-            <ul class="dropdown-menu dropdown-menu-right">
-              <li><a href="#/planner/{{ month.month }}/new/">
-                <span class="text-yellow">Request a different rotation</span>
-              </a></li>
-              <li><a href="#/planner/{{ month.month }}/cancel/">
-                <span class="text-red">Cancel this rotation</span>
-              </a></li>
-              <li class="divider"></li>
-              <li><a href="#/planner/{{ month.month }}/leaves/new/">
-                <span class="">Request a leave</span>
-              </a></li>
-              <li><a href="#/planner/{{ month.month }}/leaves/history/">
-                <span class="">See previous leave requests for this month</span>
-              </a></li>
-            </ul>
+          
+          <div class="action-buttons">
+            <div ng-if="month.disabled" class="text-gray">
+              <!-- **** (1) Disabled ***** -->
+              <!-- Nothing basically -->
+            </div>
+  
+            <div ng-if="month.empty">
+              <!-- ***** (2) Empty ****** -->
+  
+              <div ng-if="!month.has_rotation_request && !month.has_freeze_request">
+                <!-- A) "Purely" empty  -->
+                <box-action-buttons params="{month_id: month.month}" buttons="['history', 'req-rota', 'req-freeze']" dropup="true" size="'lg'"></box-action-buttons>
+              </div>
+  
+              <div ng-if="month.has_rotation_request">
+                <!-- B) With a rotation request  -->
+                <box-action-buttons params="{month_id: month.month}" buttons="['history', 'delete-rota-req']" dropup="true" size="'lg'"></box-action-buttons>
+              </div>
+  
+              <div ng-if="month.has_freeze_request">
+                <!-- C) With a freeze request  -->
+                <box-action-buttons params="{month_id: month.month}" buttons="['history', 'delete-freeze-req']" dropup="true" size="'lg'"></box-action-buttons>
+              </div>
+            </div>
+  
+            <div ng-if="month.frozen">
+              <!-- ***** (3) Frozen ****** -->
+  
+              <div ng-if="!month.has_freeze_cancel_request && !month.has_rotation_request">
+                <!-- A) "Purely" frozen -->
+                <box-action-buttons params="{month_id: month.month}" buttons="['history', 'req-freeze-cancel']" dropup="true" size="'lg'"></box-action-buttons>
+              </div>
+  
+              <div ng-if="month.has_freeze_cancel_request">
+                <!-- B) With a freeze cancellation request -->
+                <box-action-buttons params="{month_id: month.month}" buttons="['history', 'delete-freeze-cancel-req']" dropup="true" size="'lg'"></box-action-buttons>
+              </div>
+  
+              <div ng-if="month.has_rotation_request">
+                <!-- C) With a rotation request -->
+                <box-action-buttons params="{month_id: month.month}" buttons="['history', 'delete-rota-req']" dropup="true" size="'lg'"></box-action-buttons>
+              </div>
+            </div>
+  
+            <div ng-if="month.occupied">
+              <!-- ***** (4) Occupied ****** -->
+  
+              <div ng-if="!month.has_rotation_request && !month.has_rotation_cancel_request && !month.has_freeze_request">
+                <!-- A) Purely occupied -->
+                <box-action-buttons params="{month_id: month.month}" buttons="['history', 'req-rota-change', 'req-rota-cancel']" dropup="true" size="'lg'"></box-action-buttons>
+              </div>
+  
+              <div ng-if="month.has_rotation_request">
+                <!-- B) With rotation request -->
+                <box-action-buttons params="{month_id: month.month}" buttons="['history', 'delete-rota-req']" dropup="true" size="'lg'"></box-action-buttons>
+              </div>
+  
+              <div ng-if="month.has_rotation_cancel_request">
+                <!-- C) With rotation cancel request -->
+                <box-action-buttons params="{month_id: month.month}" buttons="['history', 'delete-rota-cancel-req']" dropup="true" size="'lg'"></box-action-buttons>
+              </div>
+  
+              <div ng-if="month.has_freeze_request">
+                <!-- D) With freeze request -->
+                <!-- To be implemented -->
+              </div>
+  
+            </div>
           </div>
 
         </div>
