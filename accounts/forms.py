@@ -721,6 +721,20 @@ class OutsideProfileEditForm(BaseProfileEditForm):
         self.fields['medical_checklist'].initial = intern_profile.medical_checklist
         self.fields['academic_transcript'].initial = intern_profile.academic_transcript
 
+    def save(self, *args, **kwargs):
+        profile = super(BaseProfileEditForm, self).save(*args, **kwargs)
+
+        intern_profile = profile.intern
+
+        intern_profile.graduation_year = self.cleaned_data['graduation_year']
+        intern_profile.graduation_month = self.cleaned_data['graduation_month']
+        intern_profile.medical_checklist = self.cleaned_data['medical_checklist']
+        intern_profile.academic_transcript = self.cleaned_data['academic_transcript']
+
+        intern_profile.save()
+
+        return profile
+
 
 class ResendForm(forms.Form):
     email = forms.EmailField()
