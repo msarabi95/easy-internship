@@ -4,8 +4,8 @@ from rest_framework import serializers
 
 from easy_internship.serializers import MonthField
 from hospitals.models import Department, AcceptanceSetting
+from hospitals.serializers import SpecialtySerializer, DepartmentSerializer2
 from months.models import Internship
-from months.serializers import FullInternshipSerializer
 from rotations.models import Rotation, RequestedDepartment, RotationRequest, RotationRequestResponse, \
     RotationRequestForward
 
@@ -212,8 +212,46 @@ class ShortRotationRequestForwardSerializer(serializers.ModelSerializer):
         fields = ('id', 'forward_datetime', 'memo_file', 'rotation_request', )
 
 
+# Import placed here to avoid circular import issues with months.serializers module
+from months.serializers import FullInternshipSerializer
+
 class FullRotationSerializer(RotationSerializer):
     internship = FullInternshipSerializer()
 
     class Meta(RotationSerializer.Meta):
         pass
+
+
+#############################
+# Plans summary serializers #
+#############################
+
+
+class RotationSerializer2(serializers.ModelSerializer):
+    specialty = SpecialtySerializer()
+    department = DepartmentSerializer2()
+
+    class Meta:
+        model = Rotation
+        fields = '__all__'
+
+
+class RequestedDepartmentSerializer2(serializers.ModelSerializer):
+    department = DepartmentSerializer2()
+
+    class Meta:
+        model = RequestedDepartment
+        fields = '__all__'
+
+
+class RotationRequestSerializer2(serializers.ModelSerializer):
+    month = MonthField()
+    specialty = SpecialtySerializer()
+    requested_department = RequestedDepartmentSerializer2()
+    is_forwarded = serializers.BooleanField(read_only=True)
+    response = RotationRequestResponseSerializer()
+    forward = RotationRequestForwardSerializer()
+
+    class Meta:
+        model = RotationRequest
+        fields = '__all__'
