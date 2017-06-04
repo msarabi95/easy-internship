@@ -15,7 +15,7 @@ class InternshipMonthSerializer(serializers.Serializer):
     label_short = serializers.CharField(read_only=True)
 
     current_rotation = serializers.PrimaryKeyRelatedField(read_only=True)
-    current_request = serializers.PrimaryKeyRelatedField(read_only=True)  # TODO: Change to `current_rotation_request`
+    current_rotation_request = serializers.PrimaryKeyRelatedField(read_only=True)
     current_rotation_cancel_request = serializers.PrimaryKeyRelatedField(read_only=True)
     rotation_request_history = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
     rotation_cancel_request_history = serializers.PrimaryKeyRelatedField(read_only=True, many=True)

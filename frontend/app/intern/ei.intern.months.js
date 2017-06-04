@@ -13,7 +13,7 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
             controller: "MonthListCtrl"
         })
         .when("/planner/:month_id/", {
-            templateUrl: "static/partials/intern/months/month-detail.html?v=0006",
+            templateUrl: "static/partials/intern/months/month-detail.html?v=0007",
             controller: "MonthDetailCtrl"
         })
         .when("/planner/:month_id/request-freeze/", {
@@ -61,7 +61,7 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
                     $scope.months[index].occupied = false;
                 }
 
-                if (month.current_request !== null) {
+                if (month.current_rotation_request !== null) {
                     requested.push(index);
                     $scope.months[index].requested = true;
                 } else {
@@ -86,7 +86,7 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
 
             // Load all details of requested month
             angular.forEach(requested, function (monthIndex) {
-                $scope.months[monthIndex].current_request = loadWithRelated($scope.months[monthIndex].current_request, RotationRequest, [
+                $scope.months[monthIndex].current_rotation_request = loadWithRelated($scope.months[monthIndex].current_rotation_request, RotationRequest, [
                     {specialty: Specialty},
                     [{requested_department: RequestedDepartment}, [
                         [{department: Department}, [
@@ -110,7 +110,7 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
                     return "warning";
                 } else if (month.occupied && !month.requested) {
                     return "primary";
-                //} else if (month.occupied && month.requested && month.current_request.delete) {
+                //} else if (month.occupied && month.requested && month.current_rotation_request.delete) {
                 //    return "danger";
                 } else {
                     return "primary";
@@ -133,7 +133,7 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
         $scope.month.$promise.then(function (month) {
 
             $scope.month.occupied = (month.current_rotation !== null);
-            $scope.month.requested = (month.current_request !== null);
+            $scope.month.requested = (month.current_rotation_request !== null);
 
             if ($scope.month.occupied) {
                 // Load current rotation
@@ -149,7 +149,7 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
             }
 
             if ($scope.month.requested) {
-                $scope.month.current_request = loadWithRelated($scope.month.current_request, RotationRequest, [
+                $scope.month.current_rotation_request = loadWithRelated($scope.month.current_rotation_request, RotationRequest, [
                     {specialty: Specialty},
                     [{requested_department: RequestedDepartment}, [
                         [{department: Department}, [
@@ -157,9 +157,9 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
                         ]]
                     ]]
                 ]);
-                $scope.month.current_request.$promise.then(function (request) {
-                    if (!!$scope.month.current_request.forward) {
-                        $scope.month.current_request.forward = RotationRequestForward.get({id: request.forward});
+                $scope.month.current_rotation_request.$promise.then(function (request) {
+                    if (!!$scope.month.current_rotation_request.forward) {
+                        $scope.month.current_rotation_request.forward = RotationRequestForward.get({id: request.forward});
                     }
                 });
             }
@@ -172,7 +172,7 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
         });
 
         $scope.record_response = function (is_approved, comments) {
-            $scope.month.current_request.$respond({is_approved: is_approved, comments: comments}, function () {
+            $scope.month.current_rotation_request.$respond({is_approved: is_approved, comments: comments}, function () {
                 $location.path("/planner/" + $scope.month.month + "/history/");
             }, function (error) {
                 toastr.error(error);

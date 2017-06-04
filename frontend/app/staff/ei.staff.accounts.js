@@ -89,24 +89,24 @@ angular.module("ei.staff.accounts", ["ei.months.models", "ei.accounts.models",
                 $scope.internship.months[index].$promise.then(function (internshipMonth) {
 
                     $scope.internship.months[index].occupied = (internshipMonth.current_rotation !== null);
-                    $scope.internship.months[index].requested = (internshipMonth.current_request !== null);
+                    $scope.internship.months[index].requested = (internshipMonth.current_rotation_request !== null);
 
                     if (internshipMonth.requested) {
-                        $scope.internship.months[index].current_request = RotationRequest.get({id: internshipMonth.current_request});
-                        $scope.internship.months[index].current_request.$promise.then(function (rotation_request) {
+                        $scope.internship.months[index].current_rotation_request = RotationRequest.get({id: internshipMonth.current_rotation_request});
+                        $scope.internship.months[index].current_rotation_request.$promise.then(function (rotation_request) {
 
-                            $scope.internship.months[index].current_request.specialty =
+                            $scope.internship.months[index].current_rotation_request.specialty =
                                 Specialty.get({id: rotation_request.specialty});
 
-                            $scope.internship.months[index].current_request.requested_department =
+                            $scope.internship.months[index].current_rotation_request.requested_department =
                                 RequestedDepartment.get({id: rotation_request.requested_department});
-                            $scope.internship.months[index].current_request.requested_department.$promise.then(function (requested_department) {
+                            $scope.internship.months[index].current_rotation_request.requested_department.$promise.then(function (requested_department) {
 
-                                $scope.internship.months[index].current_request.requested_department.department =
+                                $scope.internship.months[index].current_rotation_request.requested_department.department =
                                     Department.get({id: requested_department.department});
-                                $scope.internship.months[index].current_request.requested_department.department.$promise.then(function (department) {
+                                $scope.internship.months[index].current_rotation_request.requested_department.department.$promise.then(function (department) {
 
-                                    $scope.internship.months[index].current_request.requested_department.department.hospital =
+                                    $scope.internship.months[index].current_rotation_request.requested_department.department.hospital =
                                         Hospital.get({id: department.hospital});
                                 })
                             });

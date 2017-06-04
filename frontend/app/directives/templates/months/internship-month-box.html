@@ -46,24 +46,24 @@
             <!-- i. Large size -->
             <div ng-if="size == 'lg'">
               <h3 class="text-yellow text-center">
-                <i ng-if="month.current_request.is_forwarded" uib-tooltip="{{ getForwardTooltipMessage() }}" class="fa fa-external-link"></i>
+                <i ng-if="month.current_rotation_request.is_forwarded" uib-tooltip="{{ getForwardTooltipMessage() }}" class="fa fa-external-link"></i>
                 Pending
               </h3>
               <h4 class="text-yellow text-center">
-                {{ month.current_request.requested_department.department.display_label }}
-                <small ng-if="month.current_request.is_elective">(Elective)</small>
+                {{ month.current_rotation_request.requested_department.department.display_label }}
+                <small ng-if="month.current_rotation_request.is_elective">(Elective)</small>
               </h4>
-              <h5 class="text-center">{{ month.current_request.requested_department.department.hospital.name }}</h5>
+              <h5 class="text-center">{{ month.current_rotation_request.requested_department.department.hospital.name }}</h5>
             </div>
             
             <!-- ii. Small size -->
             <div ng-if="size == 'sm'">
               <h5 class="text-yellow text-center">
-                <i ng-if="month.current_request.is_forwarded" uib-tooltip="{{ getForwardTooltipMessage() }}" class="fa fa-external-link"></i>
-                {{ month.current_request.requested_department.department.display_label }}
-                <small ng-if="month.current_request.is_elective">(Elective)</small>
+                <i ng-if="month.current_rotation_request.is_forwarded" uib-tooltip="{{ getForwardTooltipMessage() }}" class="fa fa-external-link"></i>
+                {{ month.current_rotation_request.requested_department.department.display_label }}
+                <small ng-if="month.current_rotation_request.is_elective">(Elective)</small>
               </h5>
-              <h6 class="text-center">{{ month.current_request.requested_department.department.hospital.abbreviation }}</h6>
+              <h6 class="text-center">{{ month.current_rotation_request.requested_department.department.hospital.abbreviation }}</h6>
             </div>
           </div>
           
@@ -153,22 +153,22 @@
             <div ng-if="month.has_rotation_request">
               <div ng-if="size == 'lg'">
                 <h5 class="text-yellow text-center">
-                  <i ng-if="month.current_request.is_forwarded" uib-tooltip="{{ getForwardTooltipMessage() }}" class="fa fa-external-link"></i>
-                  Pending: {{ month.current_request.requested_department.department.display_label_short }}
-                  <small ng-if="month.current_request.is_elective">(Elective)</small>
+                  <i ng-if="month.current_rotation_request.is_forwarded" uib-tooltip="{{ getForwardTooltipMessage() }}" class="fa fa-external-link"></i>
+                  Pending: {{ month.current_rotation_request.requested_department.department.display_label_short }}
+                  <small ng-if="month.current_rotation_request.is_elective">(Elective)</small>
                 </h5>
-                <h6 class="text-center">{{ month.current_request.requested_department.department.hospital.name }}</h6>
+                <h6 class="text-center">{{ month.current_rotation_request.requested_department.department.hospital.name }}</h6>
               </div>
 
               <div ng-if="size == 'sm'">
                 <h6 class="text-center">
                   <span class="text-yellow">
-                    <i ng-if="month.current_request.is_forwarded" uib-tooltip="{{ getForwardTooltipMessage() }}" class="fa fa-external-link"></i>
-                    {{ month.current_request.requested_department.department.display_label_short }}
+                    <i ng-if="month.current_rotation_request.is_forwarded" uib-tooltip="{{ getForwardTooltipMessage() }}" class="fa fa-external-link"></i>
+                    {{ month.current_rotation_request.requested_department.department.display_label_short }}
                   </span>
                   —
-                  {{ month.current_request.requested_department.department.hospital.abbreviation }}
-                  <small ng-if="month.current_request.is_elective">(Elective)</small>
+                  {{ month.current_rotation_request.requested_department.department.hospital.abbreviation }}
+                  <small ng-if="month.current_rotation_request.is_elective">(Elective)</small>
                 </h6>
               </div>
             </div>

@@ -18,14 +18,14 @@
               <br ng-if="month.occupied">
               You <span ng-if="month.occupied">also </span>have a pending request
 
-              <span ng-if="!month.current_request.is_delete">
+              <span ng-if="!month.current_rotation_request.is_delete">
                 for a rotation of
-                <span class="text-yellow">{{ month.current_request.specialty.name }}
-                  <span ng-if="month.current_request.is_elective">(elective)</span>
+                <span class="text-yellow">{{ month.current_rotation_request.specialty.name }}
+                  <span ng-if="month.current_rotation_request.is_elective">(elective)</span>
                 </span> in
-                <span class="text-yellow">{{ month.current_request.requested_department.department.hospital.name }}</span>
+                <span class="text-yellow">{{ month.current_rotation_request.requested_department.department.hospital.name }}</span>
               </span>
-              <span ng-if="month.current_request.is_delete">
+              <span ng-if="month.current_rotation_request.is_delete">
                 to <span class="text-red">cancel your rotation</span>
               </span>
               .
@@ -67,44 +67,44 @@
 
           <div ng-if="month.requested">
             <hr>
-            <h4 class="text-bold" ng-class="{'text-yellow': !month.current_request.is_delete, 'text-red': month.current_request.is_delete}">
+            <h4 class="text-bold" ng-class="{'text-yellow': !month.current_rotation_request.is_delete, 'text-red': month.current_rotation_request.is_delete}">
               Details of your pending request</h4>
 
             <p>
-              Below is a detailed breakdown of information about your request<span ng-if="month.current_request.is_delete">.</span>
-              <span ng-if="!month.current_request.is_delete"> , as well as the
+              Below is a detailed breakdown of information about your request<span ng-if="month.current_rotation_request.is_delete">.</span>
+              <span ng-if="!month.current_rotation_request.is_delete"> , as well as the
               department you'll be rotating in once it's approved.</span>
             </p>
 
             <div class="box box-solid">
-              <div class="box-body" ng-class="{'bg-warning': !month.current_request.is_delete, 'bg-danger': month.current_request.is_delete}" style="margin-bottom: 0;">
+              <div class="box-body" ng-class="{'bg-warning': !month.current_rotation_request.is_delete, 'bg-danger': month.current_rotation_request.is_delete}" style="margin-bottom: 0;">
                 <dl class="dl-horizontal">
-                  <div ng-if="!month.current_request.is_delete">
+                  <div ng-if="!month.current_rotation_request.is_delete">
                     <dt>Specialty</dt>
-                    <dd class="text-yellow text-bold">{{ month.current_request.specialty.name }}</dd>
+                    <dd class="text-yellow text-bold">{{ month.current_rotation_request.specialty.name }}</dd>
 
                     <dt>Hospital</dt>
-                    <dd class="text-yellow text-bold">{{ month.current_request.requested_department.department.hospital.name }}</dd>
+                    <dd class="text-yellow text-bold">{{ month.current_rotation_request.requested_department.department.hospital.name }}</dd>
 
                     <dt>Elective?</dt>
                     <dd>
-                      <span ng-if="month.current_request.is_elective == true" class="text-yellow text-bold">Yes</span>
-                      <span ng-if="month.current_request.is_elective == false">No</span>
+                      <span ng-if="month.current_rotation_request.is_elective == true" class="text-yellow text-bold">Yes</span>
+                      <span ng-if="month.current_rotation_request.is_elective == false">No</span>
                     </dd>
                   </div>
 
-                  <div ng-if="month.current_request.is_delete">
+                  <div ng-if="month.current_rotation_request.is_delete">
                     <dt>Description</dt>
                     <dd>You have requested a <span class="text-red text-bold">cancellation of your rotation</span> during this month.</dd>
                     <hr>
                   </div>
 
                   <dt style="width: inherit;">Submission date and time</dt>
-                  <dd>{{ month.current_request.submission_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
+                  <dd>{{ month.current_rotation_request.submission_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
                 </dl>
 
 
-                <div class="box box-solid" style="margin-bottom: 0;" ng-if="!month.current_request.is_delete">
+                <div class="box box-solid" style="margin-bottom: 0;" ng-if="!month.current_rotation_request.is_delete">
                   <div class="box-header bg-light-blue">
                     <h5 class="text-bold" style="margin-top: 0; margin-bottom: 0;">
                       Details of the department you'll be rotating in
@@ -113,28 +113,28 @@
                   <div class="box-body bg-info">
                     <dl class="dl-horizontal" style="margin-bottom: 0;">
                       <dt>Name of department</dt>
-                      <dd>{{ month.current_request.requested_department.department.name }}</dd>
+                      <dd>{{ month.current_rotation_request.requested_department.department.name }}</dd>
 
                       <dt>Name of contact person</dt>
                       <dd>
-                        {{ month.current_request.requested_department.department.contact_name }},
-                        {{ month.current_request.requested_department.department.contact_position }}
+                        {{ month.current_rotation_request.requested_department.department.contact_name }},
+                        {{ month.current_rotation_request.requested_department.department.contact_position }}
                       </dd>
 
                       <dt>Email</dt>
-                      <dd>{{ month.current_request.requested_department.department.email }}</dd>
+                      <dd>{{ month.current_rotation_request.requested_department.department.email }}</dd>
 
                       <dt>Phone</dt>
-                      <dd>{{ month.current_request.requested_department.department.phone }}</dd>
+                      <dd>{{ month.current_rotation_request.requested_department.department.phone }}</dd>
 
                       <dt>Extension</dt>
-                      <dd>{{ month.current_request.requested_department.department.extension }}</dd>
+                      <dd>{{ month.current_rotation_request.requested_department.department.extension }}</dd>
                     </dl>
 
                   </div>
                 </div>
 
-                <div class="box box-solid" style="margin-top: 10px; margin-bottom: 0;" ng-if="!!month.current_request.forward">
+                <div class="box box-solid" style="margin-top: 10px; margin-bottom: 0;" ng-if="!!month.current_rotation_request.forward">
                   <div class="box-header bg-green">
                     <h5 class="text-bold" style="margin-top: 0; margin-bottom: 0;">
                       Details of your request's forward
@@ -142,20 +142,20 @@
                   </div>
                   <div class="box-body bg-success">
                     <dl class="dl-horizontal" style="margin-bottom: 0;">
-                      <p ng-if="month.current_request.requested_department.department.memo_handed_by_intern == false">
+                      <p ng-if="month.current_rotation_request.requested_department.department.memo_handed_by_intern == false">
                         Your request has been forwarded by the medical internship unit to the requested department.
                       </p>
-                      <p ng-if="month.current_request.requested_department.department.memo_handed_by_intern == true">
+                      <p ng-if="month.current_rotation_request.requested_department.department.memo_handed_by_intern == true">
                         Please hand the attached memo to the requested hospital, and record the response below once received.
                       </p>
 
                       <dt>Forward date and time</dt>
-                      <dd>{{ month.current_request.forward.forward_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
+                      <dd>{{ month.current_rotation_request.forward.forward_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
 
-                      <div ng-if="month.current_request.requested_department.department.memo_handed_by_intern == true">
+                      <div ng-if="month.current_rotation_request.requested_department.department.memo_handed_by_intern == true">
                         <dt>Download memo</dt>
                         <dd>
-                          <a href="{{ month.current_request.forward.memo_file }}" class="btn btn-xs btn-danger">As PDF</a>
+                          <a href="{{ month.current_rotation_request.forward.memo_file }}" class="btn btn-xs btn-danger">As PDF</a>
                           <!--<i>(last updated: {{ rotation_request.forward.last_updated.format('dddd, D MMMM YYYY, hh:mm a') }} )</i>-->
                         </dd>
                       </div>
@@ -164,7 +164,7 @@
                   </div>
                 </div>
 
-                <div class="box box-solid" style="margin-top: 10px; margin-bottom: 0;" ng-if="!!month.current_request.forward && month.current_request.requested_department.department.memo_handed_by_intern == true">
+                <div class="box box-solid" style="margin-top: 10px; margin-bottom: 0;" ng-if="!!month.current_rotation_request.forward && month.current_rotation_request.requested_department.department.memo_handed_by_intern == true">
                   <div class="box-header bg-aqua">
                     <h5 class="text-bold" style="margin-top: 0; margin-bottom: 0;">
                       Department Response

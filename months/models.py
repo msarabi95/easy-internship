@@ -20,7 +20,7 @@ class InternshipMonth(object):
         self.label_short = month.first_day().strftime("%b. %Y")  # TODO: Remove
 
         self.current_rotation = self._current_for_month(self.internship.rotations.all())
-        self.current_request = self._current_for_month(self._is_delete(self.internship.rotation_requests.all(), False))  # TODO: Change to `current_rotation_request` (is_delete=False)
+        self.current_rotation_request = self._current_for_month(self._is_delete(self.internship.rotation_requests.all(), False))
         self.current_rotation_cancel_request = self._current_for_month(self._is_delete(self.internship.rotation_requests.all(), True))
         self.rotation_request_history = self._closed(self._month(self._is_delete(self.internship.rotation_requests.all(), False)))
         self.rotation_cancel_request_history = self._closed(self._month(self._is_delete(self.internship.rotation_requests.all(), True)))
@@ -37,7 +37,7 @@ class InternshipMonth(object):
         self.leave_request_history = self._closed(self._month(self.intern.leave_requests.all()))
         self.leave_cancel_request_history = self._closed(self._month(self.intern.leave_cancel_requests.all()))
 
-        self.has_rotation_request = self.current_request is not None
+        self.has_rotation_request = self.current_rotation_request is not None
         self.has_rotation_cancel_request = self.current_rotation_cancel_request is not None
         self.has_freeze_request = self.current_freeze_request is not None
         self.has_freeze_cancel_request = self.current_freeze_cancel_request is not None
