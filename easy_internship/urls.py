@@ -70,8 +70,14 @@ urlpatterns = [
 ]
 
 if settings.DEBUG:
+    import debug_toolbar
     # media files (user-uploaded files)
     urlpatterns += [
         url(r'^media/(?P<path>.*)$', 'django.views.static.serve', {
         'document_root': settings.MEDIA_ROOT})
     ]
+
+    urlpatterns += [
+        url(r'^__debug__/', include(debug_toolbar.urls)),
+    ]
+

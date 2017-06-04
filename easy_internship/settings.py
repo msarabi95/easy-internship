@@ -58,10 +58,12 @@ INSTALLED_APPS = (
     'protractor',
     'ckeditor',
     'ckeditor_uploader',
+    'debug_toolbar',
 )
 
 MIDDLEWARE_CLASSES = (
     'djng.middleware.AngularUrlMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -197,6 +199,10 @@ USERENA_PROFILE_DETAIL_TEMPLATE = "userena/profile_detail_custom.html"
 
 NYT_ENABLE_ADMIN = True
 NYT_EMAIL_SENDER = secrets.NYT_EMAIL_SENDER
+
+# Django debug toolbar
+
+INTERNAL_IPS = ['127.0.0.1', 'localhost']
 
 # Misc
 

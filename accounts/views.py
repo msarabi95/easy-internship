@@ -192,11 +192,18 @@ class BatchViewSet(viewsets.ReadOnlyModelViewSet):
         plans = Internship.objects.filter(intern__batch=batch).prefetch_related(
             'rotation_requests__requested_department__department__hospital',
             'rotation_requests__requested_department__department__specialty',
+            'rotation_requests__response',
+            'rotation_requests__forward',
             'rotations__department__specialty',
             'rotations__department__hospital',
             'intern__profile__user__freezes',
-            'intern__profile__user__freeze_requests',
-            'intern__profile__user__freeze_cancel_requests',
+            'intern__profile__user__freeze_requests__response',
+            'intern__profile__user__freeze_cancel_requests__response',
+            'intern__profile__user__leaves',
+            'intern__profile__user__leave_requests__response',
+            'intern__profile__user__leave_cancel_requests__response',
+            'intern__university',
+            'intern__batch',
         )
         serialized = FullInternshipSerializer2(plans, many=True)
         return Response(serialized.data)
