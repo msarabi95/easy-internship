@@ -191,7 +191,6 @@ class RotationRequestViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get'], permission_classes=[permissions.IsAuthenticated, IsStaff])
     def cancellation(self, request):
         requests = self.get_queryset().unreviewed().filter(is_delete=True)
-        serialized = ShortRotationRequestSerializer(requests, many=True)
 
         if request.query_params.get('university') == 'agu':
             kw = {'internship__intern__batch__is_agu': True}
@@ -201,6 +200,7 @@ class RotationRequestViewSet(viewsets.ModelViewSet):
             kw = {'internship__intern__batch__is_ksauhs': True}
         requests = requests.filter(**kw)
 
+        serialized = ShortRotationRequestSerializer(requests, many=True)
         return Response(serialized.data)
 
     @detail_route(methods=['get'], permission_classes=[permissions.IsAuthenticated, IsStaff])

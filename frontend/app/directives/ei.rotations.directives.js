@@ -42,7 +42,7 @@ angular.module("ei.rotations.directives", ["ei.utils", "ui.bootstrap", "ngFileUp
             request: "=rotationRequest",
             moveToForwardedRequests: "&onForward"
         },
-        templateUrl: "/static/app/directives/templates/rotations/rotation-request-forward-card.html?v=0003",
+        templateUrl: "/static/app/directives/templates/rotations/rotation-request-forward-card.html?v=0004",
         link: function (scope, element, attrs) {
 
             scope.response = {};
@@ -97,7 +97,7 @@ angular.module("ei.rotations.directives", ["ei.utils", "ui.bootstrap", "ngFileUp
             request: "=rotationRequest",
             moveToPastRequests: "&onResponse"
         },
-        templateUrl: "/static/app/directives/templates/rotations/rotation-cancel-request-response-card.html",
+        templateUrl: "/static/app/directives/templates/rotations/rotation-cancel-request-response-card.html?v=0001",
         link: function (scope, element, attrs) {
 
             scope.response = {};
@@ -128,7 +128,7 @@ angular.module("ei.rotations.directives", ["ei.utils", "ui.bootstrap", "ngFileUp
             list: "=list",
             removeFromList: "&onResponse"
         },
-        templateUrl: "/static/app/directives/templates/rotations/acceptance-list.html?v=0002",
+        templateUrl: "/static/app/directives/templates/rotations/acceptance-list.html?v=0003",
         link: function (scope, element, attrs) {
             var CommentModalCtrl = ["$scope", "$uibModalInstance", "request", "options", function ($scope, $uibModalInstance, request, options) {
                 $scope.request = request;

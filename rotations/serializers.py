@@ -153,6 +153,7 @@ class ShortRotationRequestSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
     internship_id = serializers.IntegerField(source='internship.id')
     intern_name = serializers.CharField(source='internship.intern.profile.get_en_full_name')
+    intern_university = serializers.CharField(source='internship.intern.university.abbreviation')
     month = MonthField()
     specialty = serializers.CharField(source='specialty.name')
     requested_department_name = serializers.CharField(source='requested_department.get_department.name')
@@ -165,8 +166,8 @@ class ShortRotationRequestSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RotationRequest
-        fields = ('id', 'internship_id', 'intern_name', 'month', 'specialty', 'requested_department_name',
-                  'requested_department_hospital_name', 'requested_department_requires_memo',
+        fields = ('id', 'internship_id', 'intern_name', 'intern_university', 'month', 'specialty', 'requested_department_name',
+                  'requested_department_hospital_name', 'requested_department_requires_memo', 'request_memo',
                   'is_elective', 'submission_datetime', 'gpa', 'is_elective', 'is_delete', 'response')
 
 

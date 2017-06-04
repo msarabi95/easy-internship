@@ -9,6 +9,15 @@
       <dt>Intern</dt>
       <dd>{{ request.intern_name }}</dd>
 
+      <dt>University</dt>
+      <dd>{{ request.intern_university }}</dd>
+
+      <dt>Request memo</dt>
+      <dd>
+        <a ng-if="request.request_memo" href="{{ request.request_memo }}"><i class="fa fa-cloud-download"></i></a>
+        <span ng-if="!request.request_memo" class="text-gray">N/A</span>
+      </dd>
+
       <dt>GPA</dt>
       <dd>{{ request.gpa }}</dd>
 

@@ -27,6 +27,8 @@
               <table class="table" ng-if="list.auto_accepted.length > 0">
                 <thead>
                   <th>Name</th>
+                  <th>Uni.</th>
+                  <th>Memo</th>
                   <th ng-if="list.acceptance_criterion == 'FCFS'">Submitted</th>
                   <th ng-if="list.acceptance_criterion == 'GPA'">GPA</th>
                   <th></th>
@@ -34,6 +36,11 @@
                 <tbody>
                   <tr ng-repeat="request in list.auto_accepted">
                     <td>{{ request.intern_name }}</td>
+                    <td>{{ request.intern_university }}</td>
+                    <td>
+                      <a ng-if="request.request_memo" href="{{ request.request_memo }}"><i class="fa fa-cloud-download"></i></a>
+                      <span ng-if="!request.request_memo" class="text-gray">N/A</span>
+                    </td>
                     <td ng-if="list.acceptance_criterion == 'FCFS'">{{ request.submission_datetime.format('D-MMM-YYYY, hh:mm a') }}</td>
                     <td ng-if="list.acceptance_criterion == 'GPA'">{{ request.gpa }}</td>
                     <td>
@@ -49,13 +56,18 @@
 
               <table class="table" ng-if="list.manual_accepted.length > 0">
                 <thead>
-                  <th colspan="3" class="text-center text-green">
+                  <th colspan="6" class="text-center text-green">
                     <i><i class="fa fa-pencil"></i> Manually accepted</i>
                   </th>
                 </thead>
                 <tbody>
                   <tr ng-repeat="request in list.manual_accepted">
                     <td>{{ request.intern_name }}</td>
+                    <td>{{ request.intern_university }}</td>
+                    <td>
+                      <a ng-if="request.request_memo" href="{{ request.request_memo }}"><i class="fa fa-cloud-download"></i></a>
+                      <span ng-if="!request.request_memo" class="text-gray">N/A</span>
+                    </td>
                     <td ng-if="list.acceptance_criterion == 'FCFS'">{{ request.submission_datetime.format('D-MMM-YYYY, hh:mm a') }}</td>
                     <td ng-if="list.acceptance_criterion == 'GPA'">{{ request.gpa }}</td>
                     <td>
@@ -91,6 +103,8 @@
                 <thead>
                   <th></th>
                   <th>Name</th>
+                  <th>Uni.</th>
+                  <th>Memo</th>
                   <th ng-if="list.acceptance_criterion == 'FCFS'">Submitted</th>
                   <th ng-if="list.acceptance_criterion == 'GPA'">GPA</th>
                   <th></th>
@@ -101,6 +115,11 @@
                       <a href="" ng-click="moveRequest(request, 'auto_declined', 'manual_accepted')"><i class="fa fa-chevron-circle-left"></i></a>
                     </td>
                     <td>{{ request.intern_name }}</td>
+                    <td>{{ request.intern_university }}</td>
+                    <td>
+                      <a ng-if="request.request_memo" href="{{ request.request_memo }}"><i class="fa fa-cloud-download"></i></a>
+                      <span ng-if="!request.request_memo" class="text-gray">N/A</span>
+                    </td>
                     <td ng-if="list.acceptance_criterion == 'FCFS'">{{ request.submission_datetime.format('D-MMM-YYYY, hh:mm a') }}</td>
                     <td ng-if="list.acceptance_criterion == 'GPA'">{{ request.gpa }}</td>
                     <td>
@@ -115,7 +134,7 @@
 
               <table class="table" ng-if="list.manual_declined.length > 0">
                 <thead>
-                  <th colspan="4" class="text-center text-red">
+                  <th colspan="6" class="text-center text-red">
                     <i><i class="fa fa-pencil"></i> Manually declined</i>
                   </th>
                 </thead>
@@ -125,6 +144,11 @@
                       <a href="" ng-click="moveRequest(request, 'manual_declined', 'auto_accepted')"><i class="fa fa-close"></i></a>
                     </td>
                     <td>{{ request.intern_name }}</td>
+                    <td>{{ request.intern_university }}</td>
+                    <td>
+                      <a ng-if="request.request_memo" href="{{ request.request_memo }}"><i class="fa fa-cloud-download"></i></a>
+                      <span ng-if="!request.request_memo" class="text-gray">N/A</span>
+                    </td>
                     <td ng-if="list.acceptance_criterion == 'FCFS'">{{ request.submission_datetime.format('D-MMM-YYYY, hh:mm a') }}</td>
                     <td ng-if="list.acceptance_criterion == 'GPA'">{{ request.gpa }}</td>
                     <td>
