@@ -141,7 +141,7 @@
     "fields": {
         "title": "{{ \"<i class='fa fa-inbox'></i> Rotation requests\" }}",
         "hint": "",
-        "url": "#/requests/",
+        "url": "#/requests/ksauhs/",
         "urlaspattern": false,
         "tree": 2,
         "hidden": false,

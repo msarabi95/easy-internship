@@ -13,37 +13,29 @@ angular.module("ei.staff.accounts", ["ei.months.models", "ei.accounts.models",
             controller: "InternListCtrl"
         })
         .when("/interns/:id/", {
-            templateUrl: "static/partials/staff/interns/intern-detail.html?v=0004",
+            templateUrl: "static/partials/staff/interns/intern-detail.html?v=0005",
             controller: "InternDetailCtrl"
         });
 }])
 
-.controller("InternListCtrl", ["$scope", "DTOptionsBuilder", "DTColumnBuilder", "DTColumnDefBuilder", "Intern", "Profile",
-    function ($scope, DTOptionsBuilder, DTColumnBuilder, DTColumnDefBuilder, Intern, Profile) {
-        //$scope.internships = Internship.query();
-        //
-        //$scope.internships.$promise.then(function (internships) {
-        //    angular.forEach(internships, function (internship, index) {
-        //        // Load the intern profile and standard profile
-        //        $scope.internships[index].intern = Intern.get({id: internship.intern});
-        //        $scope.internships[index].intern.$promise.then(function (intern) {
-        //            $scope.internships[index].intern.profile = Profile.get({id: intern.profile});
-        //        });
-        //    });
-        //});
+.controller("InternListCtrl", ["$scope", "$compile", "DTOptionsBuilder", "DTColumnBuilder", "DTColumnDefBuilder", "Batch", "Intern", "Profile",
+    function ($scope, $compile, DTOptionsBuilder, DTColumnBuilder, DTColumnDefBuilder, Batch, Intern, Profile) {
 
-        /* FIXME:
-        * - Load datatable data from a dedicated endpoint.
-        * - Display more info.
-        * - Fix search and sorting issues.
-        * */
-        $scope.dtOptions = DTOptionsBuilder
-            .fromFnPromise(function() {
-                return Intern.as_table().$promise;
-            })
-            .withOption("order", [[ 1, "asc" ]])
-            .withOption("responsive", true)
-            .withBootstrap();
+        $scope.dtOptions = {};
+
+        $scope.batches = Batch.query(function (batches) {
+
+            angular.forEach(batches, function (batch) {
+                $scope.dtOptions['batch_' + String(batch.id)] = DTOptionsBuilder
+                    .fromFnPromise(function() {
+                        return Batch.interns({id: batch.id}).$promise;
+                    })
+                    .withOption("order", [[ 1, "asc" ]])
+                    .withOption("responsive", true)
+                    .withBootstrap();
+            });
+        });
+
 
         $scope.dtColumns = [
             DTColumnBuilder.newColumn(null).withTitle(null).notSortable()
@@ -60,12 +52,6 @@ angular.module("ei.staff.accounts", ["ei.months.models", "ei.accounts.models",
                     return '<a class="btn btn-default btn-flat" href="#/interns/' + data.internship_id + '/">View details</a>';
                 })
         ];
-
-        //$scope.dtColumns = [
-        //    DTColumnDefBuilder.newColumnDef(0).notSortable(),
-        //    DTColumnDefBuilder.newColumnDef([1, 2]).withOption("width", "20%"),
-        //    DTColumnDefBuilder.newColumnDef(5).notSortable()
-        //];
 }])
 
 .controller("InternDetailCtrl", ["$scope", "$routeParams", "$timeout", "$q", "loadWithRelated", "Internship", "Intern", "Profile", "User", "InternshipMonth",

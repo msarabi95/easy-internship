@@ -1,4 +1,4 @@
-from accounts.models import Profile, Intern
+from accounts.models import Profile, Intern, Batch
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
@@ -26,6 +26,8 @@ class InternSerializer(serializers.ModelSerializer):
     id_image = serializers.URLField(source='id_image.url')
     passport_image = serializers.SerializerMethodField(method_name='get_passport_image_url')
     passport_attachment = serializers.SerializerMethodField(method_name='get_passport_attachment_url')
+    batch = serializers.StringRelatedField()
+    university = serializers.StringRelatedField()
 
     def get_passport_image_url(self, obj):
         if (obj.is_ksauhs_intern and obj.has_passport) or (obj.is_agu_intern and obj.passport_image):
@@ -39,9 +41,16 @@ class InternSerializer(serializers.ModelSerializer):
         model = Intern
         fields = ('id', 'profile', 'alt_email', 'student_number', 'badge_number', 'phone_number', 'mobile_number',
                   'address', 'id_number', 'id_image', 'has_passport', 'passport_number', 'passport_image', 'passport_attachment',
-                  'medical_record_number', 'contact_person_name', 'contact_person_relation',
-                  'contact_person_mobile', 'contact_person_email', 'gpa',
-                  'is_ksauhs_intern', 'is_agu_intern', 'is_outside_intern', 'internship')
+                  'medical_record_number', 'medical_checklist', 'contact_person_name', 'contact_person_relation',
+                  'contact_person_mobile', 'contact_person_email', 'gpa', 'academic_transcript', 'graduation_date',
+                  'is_ksauhs_intern', 'is_agu_intern', 'is_outside_intern', 'internship', 'batch', 'university')
+
+
+class BatchSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Batch
+        fields = '__all__'
 
 
 class InternTableSerializer(serializers.ModelSerializer):
