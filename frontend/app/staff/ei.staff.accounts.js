@@ -13,7 +13,7 @@ angular.module("ei.staff.accounts", ["ei.months.models", "ei.accounts.models",
             controller: "InternListCtrl"
         })
         .when("/interns/summary/", {
-            templateUrl: "static/partials/staff/interns/plans-summary.html?v=0001",
+            templateUrl: "static/partials/staff/interns/plans-summary.html?v=0002",
             controller: "PlansSummaryCtrl"
         })
         .when("/interns/:id/", {
@@ -257,4 +257,20 @@ angular.module("ei.staff.accounts", ["ei.months.models", "ei.accounts.models",
             batch.plans = Batch.plans({id: batch.id});
         })
     });
+
+    $scope.offsetMonths = function (months, batchStartMonth, planStartMonth) {
+        var diff = planStartMonth.diff(batchStartMonth, 'months');
+        var offset = Array.apply(null, Array(diff)).map(function (value, index) {return index;}).concat(months);
+        return offset;
+    };
+
+    $scope.requiresEllipsis = function (months, batchStartMonth, planStartMonth) {
+        var offset = $scope.offsetMonths(months, batchStartMonth, planStartMonth);
+        var sliced = offset.slice(12); // Get all months after the twelfth month
+        var filtered = sliced.filter(function (month) {
+            return month.disabled === false;
+        });
+        // A plan requires an ellipsis if there is at least one entry/month that is not `disabled`
+        return filtered.length > 0;
+    };
 }]);

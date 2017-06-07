@@ -117,6 +117,7 @@ class InternshipMonth(object):
             rotation_count = self.internship.rotations.count()
             request_count = self.internship.rotation_requests.open().count()
             return rotation_count + request_count >= 6
+        return False  # FIXME: Investigate why this actually works!
 
 
 class Internship(models.Model):

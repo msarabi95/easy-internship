@@ -30,8 +30,17 @@ angular.module('ei.accounts.models', ["ngResource", "ei.interceptors"])
     });
 }])
 
-.factory("Batch", ["$resource", function($resource) {
+.factory("Batch", ["$resource", "DateTimeFieldToMomentInterceptor", function($resource, DateTimeFieldToMomentInterceptor) {
     return $resource('/api/batches/:id', {id: '@id'}, {
+        query: {
+            method: 'get',
+            isArray: true,
+            interceptor: DateTimeFieldToMomentInterceptor(['start_month'])
+        },
+        get: {
+            method: 'get',
+            interceptor: DateTimeFieldToMomentInterceptor(['start_month'])
+        },
         interns: {
             method: 'get',
             url: '/api/batches/:id/interns/',
@@ -40,7 +49,8 @@ angular.module('ei.accounts.models', ["ngResource", "ei.interceptors"])
         plans: {
             method: 'get',
             url: '/api/batches/:id/plans/',
-            isArray: true
+            isArray: true,
+            interceptor: DateTimeFieldToMomentInterceptor(['start_month'])
         }
     })
 }]);

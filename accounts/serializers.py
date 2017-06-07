@@ -67,8 +67,15 @@ class InternTableSerializer(serializers.ModelSerializer):
         fields = ('id', 'mugshot', 'name', 'student_number', 'badge_number', 'email', 'mobile_number', 'internship_id',)
 
 
+class FullProfileSerializer(ProfileSerializer):
+    user = UserSerializer()
+
+    class Meta(ProfileSerializer.Meta):
+        pass
+
+
 class FullInternSerializer(InternSerializer):
-    profile = ProfileSerializer()
+    profile = FullProfileSerializer()
 
     class Meta(InternSerializer.Meta):
         pass

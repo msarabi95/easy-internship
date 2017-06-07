@@ -1,7 +1,7 @@
 <div class="box" ng-class="'box-' + getBoxClass()">
-  <div class="box-header with-border" ng-if="showMonthLabel == true">
+  <div class="box-header with-border text-center" style="padding-top: 7px; padding-bottom: 7px;" ng-if="showMonthLabel == true">
     <h3 ng-if="size == 'lg'" class="box-title">{{ month.label }}</h3>
-    <h6 ng-if="size == 'sm'" class="box-title">{{ month.label_short }}</h6>
+    <h6 ng-if="size == 'sm'" class="box-title" style="font-size: 16px;">{{ month.label_short }}</h6>
 
     <!--<div class="box-tools pull-right">-->
       <!--<span ng-if="months[i].current_leave_requests.length > 0 || months[i].current_leaves.length > 0"

@@ -13,7 +13,7 @@ angular.module("ei.months.directives", ["ei.months.models", "ui.bootstrap"])
             showActionButtons: "=?showActionButtons",
             boxStyle: "=?boxStyle"
         },
-        templateUrl: "/static/app/directives/templates/months/internship-month-box.html?v=0005",
+        templateUrl: "/static/app/directives/templates/months/internship-month-box.html?v=0006",
         link: function (scope, element, attrs) {
 
             // Assert `size` is either 'lg' or 'sm'; default to 'lg' if not specified
