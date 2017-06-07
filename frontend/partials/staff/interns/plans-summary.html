@@ -46,17 +46,25 @@
       transform: translate(-50%, -50%);
     }
 
-    .plans-background.ng-hide {
-      max-height: 0;
+    /*.plans-background {*/
+      /*max-height: 0;*/
+      /*transition: max-height 5s ease;*/
+    /*}*/
+
+    /*.plans-background.ng-hide-remove, .plans-background.ng-hide-add {*/
+      /**/
+    /*}*/
+
+    .popover {
+      max-width: none;
     }
 
-    .plans-background {
-      max-height: 1100px;
+    .popover-content .row {
+      margin-left: inherit;
+      margin-right: inherit;
     }
 
-    .plans-background.ng-hide-remove, .plans-background.ng-hide-add {
-      transition: max-height 500ms linear;
-    }
+
   </style>
 
   <div class="loading-spinner" ng-hide="batches.$promise.$$state.status !== 0" style="height: 150px;">
@@ -106,7 +114,7 @@
                     </div>
                   </div>
                   <div style="width: 4%;" class="col-xs-1 ellipsis-container">
-                    <div class="ellipsis" ng-if="requiresEllipsis(plan.months, batch.start_month, plan.start_month)">
+                    <div class="ellipsis" ng-if="requiresEllipsis(plan.months, batch.start_month, plan.start_month)" uib-popover-template="'ellipsis.html'" popover-placement="left" popover-trigger="mouseenter">
                       <i class="fa fa-ellipsis-h"></i>
                     </div>
                   </div>
@@ -122,3 +130,13 @@
   </div>
 
 </section>
+
+<script type="text/ng-template" id="ellipsis.html">
+  <div style="background-color: #ecf0f5; border-radius: 3px; padding: 5px; width: 300px;">
+    <div class="row">
+      <div class="col-xs-4" style="padding-left: 5px; padding-right: 5px;" ng-repeat="month in offsetMonths(plan.months, batch.start_month, plan.start_month) | limitTo: 3 : 12">
+        <internship-month-box internship-month="month" show-month-label="true" size="'sm'"></internship-month-box>
+      </div>
+    </div>
+  </div>
+</script>
