@@ -46,7 +46,6 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
 .controller("MonthDetailCtrl", ["$scope", "$location", "$routeParams", "Internship", function ($scope, $location, $routeParams, Internship) {
     $scope.internship = Internship.query(function (internships) {
         $scope.internship = internships[0];
-        console.log($scope.internship);
         $scope.month = $scope.internship.months.filter(function (month, index) {
             return month.month == $routeParams.month_id;
         })[0];

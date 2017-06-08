@@ -50,6 +50,20 @@ class FreezeCancelRequestResponseSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class FreezeRequestSerializer2(FreezeRequestSerializer):
+    response = FreezeRequestResponseSerializer()
+
+    class Meta(FreezeRequestSerializer.Meta):
+        pass
+
+
+class FreezeCancelRequestSerializer2(FreezeCancelRequestSerializer):
+    response = FreezeCancelRequestResponseSerializer()
+
+    class Meta(FreezeCancelRequestSerializer.Meta):
+        pass
+
+
 class InternshipMonthSerializer(serializers.Serializer):
     intern = serializers.PrimaryKeyRelatedField(read_only=True)
     month = serializers.IntegerField(read_only=True)
@@ -64,10 +78,10 @@ class InternshipMonthSerializer(serializers.Serializer):
     rotation_cancel_request_history = RotationRequestSerializer2(many=True)
 
     current_freeze = FreezeSerializer()
-    current_freeze_request = FreezeRequestSerializer()
-    current_freeze_cancel_request = FreezeCancelRequestSerializer()
-    freeze_request_history = FreezeRequestSerializer(many=True)
-    freeze_cancel_request_history = FreezeCancelRequestSerializer(many=True)
+    current_freeze_request = FreezeRequestSerializer2()
+    current_freeze_cancel_request = FreezeCancelRequestSerializer2()
+    freeze_request_history = FreezeRequestSerializer2(many=True)
+    freeze_cancel_request_history = FreezeCancelRequestSerializer2(many=True)
 
     current_leaves = LeaveSerializer(many=True)
     current_leave_requests = LeaveRequestSerializer(many=True)
