@@ -1,58 +1,14 @@
-from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 
-from accounts.serializers import FullInternSerializer, InternSerializer
+from accounts.serializers import FullInternSerializer
 from easy_internship.serializers import MonthField
+from leaves.serializers import LeaveSerializer, LeaveRequestSerializer, LeaveCancelRequestSerializer
 from months.models import Internship, Freeze, FreezeRequest, FreezeRequestResponse, FreezeCancelRequest, \
     FreezeCancelRequestResponse
-
-
-class InternshipMonthSerializer(serializers.Serializer):
-    intern = serializers.PrimaryKeyRelatedField(read_only=True)
-    month = serializers.IntegerField(read_only=True)
-
-    label = serializers.CharField(read_only=True)
-    label_short = serializers.CharField(read_only=True)
-
-    current_rotation = serializers.PrimaryKeyRelatedField(read_only=True)
-    current_request = serializers.PrimaryKeyRelatedField(read_only=True)  # TODO: Change to `current_rotation_request`
-    current_rotation_cancel_request = serializers.PrimaryKeyRelatedField(read_only=True)
-    rotation_request_history = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
-    rotation_cancel_request_history = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
-
-    current_leaves = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
-    current_leave_requests = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
-    current_leave_cancel_requests = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
-    leave_request_history = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
-    leave_cancel_request_history = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
-
-    current_freeze = serializers.PrimaryKeyRelatedField(read_only=True)
-    current_freeze_request = serializers.PrimaryKeyRelatedField(read_only=True)
-    current_freeze_cancel_request = serializers.PrimaryKeyRelatedField(read_only=True)
-    freeze_request_history = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
-    freeze_cancel_request_history = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
-
-    occupied = serializers.BooleanField(read_only=True)
-    requested = serializers.BooleanField(read_only=True)
-    disabled = serializers.BooleanField(read_only=True)
-    frozen = serializers.BooleanField(read_only=True)
-
-    def create(self, validated_data):
-        pass
-
-    def update(self, instance, validated_data):
-        pass
-
-
-class InternshipSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Internship
-        fields = ('id', 'intern', 'start_month', 'rotation_requests', )
+from rotations.serializers import RotationSerializer2, RotationRequestSerializer2
 
 
 class FreezeSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Freeze
         fields = '__all__'
@@ -71,7 +27,6 @@ class FreezeRequestSerializer(serializers.ModelSerializer):
 
 
 class FreezeRequestResponseSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = FreezeRequestResponse
         fields = '__all__'
@@ -90,17 +45,75 @@ class FreezeCancelRequestSerializer(serializers.ModelSerializer):
 
 
 class FreezeCancelRequestResponseSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = FreezeCancelRequestResponse
         fields = '__all__'
 
 
-class FullInternshipSerializer(InternshipSerializer):
-    intern = FullInternSerializer()
+class FreezeRequestSerializer2(FreezeRequestSerializer):
+    response = FreezeRequestResponseSerializer()
 
-    class Meta(InternshipSerializer.Meta):
+    class Meta(FreezeRequestSerializer.Meta):
         pass
+
+
+class FreezeCancelRequestSerializer2(FreezeCancelRequestSerializer):
+    response = FreezeCancelRequestResponseSerializer()
+
+    class Meta(FreezeCancelRequestSerializer.Meta):
+        pass
+
+
+class InternshipMonthSerializer(serializers.Serializer):
+    intern = serializers.PrimaryKeyRelatedField(read_only=True)
+    month = serializers.IntegerField(read_only=True)
+
+    label = serializers.CharField(read_only=True)
+    label_short = serializers.CharField(read_only=True)
+
+    current_rotation = RotationSerializer2()
+    current_rotation_request = RotationRequestSerializer2()
+    current_rotation_cancel_request = RotationRequestSerializer2()
+    rotation_request_history = RotationRequestSerializer2(many=True)
+    rotation_cancel_request_history = RotationRequestSerializer2(many=True)
+
+    current_freeze = FreezeSerializer()
+    current_freeze_request = FreezeRequestSerializer2()
+    current_freeze_cancel_request = FreezeCancelRequestSerializer2()
+    freeze_request_history = FreezeRequestSerializer2(many=True)
+    freeze_cancel_request_history = FreezeCancelRequestSerializer2(many=True)
+
+    current_leaves = LeaveSerializer(many=True)
+    current_leave_requests = LeaveRequestSerializer(many=True)
+    current_leave_cancel_requests = LeaveCancelRequestSerializer(many=True)
+    leave_request_history = LeaveRequestSerializer(many=True)
+    leave_cancel_request_history = LeaveCancelRequestSerializer(many=True)
+
+    empty = serializers.BooleanField(read_only=True)
+    occupied = serializers.BooleanField(read_only=True)
+    disabled = serializers.BooleanField(read_only=True)
+    frozen = serializers.BooleanField(read_only=True)
+
+    has_rotation_request = serializers.BooleanField(read_only=True)
+    has_rotation_cancel_request = serializers.BooleanField(read_only=True)
+    has_freeze_request = serializers.BooleanField(read_only=True)
+    has_freeze_cancel_request = serializers.BooleanField(read_only=True)
+
+    def create(self, validated_data):
+        pass
+
+    def update(self, instance, validated_data):
+        pass
+
+
+class InternshipSerializer(serializers.ModelSerializer):
+    intern = FullInternSerializer()
+    months = InternshipMonthSerializer(many=True)
+    rotation_requests = RotationRequestSerializer2(many=True)
+
+    class Meta:
+        model = Internship
+        fields = ('id', 'intern', 'start_month', 'months', 'rotation_requests',)
 
 
 class FullInternshipSerializer2(serializers.ModelSerializer):

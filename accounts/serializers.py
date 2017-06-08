@@ -31,7 +31,10 @@ class InternSerializer(serializers.ModelSerializer):
 
     def get_passport_image_url(self, obj):
         if (obj.is_ksauhs_intern and obj.has_passport) or (obj.is_agu_intern and obj.passport_image):
-            return obj.passport_image.url
+            try:
+                return obj.passport_image.url
+            except ValueError:
+                return None
         return None
 
     def get_passport_attachment_url(self, obj):
@@ -64,8 +67,15 @@ class InternTableSerializer(serializers.ModelSerializer):
         fields = ('id', 'mugshot', 'name', 'student_number', 'badge_number', 'email', 'mobile_number', 'internship_id',)
 
 
+class FullProfileSerializer(ProfileSerializer):
+    user = UserSerializer()
+
+    class Meta(ProfileSerializer.Meta):
+        pass
+
+
 class FullInternSerializer(InternSerializer):
-    profile = ProfileSerializer()
+    profile = FullProfileSerializer()
 
     class Meta(InternSerializer.Meta):
         pass

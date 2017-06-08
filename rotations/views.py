@@ -13,9 +13,9 @@ from docxtpl import DocxTemplate
 from month import Month
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import detail_route, list_route
-from rest_framework.exceptions import ParseError, MethodNotAllowed
+from rest_framework.exceptions import ParseError, MethodNotAllowed, ValidationError as RestValidationError
 from rest_framework.response import Response
-from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK, HTTP_201_CREATED
+from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT
 
 from accounts.permissions import IsStaff
 from misc.models import DocumentTemplate
@@ -26,7 +26,7 @@ from hospitals.models import Department, AcceptanceSetting, Hospital, Specialty,
     DepartmentSettings, GlobalSettings
 from rotations.serializers import RotationSerializer, RequestedDepartmentSerializer, RotationRequestSerializer, \
     RotationRequestResponseSerializer, RotationRequestForwardSerializer, AcceptanceListSerializer, \
-    ShortRotationRequestForwardSerializer, ShortRotationRequestSerializer, FullRotationSerializer, \
+    ShortRotationRequestForwardSerializer, ShortRotationRequestSerializer, \
     UpdatedRotationRequestSerializer
 
 
@@ -92,7 +92,7 @@ class RotationViewSet(viewsets.ReadOnlyModelViewSet):
             'internship__intern__profile',
         )
 
-        serialized = FullRotationSerializer(rotations, many=True)
+        serialized = RotationSerializer(rotations, many=True)
 
         return Response(serialized.data)
 
@@ -146,13 +146,29 @@ class RotationRequestViewSet(viewsets.ModelViewSet):
         messages.success(request._request, "Your request has been submitted successfully.")
 
     def update(self, request, *args, **kwargs):
-        raise MethodNotAllowed
+        raise MethodNotAllowed('put')
 
     def partial_update(self, request, *args, **kwargs):
-        raise MethodNotAllowed
+        raise MethodNotAllowed('patch')
 
     def destroy(self, request, *args, **kwargs):
-        raise MethodNotAllowed
+        rotation_request = get_object_or_404(RotationRequest, id=kwargs.get('pk'))
+
+        # Checks:
+        # (1) Make sure request hasn't been responded to
+        if hasattr(rotation_request, 'response'):
+            raise RestValidationError('This request cannot be deleted since it already has a response.')
+        # (2) Make sure request hasn't been forwarded
+        if hasattr(rotation_request, 'forward'):
+            raise RestValidationError('This request cannot be deleted since it has been forwarded.')
+
+        # Delete request
+        rotation_request.delete()
+
+        # Display success message to user
+        messages.success(request._request, "Your request has been deleted.")
+
+        return Response(status=HTTP_204_NO_CONTENT)
 
     @list_route(methods=['get'], permission_classes=[permissions.IsAuthenticated, IsStaff])
     def kamc_memo(self, request):

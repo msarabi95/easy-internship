@@ -1,0 +1,276 @@
+<div class="box" ng-class="'box-' + getBoxClass()">
+  <div class="box-header with-border text-center" style="padding-top: 7px; padding-bottom: 7px;" ng-if="showMonthLabel == true">
+    <h3 ng-if="size == 'lg'" class="box-title">{{ month.label }}</h3>
+    <h6 ng-if="size == 'sm'" class="box-title" style="font-size: 16px;">{{ month.label_short }}</h6>
+
+    <!--<div class="box-tools pull-right">-->
+      <!--<span ng-if="months[i].current_leave_requests.length > 0 || months[i].current_leaves.length > 0"
+            uib-popover-template="'leave-summary-popover.html'"
+            popover-title="Leaves for {{ months[i].label }}"
+            popover-append-to-body="true"
+            class="badge"
+            ng-class="{'bg-yellow': months[i].current_leave_requests.length > 0, 'bg-light-blue': months[i].current_leave_requests.length == 0}">
+        <i class="fa fa-plane"></i>
+      </span>-->
+      <!-- See bottom of this file for templates -->
+    <!--</div>-->
+  </div>
+
+  <div class="box-body no-padding">
+    <div class="col-xs-12" ng-style="{'height': getBodyHeight(), 'position': 'relative'}">
+      <!-- Regarding the CSS centering , check: https://css-tricks.com/centering-css-complete-guide/#both-unknown -->
+      <div style="width: 95%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+
+        <!-- *********************** -->
+        <!-- **** (1) Disabled ***** -->
+        <!-- *********************** -->
+        <div ng-if="month.disabled" class="text-gray">
+          <h5 ng-if="size == 'lg'" class="text-center">This month will be available when you have an approved freeze.</h5>
+          <h5 ng-if="size == 'sm'" class="text-center">N/A</h5>
+        </div>
+        
+        <!-- ********************** -->
+        <!-- ***** (2) Empty ****** -->
+        <!-- ********************** -->
+        <div ng-if="month.empty">
+          
+          <!-- A) "Purely" empty  -->
+          <div ng-if="!month.has_rotation_request && !month.has_freeze_request">
+            <h3 ng-if="size == 'lg'" class="text-center">No rotation</h3>
+            <h5 ng-if="size == 'sm'" class="text-center text-gray"><i>No rotation</i></h5>
+          </div>
+          
+          <!-- B) With a rotation request  -->
+          <div ng-if="month.has_rotation_request">
+            
+            <!-- i. Large size -->
+            <div ng-if="size == 'lg'">
+              <h3 class="text-yellow text-center">
+                <i ng-if="month.current_rotation_request.is_forwarded" uib-tooltip="{{ getForwardTooltipMessage() }}" class="fa fa-external-link"></i>
+                Pending
+              </h3>
+              <h4 class="text-yellow text-center">
+                {{ month.current_rotation_request.requested_department.department.display_label }}
+                <small ng-if="month.current_rotation_request.is_elective">(Elective)</small>
+              </h4>
+              <h5 class="text-center">{{ month.current_rotation_request.requested_department.department.hospital.name }}</h5>
+            </div>
+            
+            <!-- ii. Small size -->
+            <div ng-if="size == 'sm'">
+              <h5 class="text-yellow text-center">
+                <i ng-if="month.current_rotation_request.is_forwarded" uib-tooltip="{{ getForwardTooltipMessage() }}" class="fa fa-external-link"></i>
+                {{ month.current_rotation_request.requested_department.department.display_label }}
+                <small ng-if="month.current_rotation_request.is_elective">(Elective)</small>
+              </h5>
+              <h6 class="text-center">{{ month.current_rotation_request.requested_department.department.hospital.abbreviation }}</h6>
+            </div>
+          </div>
+          
+          <!-- C) With a freeze request  -->
+          <div ng-if="month.has_freeze_request">
+            <h3 ng-if="size == 'lg'" class="text-center text-yellow">Freeze pending</h3>
+            <h5 ng-if="size == 'sm'" class="text-center text-yellow">Freeze pending</h5>
+          </div>
+        </div>
+        
+        <!-- *********************** -->
+        <!-- ***** (3) Frozen ****** -->
+        <!-- *********************** -->
+        <div ng-if="month.frozen">
+          <h3 ng-if="size == 'lg'" class="text-center text-aqua"><i class="fa fa-snowflake-o"></i> Frozen</h3>
+          <h4 ng-if="size == 'sm'" class="text-center text-aqua"><i class="fa fa-snowflake-o"></i> Frozen</h4>
+          
+          <div ng-if="month.has_freeze_cancel_request">
+            <h5 ng-if="size == 'lg'" class="text-center text-yellow">(Pending freeze cancellation)</h5>
+            <h6 ng-if="size == 'sm'" class="text-center text-yellow">(To be cancelled)</h6>
+          </div>
+          
+          <div ng-if="month.has_rotation_request">
+            <!-- To be implemented -->
+          </div>
+        </div>
+        
+        <!-- ************************* -->
+        <!-- ***** (4) Occupied ****** -->
+        <!-- ************************* -->
+        <div ng-if="month.occupied">
+
+          <!-- ****************** -->
+          <!-- A) Purely occupied -->
+          <!-- ****************** -->
+          <div ng-if="!month.has_rotation_request && !month.has_rotation_cancel_request && !month.has_freeze_request">
+            
+            <!-- i. Large size -->
+            <div ng-if="size == 'lg'">
+              <h3 class="text-blue text-center">
+                {{ month.current_rotation.department.display_label }}
+                <small ng-if="month.current_rotation.is_elective">(Elective)</small>
+              </h3>
+              <h5 class="text-center">{{ month.current_rotation.department.hospital.name }}</h5>
+            </div>
+            
+            <!-- ii. Small size -->
+            <div ng-if="size == 'sm'">
+              <h5 class="text-blue text-center">
+                {{ month.current_rotation.department.display_label }}
+                <small ng-if="month.current_rotation.is_elective">(Elective)</small>
+              </h5>
+              <h6 class="text-center">{{ month.current_rotation.department.hospital.abbreviation}}</h6>
+            </div>
+            
+          </div>
+
+          <!-- *************************************************** -->
+          <!-- B) With rotation request or rotation cancel request -->
+          <!-- *************************************************** -->
+          <div ng-if="month.has_rotation_request || month.has_rotation_cancel_request">
+
+            <div ng-if="size == 'lg'">
+              <h5 class="text-blue text-center">
+                Current: {{ month.current_rotation.department.display_label_short }}
+                <small ng-if="month.current_rotation.is_elective">(Elective)</small>
+              </h5>
+              <h6 class="text-center">
+                {{ month.current_rotation.department.hospital.name }}
+              </h6>
+            </div>
+            <div ng-if="size == 'sm'">
+              <h6 class="text-center">
+                <span class="text-blue">{{ month.current_rotation.department.display_label_short }}</span>
+                —
+                <span>{{ month.current_rotation.department.hospital.abbreviation }}</span>
+                <small ng-if="month.current_rotation.is_elective">(Elective)</small>
+              </h6>
+              <h6 class="text-center">
+
+              </h6>
+            </div>
+
+            <hr style="margin-top: 5px; margin-bottom: 5px;">
+
+            <!-- i. With rotation request -->
+            <div ng-if="month.has_rotation_request">
+              <div ng-if="size == 'lg'">
+                <h5 class="text-yellow text-center">
+                  <i ng-if="month.current_rotation_request.is_forwarded" uib-tooltip="{{ getForwardTooltipMessage() }}" class="fa fa-external-link"></i>
+                  Pending: {{ month.current_rotation_request.requested_department.department.display_label_short }}
+                  <small ng-if="month.current_rotation_request.is_elective">(Elective)</small>
+                </h5>
+                <h6 class="text-center">{{ month.current_rotation_request.requested_department.department.hospital.name }}</h6>
+              </div>
+
+              <div ng-if="size == 'sm'">
+                <h6 class="text-center">
+                  <span class="text-yellow">
+                    <i ng-if="month.current_rotation_request.is_forwarded" uib-tooltip="{{ getForwardTooltipMessage() }}" class="fa fa-external-link"></i>
+                    {{ month.current_rotation_request.requested_department.department.display_label_short }}
+                  </span>
+                  —
+                  {{ month.current_rotation_request.requested_department.department.hospital.abbreviation }}
+                  <small ng-if="month.current_rotation_request.is_elective">(Elective)</small>
+                </h6>
+              </div>
+            </div>
+
+            <!-- ii. With rotation cancel request -->
+            <div ng-if="month.has_rotation_cancel_request">
+              <div ng-if="size == 'lg'">
+                <h5 class="text-red text-center">Pending</h5>
+                <h6 class="text-center">Rotation to be cancelled</h6>
+              </div>
+
+              <div ng-if="size == 'sm'">
+                <h6 class="text-center text-red">Cancel pending</h6>
+              </div>
+            </div>
+          </div>
+
+          <!-- ********************** -->
+          <!-- C) With freeze request -->
+          <!-- ********************** -->
+          <div ng-if="month.has_freeze_request">
+            <!-- To be implemented -->
+          </div>
+          
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div ng-if="showActionButtons" class="box-footer">
+
+    <div ng-if="month.disabled" class="text-gray">
+      <!-- **** (1) Disabled ***** -->
+      <!-- Nothing basically -->
+    </div>
+
+    <div ng-if="month.empty">
+      <!-- ***** (2) Empty ****** -->
+
+      <div ng-if="!month.has_rotation_request && !month.has_freeze_request">
+        <!-- A) "Purely" empty  -->
+        <box-action-buttons params="{month_id: month.month}" buttons="['req-rota', 'req-freeze', '$DIV$', 'history']" color="'default'" size="'lg'"></box-action-buttons>
+      </div>
+
+      <div ng-if="month.has_rotation_request">
+        <!-- B) With a rotation request  -->
+        <box-action-buttons ng-if="!month.current_rotation_request.is_forwarded" params="{month_id: month.month}" buttons="['info', 'delete-rota-req', '$DIV$', 'history']" color="'warning'" size="'sm'"></box-action-buttons>
+        <box-action-buttons ng-if="month.current_rotation_request.is_forwarded" params="{month_id: month.month}" buttons="['info', 'history']" color="'warning'" size="'sm'"></box-action-buttons>
+      </div>
+
+      <div ng-if="month.has_freeze_request">
+        <!-- C) With a freeze request  -->
+        <box-action-buttons params="{month_id: month.month}" buttons="['info', 'delete-freeze-req', '$DIV$', 'history']" color="'warning'" size="'sm'"></box-action-buttons>
+      </div>
+    </div>
+
+    <div ng-if="month.frozen">
+      <!-- ***** (3) Frozen ****** -->
+
+      <div ng-if="!month.has_freeze_cancel_request && !month.has_rotation_request">
+        <!-- A) "Purely" frozen -->
+        <box-action-buttons params="{month_id: month.month}" buttons="['info', 'req-freeze-cancel', '$DIV$', 'history']" color="'info'" size="'sm'"></box-action-buttons>
+      </div>
+
+      <div ng-if="month.has_freeze_cancel_request">
+        <!-- B) With a freeze cancellation request -->
+        <box-action-buttons params="{month_id: month.month}" buttons="['info', 'delete-freeze-cancel-req', '$DIV$', 'history']" color="'info'" size="'sm'"></box-action-buttons>
+      </div>
+
+      <div ng-if="month.has_rotation_request">
+        <!-- C) With a rotation request -->
+        <box-action-buttons params="{month_id: month.month}" buttons="['info', 'delete-rota-req', '$DIV$', 'history']" color="'info'" size="'sm'"></box-action-buttons>
+      </div>
+    </div>
+
+    <div ng-if="month.occupied">
+      <!-- ***** (4) Occupied ****** -->
+
+      <div ng-if="!month.has_rotation_request && !month.has_rotation_cancel_request && !month.has_freeze_request">
+        <!-- A) Purely occupied -->
+        <box-action-buttons params="{month_id: month.month}" buttons="['info', 'req-rota-change', 'req-rota-cancel', '$DIV$', 'history']" color="'primary'" size="'sm'"></box-action-buttons>
+      </div>
+
+      <div ng-if="month.has_rotation_request">
+        <!-- B) With rotation request -->
+        <box-action-buttons ng-if="!month.current_rotation_request.is_forwarded" params="{month_id: month.month}" buttons="['info', 'delete-rota-req', '$DIV$', 'history']" color="'primary'" size="'sm'"></box-action-buttons>
+        <box-action-buttons ng-if="month.current_rotation_request.is_forwarded" params="{month_id: month.month}" buttons="['info', 'history']" color="'primary'" size="'sm'"></box-action-buttons>
+
+      </div>
+
+      <div ng-if="month.has_rotation_cancel_request">
+        <!-- C) With rotation cancel request -->
+        <box-action-buttons params="{month_id: month.month}" buttons="['info', 'delete-rota-cancel-req', '$DIV$', 'history']" color="'primary'" size="'sm'"></box-action-buttons>
+      </div>
+
+      <div ng-if="month.has_freeze_request">
+        <!-- D) With freeze request -->
+        <!-- To be implemented -->
+      </div>
+
+    </div>
+
+  </div>
+</div>

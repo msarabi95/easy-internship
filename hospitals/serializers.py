@@ -20,6 +20,8 @@ class SpecialtySerializer(serializers.ModelSerializer):
 
 
 class DepartmentSerializer(serializers.ModelSerializer):
+    display_label = serializers.CharField(read_only=True)
+    display_label_short = serializers.CharField(read_only=True)
 
     class Meta:
         model = Department
@@ -129,3 +131,22 @@ class SeatSettingSerializer(serializers.Serializer):
 
     def update(self, instance, validated_data):
         pass
+
+
+#############################
+# Plans summary serializers #
+#############################
+
+
+class DepartmentSerializer2(serializers.ModelSerializer):
+    display_label = serializers.CharField(read_only=True)
+    display_label_short = serializers.CharField(read_only=True)
+    specialty = SpecialtySerializer()
+    hospital = HospitalSerializer()
+
+    class Meta:
+        model = Department
+        fields = '__all__'
+
+
+

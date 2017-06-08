@@ -1,0 +1,30 @@
+<div class="example-modal">
+  <div class="modal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+
+        <div class="modal-header">
+          <h3 class="modal-title">Delete pending cancellation request for {{ month.label }}</h3>
+        </div>
+
+        <div class="modal-body">
+          <p>
+            You are deleting your cancellation request for the month <span class="text-red text-bold">{{ month.label }}</span>.
+            <br><br>
+            Are you sure you want to continue?
+          </p>
+        </div><!-- /.modal-body -->
+
+        <div class="modal-footer">
+          <a class="btn btn-default pull-left" href="javascript:history.back()">
+            No, take me back
+          </a>
+          <button class="btn btn-danger" ng-click="submit()">
+            Yes, I want to delete this request
+          </button>
+        </div>
+
+      </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+  </div>
+</div>

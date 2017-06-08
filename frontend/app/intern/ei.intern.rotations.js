@@ -8,23 +8,31 @@ angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.r
 .config(["$routeProvider", function ($routeProvider) {
 
     $routeProvider
-        .when("/planner/:month_id/new/", {
-            templateUrl: "static/partials/intern/rotations/rotation-request-create.html",
-            controller: "RotationRequestCreateCtrl"
-        })
         .when("/planner/:month_id/history/", {
-            templateUrl: "static/partials/intern/rotations/rotation-request-history.html?v=0005",
+            templateUrl: "static/partials/intern/rotations/rotation-request-history.html?v=0006",
             controller: "RotationRequestHistoryCtrl"
         })
-        .when("/planner/:month_id/cancel/", {
-            templateUrl: "static/partials/intern/rotations/rotation-cancel-request-create.html?v=0001",
-            controller: "DeletionRequestCtrl"
+        .when("/planner/:month_id/request-rota/", {
+            templateUrl: "static/partials/intern/rotations/request-rotation.html",
+            controller: "RequestRotationCtrl"
+        })
+        .when("/planner/:month_id/cancel-rota/", {
+            templateUrl: "static/partials/intern/rotations/request-rotation-cancel.html",
+            controller: "RequestRotationCancelCtrl"
+        })
+        .when("/planner/:month_id/request-rota/delete/", {
+            templateUrl: "static/partials/intern/rotations/delete-rotation-request.html?v=0001",
+            controller: "DeleteRotationRequestCtrl"
+        })
+        .when("/planner/:month_id/cancel-rota/delete/", {
+            templateUrl: "static/partials/intern/rotations/delete-rotation-cancel-request.html?v=0001",
+            controller: "DeleteRotationCancelRequestCtrl"
         })
 
 }])
 
 
-.controller("RotationRequestCreateCtrl", ["$scope", "$q", "$routeParams", "$location", "Upload", "Specialty", "Hospital", "Intern", "InternshipMonth", "RotationRequest",
+.controller("RequestRotationCtrl", ["$scope", "$q", "$routeParams", "$location", "Upload", "Specialty", "Hospital", "Intern", "InternshipMonth", "RotationRequest",
     function ($scope, $q, $routeParams, $location, Upload, Specialty, Hospital, Intern, InternshipMonth, RotationRequest) {
         // Basic info about month and intern
         $scope.internshipMonth = InternshipMonth.get({month_id: $routeParams.month_id});
@@ -146,71 +154,31 @@ angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.r
         $scope.moment = moment;
 }])
 
-.controller("RotationRequestHistoryCtrl", ["$scope", "$routeParams", "loadWithRelated", "InternshipMonth", "RotationRequest", "RotationRequestResponse", "RotationRequestForward", "Specialty", "RequestedDepartment", "Department", "Hospital", "FreezeRequest", "FreezeRequestResponse", "FreezeCancelRequest", "FreezeCancelRequestResponse",
-    function ($scope, $routeParams, loadWithRelated, InternshipMonth, RotationRequest, RotationRequestResponse, RotationRequestForward, Specialty, RequestedDepartment, Department, Hospital, FreezeRequest, FreezeRequestResponse, FreezeCancelRequest, FreezeCancelRequestResponse) {
-        $scope.month = InternshipMonth.get({month_id: $routeParams.month_id});
+.controller("RotationRequestHistoryCtrl", ["$scope", "$routeParams", "Internship", function ($scope, $routeParams, Internship) {
+    $scope.internship = Internship.query(function (internships) {
+        $scope.internship = internships[0];
+        $scope.month = $scope.internship.months.filter(function (month, index) {
+            return month.month == $routeParams.month_id;
+        })[0];
 
-        $scope.month.$promise.then(function (month) {
+        $scope.request_history = [];
+        $scope.request_history = $scope.request_history.concat($scope.month.rotation_request_history.map(function (request) {return Object.assign(request, {is_rotation_request: true});}));
+        $scope.request_history = $scope.request_history.concat($scope.month.rotation_cancel_request_history.map(function (request) {return Object.assign(request, {is_rotation_cancel_request: true});}));
+        $scope.request_history = $scope.request_history.concat($scope.month.freeze_request_history.map(function (request) {return Object.assign(request, {is_freeze_request: true});}));
+        $scope.request_history = $scope.request_history.concat($scope.month.freeze_cancel_request_history.map(function (request) {return Object.assign(request, {is_freeze_cancel_request: true});}));
 
-            console.log(month);
+        angular.forEach($scope.request_history, function (request, index) {
+            request.submission_datetime = moment(request.submission_datetime);
+            request.response.response_datetime = moment(request.response.response_datetime);
 
-
-            $scope.month.rotation_request_history = loadWithRelated(month.rotation_request_history, RotationRequest, [
-                {specialty: Specialty},
-                {response: RotationRequestResponse},
-                [{requested_department: RequestedDepartment}, [
-                    [{department: Department}, [
-                        {hospital: Hospital}
-                    ]]
-                ]]
-            ]);
-
-            $scope.month.rotation_request_history.$promise.then(function (requests) {
-                angular.forEach(requests, function (request, index) {
-                    request.is_rotation_request = true;
-                    if (!!request.forward) {
-                        request.forward = RotationRequestForward.get({id: request.forward});
-                    }
-                });
-            });
-
-            $scope.month.rotation_cancel_request_history = loadWithRelated(month.rotation_cancel_request_history, RotationRequest, [
-                 {response: RotationRequestResponse}
-            ]);
-            $scope.month.rotation_cancel_request_history.$promise.then(function (requests) {
-                angular.forEach(requests, function (request, index) {
-                    request.is_rotation_cancel_request = true;
-                });
-            });
-
-            $scope.month.freeze_request_history = loadWithRelated(month.freeze_request_history, FreezeRequest, [
-                 {response: FreezeRequestResponse}
-            ]);
-            $scope.month.freeze_request_history.$promise.then(function (requests) {
-                angular.forEach(requests, function (request, index) {
-                    request.is_freeze_request = true;
-                });
-            });
-
-            $scope.month.freeze_cancel_request_history = loadWithRelated(month.freeze_cancel_request_history, FreezeCancelRequest, [
-                 {response: FreezeCancelRequestResponse}
-            ]);
-            $scope.month.freeze_cancel_request_history.$promise.then(function (requests) {
-                angular.forEach(requests, function (request, index) {
-                    request.is_freeze_cancel_request = true;
-                });
-            });
-
-            $scope.request_history = [];
-            $scope.request_history = $scope.request_history.concat($scope.month.rotation_request_history);
-            $scope.request_history = $scope.request_history.concat($scope.month.rotation_cancel_request_history);
-            $scope.request_history = $scope.request_history.concat($scope.month.freeze_request_history);
-            $scope.request_history = $scope.request_history.concat($scope.month.freeze_cancel_request_history);
-
+            if (!!request.forward) {
+                request.forward.forward_datetime = moment(request.forward.forward_datetime);
+            }
         });
+    });
 }])
 
-.controller("DeletionRequestCtrl", ["$scope", "$routeParams", "$location", "InternshipMonth",
+.controller("RequestRotationCancelCtrl", ["$scope", "$routeParams", "$location", "InternshipMonth",
     function ($scope, $routeParams, $location, InternshipMonth) {
     $scope.month = InternshipMonth.get({month_id: $routeParams.month_id});
 
@@ -222,5 +190,43 @@ angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.r
             toastr.error(error.statusText);
         });
 
+    };
+}])
+
+.controller("DeleteRotationRequestCtrl", ["$scope", "$routeParams", "$location", "Internship", "RotationRequest", function ($scope, $routeParams, $location, Internship, RotationRequest) {
+    $scope.internship = Internship.query(function (internships) {
+        $scope.internship = internships[0];
+        $scope.month = $scope.internship.months.filter(function (month, index) {
+            return month.month == $routeParams.month_id;
+        })[0];
+
+        $scope.request = $scope.month.current_rotation_request;
+    });
+
+    $scope.submit = function() {
+        RotationRequest.delete({id: $scope.request.id}, function () {
+            $location.path("/planner");
+        }, function (error) {
+            toastr.error(error.statusText);
+        });
+    };
+}])
+
+.controller("DeleteRotationCancelRequestCtrl", ["$scope", "$routeParams", "$location", "Internship", "RotationRequest", function ($scope, $routeParams, $location, Internship, RotationRequest) {
+    $scope.internship = Internship.query(function (internships) {
+        $scope.internship = internships[0];
+        $scope.month = $scope.internship.months.filter(function (month, index) {
+            return month.month == $routeParams.month_id;
+        })[0];
+
+        $scope.request = $scope.month.current_rotation_cancel_request;
+    });
+
+    $scope.submit = function() {
+        RotationRequest.delete({id: $scope.request.id}, function () {
+            $location.path("/planner");
+        }, function (error) {
+            toastr.error(error.statusText);
+        });
     };
 }]);

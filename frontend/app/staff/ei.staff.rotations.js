@@ -66,8 +66,8 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
     };
 })
 
-.controller("RotationRequestListCtrl", ["$scope", "$filter", "$q", "$routeParams", "$location", "$timeout", "loadWithRelated", "AcceptanceList", "Department", "AcceptanceSettings", "Internship", "InternshipMonth", "Intern", "Profile", "RotationRequest", "RequestedDepartment", "Specialty", "Hospital", "FreezeRequest", "FreezeCancelRequest",
-    function ($scope, $filter, $q, $routeParams, $location, $timeout, loadWithRelated, AcceptanceList, Department, AcceptanceSettings, Internship, InternshipMonth, Intern, Profile, RotationRequest, RequestedDepartment, Specialty, Hospital, FreezeRequest, FreezeCancelRequest) {
+.controller("RotationRequestListCtrl", ["$scope", "$filter", "$routeParams", "AcceptanceList", "RotationRequest", "FreezeRequest", "FreezeCancelRequest",
+    function ($scope, $filter, $routeParams, AcceptanceList, RotationRequest, FreezeRequest, FreezeCancelRequest) {
 
         $scope.university = $routeParams.university;
         console.log($scope.university);
