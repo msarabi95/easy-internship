@@ -95,6 +95,7 @@ class InternshipMonthSerializer(serializers.Serializer):
 class InternshipSerializer(serializers.ModelSerializer):
     intern = FullInternSerializer()
     months = InternshipMonthSerializer(many=True)
+    rotation_requests = RotationRequestSerializer2(many=True)
 
     class Meta:
         model = Internship

@@ -187,7 +187,22 @@ class InternshipMonthByInternshipAndId(viewsets.ViewSet):
 
 class InternshipViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = InternshipSerializer
-    queryset = Internship.objects.all()
+    queryset = Internship.objects.all().prefetch_related(
+        'rotation_requests__requested_department__department__hospital',
+        'rotation_requests__requested_department__department__specialty',
+        'rotation_requests__response',
+        'rotation_requests__forward',
+        'rotations__department__specialty',
+        'rotations__department__hospital',
+        'intern__profile__user__freezes',
+        'intern__profile__user__freeze_requests__response',
+        'intern__profile__user__freeze_cancel_requests__response',
+        'intern__profile__user__leaves',
+        'intern__profile__user__leave_requests__response',
+        'intern__profile__user__leave_cancel_requests__response',
+        'intern__university',
+        'intern__batch',
+    )
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):

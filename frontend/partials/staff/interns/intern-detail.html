@@ -4,15 +4,20 @@
 </section>
 
 <style type="text/css">
-  .modal-animate {
+  .modal.ng-hide-remove {
     animation: fadeInRight 1s;
   }
 </style>
 
 <!-- Main content -->
 <section class="content">
+
+  <div ng-hide="internship.$promise.$$state.status !== 0" style="height: 150px;">
+    <img src="/static/loading.gif" height="50" style="position: relative; top: 50%; left: 50%; margin-left: -15px; margin-top: -15px;" />
+  </div>
+
   <div class="example-modal">
-    <div class="modal modal-animate">
+    <div class="modal" ng-show="internship.$promise.$$state.status == 1">
       <div class="modal-dialog">
         <div class="modal-content">
 
@@ -23,11 +28,9 @@
           <div class="modal-body">
             <h4 class="text-bold">Intern details</h4>
 
-            <img src="/static/loading.gif" height="30" ng-hide="internship.$promise.$$state.status == 1" />
+            <p>Below are the details of {{ internship.intern.profile.en_full_name }}.</p>
 
-            <p ng-show="internship.$promise.$$state.status == 1">Below are the details of {{ internship.intern.profile.en_full_name }}.</p>
-
-            <div ng-show="internship.$promise.$$state.status == 1" class="row">
+            <div class="row">
               <div class="col-md-10 col-md-offset-1">
                 <div class="box box-widget widget-user-2">
                   <div class="widget-user-header bg-blue-active">
@@ -79,7 +82,7 @@
                 </div>
               </div>
             </div>
-            <div ng-show="internship.$promise.$$state.status == 1" class="row">
+            <div class="row">
               <div class="col-md-6">
                 <div class="box box-solid">
                   <div class="box-header bg-olive">
@@ -124,9 +127,7 @@
 
             <h4 class="text-bold">Current internship plan</h4>
 
-            <img src="/static/loading.gif" height="30" ng-hide="internship.months.$promise.$$state.status == 1" />
-
-            <p ng-show="internship.months.$promise.$$state.status == 1">
+            <p>
               This is a snapshot of {{ internship.intern.profile.en_full_name }}'s current internship plan.
               Each box represents a specific month. Changes in <span class="text-yellow">orange</span> or
               <span class="text-red">red</span> color are pending review.
@@ -134,11 +135,11 @@
 
             <!-- Check out: -->
             <!-- http://stackoverflow.com/a/25838091 -->
-            <div  style="background-color: #ecf0f5; border-radius: 3px; padding: 5px;" ng-show="internship.months.$promise.$$state.status == 1">
+            <div  style="background-color: #ecf0f5; border-radius: 3px; padding: 5px;">
               <div id="internship-plan-grid" class="row" ng-repeat="month in internship.months track by $index" ng-if="$index % 5 == 0">
                 <div class="col-md-2 internship-plan-box" ng-class="{'col-md-offset-1': $index % 5 == 0}" ng-repeat="i in [$index, $index + 1, $index + 2, $index + 3, $index + 4]">
 
-                  <internship-month-box internship-month="months[i]" size="'sm'"></internship-month-box>
+                  <internship-month-box internship-month="internship.months[i]" size="'sm'"></internship-month-box>
 
                 </div>
               </div>
@@ -149,9 +150,7 @@
 
             <h4 class="text-bold">Open requests</h4>
 
-            <img src="/static/loading.gif" height="30" ng-hide="internship.rotation_requests.$promise.$$state.status == 1" />
-
-            <div ng-show="internship.rotation_requests.$promise.$$state.status == 1">
+            <div>
               <h5 class="text-bold">Unreviewed</h5>
               <p ng-if="internship.unreviewed_rotation_requests.length > 0">
                 Below is the list of {{ internship.intern.profile.en_first_name }}'s requests that await your response.
@@ -165,11 +164,10 @@
                 <div uib-accordion-group template-url="accordion-template.html"
                      ng-repeat="request in internship.unreviewed_rotation_requests | orderBy: 'id'" class="panel-warning }}">
                   <uib-accordion-heading>
-                    <img ng-hide="request.$promise.$$state.status == 1" src="/static/loading.gif" height="20px" />
                     <span class="text-warning">#{{ request.id }} - <span class="text-bold">Unreviewed</span> |
                       <span ng-if="request.is_delete == false">{{ request.specialty.abbreviation }} @ {{ request.requested_department.department.hospital.abbreviation }}</span>
                       <span ng-if="request.is_delete == true">Cancellation</span>
-                      (<i>for</i> {{ request.month.label }})</span>
+                      (<i>for</i> {{ request.month.format('MMMM YYYY') }})</span>
                   </uib-accordion-heading>
 
                   <dl class="dl-horizontal">
@@ -177,7 +175,7 @@
                     <dd>{{ request.id }}</dd>
 
                     <dt>Month</dt>
-                    <dd>{{ request.month.label }}</dd>
+                    <dd>{{ request.month.format('MMMM YYYY') }}</dd>
 
                     <div ng-if="!request.is_delete">
                       <dt>Specialty</dt>
@@ -221,11 +219,10 @@
                 <div uib-accordion-group template-url="accordion-template.html"
                      ng-repeat="request in internship.forwarded_rotation_requests" class="panel-info">
                   <uib-accordion-heading>
-                    <img ng-hide="request.$promise.$$state.status == 1" src="/static/loading.gif" height="20px" />
                     <span class="text-light-blue">#{{ request.id }} - <span class="text-bold">{{ getStatus(request) }}</span> |
                       <span ng-if="request.is_delete == false">{{ request.specialty.abbreviation }} @ {{ request.requested_department.department.hospital.abbreviation }}</span>
                       <span ng-if="request.is_delete == true">Cancellation</span>
-                      (<i>for</i> {{ request.month.label }})</span>
+                      (<i>for</i> {{ request.month.format('MMMM YYYY') }})</span>
                   </uib-accordion-heading>
 
                   <dl class="dl-horizontal">
@@ -233,7 +230,7 @@
                     <dd>{{ request.id }}</dd>
 
                     <dt>Month</dt>
-                    <dd>{{ request.month.label }}</dd>
+                    <dd>{{ request.month.format('MMMM YYYY') }}</dd>
 
                     <div ng-if="!request.is_delete">
                       <dt>Specialty</dt>
@@ -328,18 +325,16 @@
 
             <h4 class="text-bold">
               Previous requests
-              <span class="pull-right" ng-show="internship.rotation_requests.$promise.$$state.status == 1">
+              <span class="pull-right">
                 <small><i>Filter by month:</i></small>
                 <select ng-model="monthFilter">
                   <option value="">All</option>
-                  <option ng-repeat="month in internship.months" value="{{ month.month }}">{{ month.label }}</option>
+                  <option ng-repeat="month in internship.months" value="{{ month.month }}">{{ month.format('MMMM YYYY') }}</option>
                 </select>
               </span>
             </h4>
 
-            <img src="/static/loading.gif" height="30" ng-hide="internship.rotation_requests.$promise.$$state.status == 1" />
-
-            <p ng-show="internship.rotation_requests.$promise.$$state.status == 1">Following are the full details of all previous requests made by this intern. You can use the filter
+            <p>Following are the full details of all previous requests made by this intern. You can use the filter
             above to show requests for a specific month.</p>
 
             <script type="text/ng-template" id="accordion-template.html">
@@ -363,11 +358,10 @@
               <div uib-accordion-group template-url="accordion-template.html"
                    ng-repeat="request in internship.closed_rotation_requests | orderBy: 'id' | filter: monthFilter" class="panel-{{ getClass(request) }}">
                 <uib-accordion-heading>
-                  <img ng-hide="request.$promise.$$state.status == 1" src="/static/loading.gif" height="20px" />
                   <span class="text-{{ getClass(request) }}">#{{ request.id }} - <span class="text-bold">{{ getStatus(request) }}</span> |
                     <span ng-if="request.is_delete == false">{{ request.specialty.abbreviation }} @ {{ request.requested_department.department.hospital.abbreviation }}</span>
                     <span ng-if="request.is_delete == true">Cancellation</span>
-                    (<i>for</i> {{ request.month.label }})</span>
+                    (<i>for</i> {{ request.month.format('MMMM YYYY') }})</span>
                 </uib-accordion-heading>
 
                 <dl class="dl-horizontal">
@@ -375,7 +369,7 @@
                   <dd>{{ request.id }}</dd>
 
                   <dt>Month</dt>
-                  <dd>{{ request.month.label }}</dd>
+                  <dd>{{ request.month.format('MMMM YYYY') }}</dd>
 
                   <div ng-if="!request.is_delete">
                     <dt>Specialty</dt>
