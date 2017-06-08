@@ -98,15 +98,16 @@
     }
   </style>
 
+  <p><i>
+    Here is a summary of all interns' current internship plans. Changes in <span class="text-yellow">orange</span> or
+    <span class="text-red">red</span> color are pending review.<br>
+    Requests with the <i class="fa fa-external-link"></i> sign have been approved by the medical internship unit and
+    are awaiting their memos to be sent or the requested department or hospital to reply.
+  </i></p>
+
   <div class="loading-spinner" ng-hide="batches.$promise.$$state.status !== 0" style="height: 150px;">
     <img src="/static/loading.gif" height="50" style="position: relative; top: 50%; left: 50%; margin-left: -30px; margin-top: -30px;" />
   </div>
-
-  <p ng-show="internship.months.$promise.$$state.status == 1">
-    This is a snapshot of {{ internship.intern.profile.en_full_name }}'s current internship plan.
-    Each box represents a specific month. Changes in <span class="text-yellow">orange</span> or
-    <span class="text-red">red</span> color are pending review.
-  </p>
 
   <div class="row batch" ng-repeat="batch in batches">
     <div class="col-xs-12">
