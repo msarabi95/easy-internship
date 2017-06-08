@@ -211,15 +211,15 @@ class ShortRotationRequestForwardSerializer(serializers.ModelSerializer):
         model = RotationRequestForward
         fields = ('id', 'forward_datetime', 'memo_file', 'rotation_request', )
 
-
-# Import placed here to avoid circular import issues with months.serializers module
-from months.serializers import FullInternshipSerializer
-
-class FullRotationSerializer(RotationSerializer):
-    internship = FullInternshipSerializer()
-
-    class Meta(RotationSerializer.Meta):
-        pass
+#
+# # Import placed here to avoid circular import issues with months.serializers module
+# from months.serializers import InternshipSerializer
+#
+# class FullRotationSerializer(RotationSerializer):
+#     internship = InternshipSerializer()
+#
+#     class Meta(RotationSerializer.Meta):
+#         pass
 
 
 #############################

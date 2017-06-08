@@ -26,7 +26,7 @@ from hospitals.models import Department, AcceptanceSetting, Hospital, Specialty,
     DepartmentSettings, GlobalSettings
 from rotations.serializers import RotationSerializer, RequestedDepartmentSerializer, RotationRequestSerializer, \
     RotationRequestResponseSerializer, RotationRequestForwardSerializer, AcceptanceListSerializer, \
-    ShortRotationRequestForwardSerializer, ShortRotationRequestSerializer, FullRotationSerializer, \
+    ShortRotationRequestForwardSerializer, ShortRotationRequestSerializer, \
     UpdatedRotationRequestSerializer
 
 
@@ -92,7 +92,7 @@ class RotationViewSet(viewsets.ReadOnlyModelViewSet):
             'internship__intern__profile',
         )
 
-        serialized = FullRotationSerializer(rotations, many=True)
+        serialized = RotationSerializer(rotations, many=True)
 
         return Response(serialized.data)
 

@@ -5,17 +5,10 @@ from easy_internship.serializers import MonthField
 from leaves.serializers import LeaveSerializer, LeaveRequestSerializer, LeaveCancelRequestSerializer
 from months.models import Internship, Freeze, FreezeRequest, FreezeRequestResponse, FreezeCancelRequest, \
     FreezeCancelRequestResponse
-
-
-class InternshipSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Internship
-        fields = ('id', 'intern', 'start_month', 'rotation_requests', )
+from rotations.serializers import RotationSerializer2, RotationRequestSerializer2
 
 
 class FreezeSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Freeze
         fields = '__all__'
@@ -34,7 +27,6 @@ class FreezeRequestSerializer(serializers.ModelSerializer):
 
 
 class FreezeRequestResponseSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = FreezeRequestResponse
         fields = '__all__'
@@ -53,20 +45,9 @@ class FreezeCancelRequestSerializer(serializers.ModelSerializer):
 
 
 class FreezeCancelRequestResponseSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = FreezeCancelRequestResponse
         fields = '__all__'
-
-
-class FullInternshipSerializer(InternshipSerializer):
-    intern = FullInternSerializer()
-
-    class Meta(InternshipSerializer.Meta):
-        pass
-
-# Import placed here to avoid circular import issues with rotations.serializers module
-from rotations.serializers import RotationRequestSerializer2, RotationSerializer2
 
 
 class InternshipMonthSerializer(serializers.Serializer):
@@ -109,6 +90,15 @@ class InternshipMonthSerializer(serializers.Serializer):
 
     def update(self, instance, validated_data):
         pass
+
+
+class InternshipSerializer(serializers.ModelSerializer):
+    intern = FullInternSerializer()
+    months = InternshipMonthSerializer(many=True)
+
+    class Meta:
+        model = Internship
+        fields = ('id', 'intern', 'start_month', 'months', 'rotation_requests',)
 
 
 class FullInternshipSerializer2(serializers.ModelSerializer):
