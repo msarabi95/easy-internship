@@ -120,10 +120,40 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
     };
 }])
 
-.controller("DeleteFreezeRequestCtrl", ["$scope", function ($scope) {
-    // TODO
+.controller("DeleteFreezeRequestCtrl", ["$scope", "$routeParams", "$location", "Internship", "FreezeRequest", function ($scope, $routeParams, $location, Internship, FreezeRequest) {
+    $scope.internship = Internship.query(function (internships) {
+        $scope.internship = internships[0];
+        $scope.month = $scope.internship.months.filter(function (month, index) {
+            return month.month == $routeParams.month_id;
+        })[0];
+
+        $scope.request = $scope.month.current_freeze_request;
+    });
+
+    $scope.submit = function() {
+        FreezeRequest.delete({id: $scope.request.id}, function () {
+            $location.path("/planner");
+        }, function (error) {
+            toastr.error(error.statusText);
+        });
+    };
 }])
 
-.controller("DeleteFreezeCancelRequestCtrl", ["$scope", function ($scope) {
-    // TODO
+.controller("DeleteFreezeCancelRequestCtrl", ["$scope", "$routeParams", "$location", "Internship", "FreezeCancelRequest", function ($scope, $routeParams, $location, Internship, FreezeCancelRequest) {
+    $scope.internship = Internship.query(function (internships) {
+        $scope.internship = internships[0];
+        $scope.month = $scope.internship.months.filter(function (month, index) {
+            return month.month == $routeParams.month_id;
+        })[0];
+
+        $scope.request = $scope.month.current_freeze_cancel_request;
+    });
+
+    $scope.submit = function() {
+        FreezeCancelRequest.delete({id: $scope.request.id}, function () {
+            $location.path("/planner");
+        }, function (error) {
+            toastr.error(error.statusText);
+        });
+    };
 }]);

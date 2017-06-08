@@ -216,7 +216,8 @@
 
       <div ng-if="month.has_rotation_request">
         <!-- B) With a rotation request  -->
-        <box-action-buttons params="{month_id: month.month}" buttons="['info', 'delete-rota-req', '$DIV$', 'history']" color="'warning'" size="'sm'"></box-action-buttons>
+        <box-action-buttons ng-if="!month.current_rotation_request.is_forwarded" params="{month_id: month.month}" buttons="['info', 'delete-rota-req', '$DIV$', 'history']" color="'warning'" size="'sm'"></box-action-buttons>
+        <box-action-buttons ng-if="month.current_rotation_request.is_forwarded" params="{month_id: month.month}" buttons="['info', 'history']" color="'warning'" size="'sm'"></box-action-buttons>
       </div>
 
       <div ng-if="month.has_freeze_request">
@@ -254,7 +255,9 @@
 
       <div ng-if="month.has_rotation_request">
         <!-- B) With rotation request -->
-        <box-action-buttons params="{month_id: month.month}" buttons="['info', 'delete-rota-req', '$DIV$', 'history']" color="'primary'" size="'sm'"></box-action-buttons>
+        <box-action-buttons ng-if="!month.current_rotation_request.is_forwarded" params="{month_id: month.month}" buttons="['info', 'delete-rota-req', '$DIV$', 'history']" color="'primary'" size="'sm'"></box-action-buttons>
+        <box-action-buttons ng-if="month.current_rotation_request.is_forwarded" params="{month_id: month.month}" buttons="['info', 'history']" color="'primary'" size="'sm'"></box-action-buttons>
+
       </div>
 
       <div ng-if="month.has_rotation_cancel_request">

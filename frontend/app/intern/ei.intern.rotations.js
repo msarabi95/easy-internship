@@ -21,11 +21,11 @@ angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.r
             controller: "RequestRotationCancelCtrl"
         })
         .when("/planner/:month_id/request-rota/delete/", {
-            templateUrl: "static/partials/intern/rotations/delete-rotation-request.html",
+            templateUrl: "static/partials/intern/rotations/delete-rotation-request.html?v=0001",
             controller: "DeleteRotationRequestCtrl"
         })
         .when("/planner/:month_id/cancel-rota/delete/", {
-            templateUrl: "static/partials/intern/rotations/delete-rotation-cancel-request.html",
+            templateUrl: "static/partials/intern/rotations/delete-rotation-cancel-request.html?v=0001",
             controller: "DeleteRotationCancelRequestCtrl"
         })
 
@@ -193,10 +193,40 @@ angular.module("ei.rotations", ["ei.hospitals.models", "ei.months.models", "ei.r
     };
 }])
 
-.controller("DeleteRotationRequestCtrl", ["$scope", function ($scope) {
-    // TODO
+.controller("DeleteRotationRequestCtrl", ["$scope", "$routeParams", "$location", "Internship", "RotationRequest", function ($scope, $routeParams, $location, Internship, RotationRequest) {
+    $scope.internship = Internship.query(function (internships) {
+        $scope.internship = internships[0];
+        $scope.month = $scope.internship.months.filter(function (month, index) {
+            return month.month == $routeParams.month_id;
+        })[0];
+
+        $scope.request = $scope.month.current_rotation_request;
+    });
+
+    $scope.submit = function() {
+        RotationRequest.delete({id: $scope.request.id}, function () {
+            $location.path("/planner");
+        }, function (error) {
+            toastr.error(error.statusText);
+        });
+    };
 }])
 
-.controller("DeleteRotationCancelRequestCtrl", ["$scope", function ($scope) {
-    // TODO
+.controller("DeleteRotationCancelRequestCtrl", ["$scope", "$routeParams", "$location", "Internship", "RotationRequest", function ($scope, $routeParams, $location, Internship, RotationRequest) {
+    $scope.internship = Internship.query(function (internships) {
+        $scope.internship = internships[0];
+        $scope.month = $scope.internship.months.filter(function (month, index) {
+            return month.month == $routeParams.month_id;
+        })[0];
+
+        $scope.request = $scope.month.current_rotation_cancel_request;
+    });
+
+    $scope.submit = function() {
+        RotationRequest.delete({id: $scope.request.id}, function () {
+            $location.path("/planner");
+        }, function (error) {
+            toastr.error(error.statusText);
+        });
+    };
 }]);

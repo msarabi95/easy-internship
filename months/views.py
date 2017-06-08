@@ -7,9 +7,9 @@ from django_nyt.utils import subscribe, notify
 from month import Month
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import detail_route, list_route
-from rest_framework.exceptions import MethodNotAllowed
+from rest_framework.exceptions import MethodNotAllowed, ValidationError as RestValidationError
 from rest_framework.response import Response
-from rest_framework.status import HTTP_201_CREATED
+from rest_framework.status import HTTP_201_CREATED, HTTP_204_NO_CONTENT
 
 from accounts.models import Profile
 from accounts.permissions import IsIntern, IsStaff
@@ -222,7 +222,7 @@ class FreezeViewSet(viewsets.ReadOnlyModelViewSet):
         return self.queryset.filter(intern=self.request.user)
 
 
-class FreezeRequestViewSet(viewsets.ReadOnlyModelViewSet):
+class FreezeRequestViewSet(viewsets.ModelViewSet):
     serializer_class = FreezeRequestSerializer
     queryset = FreezeRequest.objects.all()
     permission_classes = [permissions.IsAuthenticated]
@@ -246,6 +246,30 @@ class FreezeRequestViewSet(viewsets.ReadOnlyModelViewSet):
 
         serialized = self.serializer_class(requests, many=True)
         return Response(serialized.data)
+
+    def create(self, request, *args, **kwargs):
+        raise MethodNotAllowed('post')
+
+    def update(self, request, *args, **kwargs):
+        raise MethodNotAllowed('put')
+
+    def partial_update(self, request, *args, **kwargs):
+        raise MethodNotAllowed('patch')
+
+    def destroy(self, request, *args, **kwargs):
+        freeze_request = get_object_or_404(FreezeRequest, id=kwargs.get('pk'))
+
+        # Make sure request hasn't been responded to
+        if hasattr(freeze_request, 'response'):
+            raise RestValidationError('This request cannot be deleted since it already has a response.')
+
+        # Delete request
+        freeze_request.delete()
+
+        # Display success message to user
+        messages.success(request._request, "Your request has been deleted.")
+
+        return Response(status=HTTP_204_NO_CONTENT)
 
 
 class FreezeRequestResponseViewSet(viewsets.ModelViewSet):
@@ -298,16 +322,16 @@ class FreezeRequestResponseViewSet(viewsets.ModelViewSet):
         return response
 
     def update(self, request, *args, **kwargs):
-        raise MethodNotAllowed
+        raise MethodNotAllowed('put')
 
     def partial_update(self, request, *args, **kwargs):
-        raise MethodNotAllowed
+        raise MethodNotAllowed('patch')
 
     def destroy(self, request, *args, **kwargs):
-        raise MethodNotAllowed
+        raise MethodNotAllowed('delete')
 
 
-class FreezeCancelRequestViewSet(viewsets.ReadOnlyModelViewSet):
+class FreezeCancelRequestViewSet(viewsets.ModelViewSet):
     serializer_class = FreezeCancelRequestSerializer
     queryset = FreezeCancelRequest.objects.all()
     permission_classes = [permissions.IsAuthenticated]
@@ -331,6 +355,30 @@ class FreezeCancelRequestViewSet(viewsets.ReadOnlyModelViewSet):
 
         serialized = self.serializer_class(requests, many=True)
         return Response(serialized.data)
+
+    def create(self, request, *args, **kwargs):
+        raise MethodNotAllowed('post')
+
+    def update(self, request, *args, **kwargs):
+        raise MethodNotAllowed('put')
+
+    def partial_update(self, request, *args, **kwargs):
+        raise MethodNotAllowed('patch')
+
+    def destroy(self, request, *args, **kwargs):
+        freeze_cancel_request = get_object_or_404(FreezeCancelRequest, id=kwargs.get('pk'))
+
+        # Make sure request hasn't been responded to
+        if hasattr(freeze_cancel_request, 'response'):
+            raise RestValidationError('This request cannot be deleted since it already has a response.')
+
+        # Delete request
+        freeze_cancel_request.delete()
+
+        # Display success message to user
+        messages.success(request._request, "Your request has been deleted.")
+
+        return Response(status=HTTP_204_NO_CONTENT)
 
 
 class FreezeCancelRequestResponseViewSet(viewsets.ModelViewSet):
@@ -383,10 +431,10 @@ class FreezeCancelRequestResponseViewSet(viewsets.ModelViewSet):
         return response
 
     def update(self, request, *args, **kwargs):
-        raise MethodNotAllowed
+        raise MethodNotAllowed('put')
 
     def partial_update(self, request, *args, **kwargs):
-        raise MethodNotAllowed
+        raise MethodNotAllowed('patch')
 
     def destroy(self, request, *args, **kwargs):
-        raise MethodNotAllowed
+        raise MethodNotAllowed('delete')
