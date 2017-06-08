@@ -4,6 +4,7 @@ from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import View, TemplateView
 from django.views.generic.edit import FormView
+from rest_framework.pagination import PageNumberPagination
 
 from userena.models import UserenaSignup
 from userena.views import signup, profile_edit, profile_detail
@@ -205,5 +206,14 @@ class BatchViewSet(viewsets.ReadOnlyModelViewSet):
             'intern__university',
             'intern__batch',
         )
+
+        paginator = PageNumberPagination()
+        paginator.page_size = 10
+        page = paginator.paginate_queryset(plans, request)
+
+        if page is not None:
+            serialized = FullInternshipSerializer2(page, many=True)
+            return paginator.get_paginated_response(serialized.data)
+
         serialized = FullInternshipSerializer2(plans, many=True)
         return Response(serialized.data)

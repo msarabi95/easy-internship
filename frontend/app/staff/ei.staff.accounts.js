@@ -13,7 +13,7 @@ angular.module("ei.staff.accounts", ["ei.months.models", "ei.accounts.models",
             controller: "InternListCtrl"
         })
         .when("/interns/summary/", {
-            templateUrl: "static/partials/staff/interns/plans-summary.html?v=0004",
+            templateUrl: "static/partials/staff/interns/plans-summary.html?v=0005",
             controller: "PlansSummaryCtrl"
         })
         .when("/interns/:id/", {
@@ -136,13 +136,31 @@ angular.module("ei.staff.accounts", ["ei.months.models", "ei.accounts.models",
     }
 }])
 
-.controller("PlansSummaryCtrl", ["$scope", "Batch", function ($scope, Batch) {
+.controller("PlansSummaryCtrl", ["$scope", "$q", "Batch", function ($scope, $q, Batch) {
     $scope.batches = Batch.query();
+
     $scope.batches.$promise.then(function (batches) {
         angular.forEach(batches, function (batch, index) {
-            batch.plans = Batch.plans({id: batch.id});
+            $scope.pageChanged(batch, 1);
         })
     });
+
+    $scope.getPlansPage = function (batch, page) {
+        var defer = $q.defer();
+        Batch.plans({id: batch.id, page: page}, function (results, headers) {
+            var promiseResult = {
+                results: results,
+                count: headers('pagination-total')
+            };
+            defer.resolve(promiseResult);
+        });
+
+        return defer.promise;
+    };
+
+    $scope.pageChanged = function (batch, newPageNumber) {
+        batch.plans = $scope.getPlansPage(batch, newPageNumber);
+    };
 
     $scope.offsetMonths = function (months, batchStartMonth, planStartMonth) {
         var diff = planStartMonth.diff(batchStartMonth, 'months');

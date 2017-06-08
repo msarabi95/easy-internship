@@ -50,7 +50,12 @@ angular.module('ei.accounts.models', ["ngResource", "ei.interceptors"])
             method: 'get',
             url: '/api/batches/:id/plans/',
             isArray: true,
-            interceptor: DateTimeFieldToMomentInterceptor(['start_month'])
+            interceptor: DateTimeFieldToMomentInterceptor(['start_month']),
+            transformResponse: function (data, headers) {
+                var jsonData = JSON.parse(data);
+                headers()['pagination-total'] = jsonData.count;
+                return jsonData.results;
+            }
         }
     })
 }]);

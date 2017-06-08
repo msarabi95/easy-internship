@@ -117,15 +117,15 @@
 
           <div class="box-tools pull-right">
             <!-- TODO: Allow specifying the number of plans per page (+ sorting field?) -->
-            <input type="text" class="search-field form-control input-sm pull-right" placeholder="Search..." ng-model="batch.search" style="margin-top: 5px;" ng-show="batch.plans.$promise.$$state.status == 1">
-            <img class="loading-spinner pull-right" src="/static/loading.gif" ng-hide="batch.plans.$promise.$$state.status !== 0" height="20" />
-            <div class="pagination-buttons pull-right"><dir-pagination-controls pagination-id="batch.abbreviation"></dir-pagination-controls></div>
+            <input type="text" class="search-field form-control input-sm pull-right" placeholder="Search..." ng-model="batch.search" style="margin-top: 5px;" ng-disabled="!batch.plans.$$state.value">
+            <div class="pagination-buttons pull-right"><dir-pagination-controls pagination-id="batch.abbreviation" on-page-change="pageChanged(batch, newPageNumber)" max-size="5"></dir-pagination-controls></div>
+            <img class="loading-spinner pull-right" src="/static/loading.gif" ng-hide="batch.plans.$$state.status !== 0" style="height: 25px; margin-top: 7.5px; margin-right: 5px;" />
           </div>
         </div>
 
         <div class="box-body">
-          <div ng-show="batch.plans.$promise.$$state.status == 1" style="background-color: #ecf0f5; border-radius: 3px; padding: 5px;" class="plans-background">
-            <div class="row plan" dir-paginate="plan in batch.plans | filter: {intern: {profile: {en_full_name: batch.search }}} | orderBy: 'intern.profile.en_full_name' | itemsPerPage: 10" ng-init="row = $index"
+          <div ng-show="batch.plans.$$state.status == 1" style="background-color: #ecf0f5; border-radius: 3px; padding: 5px;" class="plans-background">
+            <div class="row plan" dir-paginate="plan in batch.plans.$$state.value.results | filter: {intern: {profile: {en_full_name: batch.search }}} | orderBy: 'intern.profile.en_full_name' | itemsPerPage: 10" total-items="batch.plans.$$state.value.count" ng-init="row = $index"
                  pagination-id="batch.abbreviation" style="padding-left: 15px; padding-right: 15px;">
               <div class="col-xs-1">
                 <!--<hr style="border-color: lightgray; margin-top: 0; margin-bottom: 0;">-->
