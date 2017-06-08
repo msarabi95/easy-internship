@@ -227,15 +227,6 @@ class ShortRotationRequestForwardSerializer(serializers.ModelSerializer):
 #############################
 
 
-class RotationSerializer2(serializers.ModelSerializer):
-    specialty = SpecialtySerializer()
-    department = DepartmentSerializer2()
-
-    class Meta:
-        model = Rotation
-        fields = '__all__'
-
-
 class RequestedDepartmentSerializer2(serializers.ModelSerializer):
     department = DepartmentSerializer2()
 
@@ -254,4 +245,14 @@ class RotationRequestSerializer2(serializers.ModelSerializer):
 
     class Meta:
         model = RotationRequest
+        fields = '__all__'
+
+
+class RotationSerializer2(serializers.ModelSerializer):
+    specialty = SpecialtySerializer()
+    department = DepartmentSerializer2()
+    rotation_request = RotationRequestSerializer2()
+
+    class Meta:
+        model = Rotation
         fields = '__all__'

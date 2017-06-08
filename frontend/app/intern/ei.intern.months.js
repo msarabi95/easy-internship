@@ -52,6 +52,13 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
         $scope.month.occupied = ($scope.month.current_rotation !== null);
         $scope.month.requested = ($scope.month.current_rotation_request !== null);
 
+        if ($scope.month.occupied) {
+            $scope.month.current_rotation.rotation_request.submission_datetime =
+                moment($scope.month.current_rotation.rotation_request.submission_datetime);
+            $scope.month.current_rotation.rotation_request.response.response_datetime =
+                moment($scope.month.current_rotation.rotation_request.response.response_datetime);
+        }
+
         if ($scope.month.requested) {
             $scope.month.current_rotation_request.submission_datetime = moment($scope.month.current_rotation_request.submission_datetime);
 
