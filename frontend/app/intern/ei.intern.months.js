@@ -13,7 +13,7 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
             controller: "MonthListCtrl"
         })
         .when("/planner/:month_id/", {
-            templateUrl: "static/partials/intern/months/month-detail.html?v=0007",
+            templateUrl: "static/partials/intern/months/month-detail.html?v=0008",
             controller: "MonthDetailCtrl"
         })
         .when("/planner/:month_id/request-freeze/", {
@@ -43,52 +43,71 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
     });
 }])
 
-.controller("MonthDetailCtrl", ["$scope", "$location", "$routeParams", "loadWithRelated", "InternshipMonth", "Hospital", "Department", "Specialty", "Rotation", "RotationRequest", "RequestedDepartment", "RotationRequestResponse", "RotationRequestForward", "LeaveType", "Leave", "LeaveRequest", "LeaveRequestResponse", "LeaveCancelRequest",
-    function ($scope, $location, $routeParams, loadWithRelated, InternshipMonth, Hospital, Department, Specialty, Rotation, RotationRequest, RequestedDepartment, RotationRequestResponse, RotationRequestForward, LeaveType, Leave, LeaveRequest, LeaveRequestResponse, LeaveCancelRequest) {
-        $scope.moment = moment;
-
-        $scope.month = InternshipMonth.get({month_id: $routeParams.month_id});
-
-        $scope.month.$promise.then(function (month) {
-
-            $scope.month.occupied = (month.current_rotation !== null);
-            $scope.month.requested = (month.current_rotation_request !== null);
-
-            if ($scope.month.occupied) {
-                // Load current rotation
-                $scope.month.current_rotation = loadWithRelated($scope.month.current_rotation, Rotation, [
-                    [{department: Department}, [
-                        {specialty: Specialty},
-                        {hospital: Hospital}
-                    ]],
-                    [{rotation_request: RotationRequest}, [
-                        {response: RotationRequestResponse}
-                    ]]
-                ]);
-            }
+.controller("MonthDetailCtrl", ["$scope", "$location", "$routeParams", "Internship", "loadWithRelated", "InternshipMonth", "Hospital", "Department", "Specialty", "Rotation", "RotationRequest", "RequestedDepartment", "RotationRequestResponse", "RotationRequestForward", "LeaveType", "Leave", "LeaveRequest", "LeaveRequestResponse", "LeaveCancelRequest",
+    function ($scope, $location, $routeParams, Internship, loadWithRelated, InternshipMonth, Hospital, Department, Specialty, Rotation, RotationRequest, RequestedDepartment, RotationRequestResponse, RotationRequestForward, LeaveType, Leave, LeaveRequest, LeaveRequestResponse, LeaveCancelRequest) {
+        $scope.internship = Internship.query(function (internships) {
+            $scope.internship = internships[0];
+            console.log($scope.internship);
+            $scope.month = $scope.internship.months.filter(function (month, index) {
+                return month.month == $routeParams.month_id;
+            })[0];
+            $scope.month.occupied = ($scope.month.current_rotation !== null);
+            $scope.month.requested = ($scope.month.current_rotation_request !== null);
 
             if ($scope.month.requested) {
-                $scope.month.current_rotation_request = loadWithRelated($scope.month.current_rotation_request, RotationRequest, [
-                    {specialty: Specialty},
-                    [{requested_department: RequestedDepartment}, [
-                        [{department: Department}, [
-                            {hospital: Hospital}
-                        ]]
-                    ]]
-                ]);
-                $scope.month.current_rotation_request.$promise.then(function (request) {
-                    if (!!$scope.month.current_rotation_request.forward) {
-                        $scope.month.current_rotation_request.forward = RotationRequestForward.get({id: request.forward});
-                    }
-                });
+                $scope.month.current_rotation_request.submission_datetime = moment($scope.month.current_rotation_request.submission_datetime);
+
+                if (!!$scope.month.current_rotation_request.forward) {
+                    $scope.month.current_rotation_request.forward.forward_datetime =
+                        moment($scope.month.current_rotation_request.forward.forward_datetime);
+                }
             }
-
-            // Load current leaves, leave requests, and leave cancel requests
-            $scope.month.current_leaves = loadWithRelated($scope.month.current_leaves, Leave, [{type: LeaveType}, [{request: LeaveRequest}, [{response: LeaveRequestResponse}]]]);
-            $scope.month.current_leave_requests = loadWithRelated($scope.month.current_leave_requests, LeaveRequest, [{type: LeaveType}]);
-            $scope.month.current_leave_cancel_requests = loadWithRelated($scope.month.current_leave_cancel_requests, LeaveCancelRequest);
-
         });
+
+        // $scope.moment = moment;
+        //
+        // $scope.month = InternshipMonth.get({month_id: $routeParams.month_id});
+        //
+        // $scope.month.$promise.then(function (month) {
+        //
+        //     $scope.month.occupied = (month.current_rotation !== null);
+        //     $scope.month.requested = (month.current_rotation_request !== null);
+        //
+        //     if ($scope.month.occupied) {
+        //         // Load current rotation
+        //         $scope.month.current_rotation = loadWithRelated($scope.month.current_rotation, Rotation, [
+        //             [{department: Department}, [
+        //                 {specialty: Specialty},
+        //                 {hospital: Hospital}
+        //             ]],
+        //             [{rotation_request: RotationRequest}, [
+        //                 {response: RotationRequestResponse}
+        //             ]]
+        //         ]);
+        //     }
+        //
+        //     if ($scope.month.requested) {
+        //         $scope.month.current_rotation_request = loadWithRelated($scope.month.current_rotation_request, RotationRequest, [
+        //             {specialty: Specialty},
+        //             [{requested_department: RequestedDepartment}, [
+        //                 [{department: Department}, [
+        //                     {hospital: Hospital}
+        //                 ]]
+        //             ]]
+        //         ]);
+        //         $scope.month.current_rotation_request.$promise.then(function (request) {
+        //             if (!!$scope.month.current_rotation_request.forward) {
+        //                 $scope.month.current_rotation_request.forward = RotationRequestForward.get({id: request.forward});
+        //             }
+        //         });
+        //     }
+        //
+        //     // Load current leaves, leave requests, and leave cancel requests
+        //     $scope.month.current_leaves = loadWithRelated($scope.month.current_leaves, Leave, [{type: LeaveType}, [{request: LeaveRequest}, [{response: LeaveRequestResponse}]]]);
+        //     $scope.month.current_leave_requests = loadWithRelated($scope.month.current_leave_requests, LeaveRequest, [{type: LeaveType}]);
+        //     $scope.month.current_leave_cancel_requests = loadWithRelated($scope.month.current_leave_cancel_requests, LeaveCancelRequest);
+        //
+        // });
 
         $scope.record_response = function (is_approved, comments) {
             $scope.month.current_rotation_request.$respond({is_approved: is_approved, comments: comments}, function () {
