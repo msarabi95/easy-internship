@@ -17,7 +17,7 @@ angular.module("ei.staff.accounts", ["ei.months.models", "ei.accounts.models",
             controller: "PlansSummaryCtrl"
         })
         .when("/interns/:id/", {
-            templateUrl: "static/partials/staff/interns/intern-detail.html?v=0006",
+            templateUrl: "static/partials/staff/interns/intern-detail.html?v=0007",
             controller: "InternDetailCtrl"
         });
 }])
@@ -71,7 +71,7 @@ angular.module("ei.staff.accounts", ["ei.months.models", "ei.accounts.models",
 
             var year = Math.floor(rotation_request.month/12);
             var month = rotation_request.month % 12;
-            rotation_request.month = moment({year: year, month: month});
+            rotation_request.month = moment({year: year, month: month, monthId: rotation_request.month});
             rotation_request.submission_datetime = moment(rotation_request.submission_datetime);
 
             if (!!rotation_request.response) {
@@ -127,6 +127,12 @@ angular.module("ei.staff.accounts", ["ei.months.models", "ei.accounts.models",
         } else {
             return "danger";
         }
+    };
+
+    $scope.getMomentFromMonthId = function (monthId) {
+        var year = Math.floor(monthId/12);
+        var month = monthId % 12;
+        return moment({year: year, month: month, monthId: monthId});
     }
 }])
 

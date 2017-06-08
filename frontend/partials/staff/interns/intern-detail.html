@@ -327,9 +327,9 @@
               Previous requests
               <span class="pull-right">
                 <small><i>Filter by month:</i></small>
-                <select ng-model="monthFilter">
+                <select ng-model="selectedMonth">
                   <option value="">All</option>
-                  <option ng-repeat="month in internship.months" value="{{ month.month }}">{{ month.format('MMMM YYYY') }}</option>
+                  <option ng-repeat="month in internship.months" value="{{ month.month }}">{{ getMomentFromMonthId(month.month).format('MMMM YYYY') }}</option>
                 </select>
               </span>
             </h4>
@@ -356,7 +356,7 @@
 
             <uib-accordion>
               <div uib-accordion-group template-url="accordion-template.html"
-                   ng-repeat="request in internship.closed_rotation_requests | orderBy: 'id' | filter: monthFilter" class="panel-{{ getClass(request) }}">
+                   ng-repeat="request in internship.closed_rotation_requests | orderBy: 'id' | filter: {month: {_i: {monthId: selectedMonth}}}" class="panel-{{ getClass(request) }}">
                 <uib-accordion-heading>
                   <span class="text-{{ getClass(request) }}">#{{ request.id }} - <span class="text-bold">{{ getStatus(request) }}</span> |
                     <span ng-if="request.is_delete == false">{{ request.specialty.abbreviation }} @ {{ request.requested_department.department.hospital.abbreviation }}</span>
