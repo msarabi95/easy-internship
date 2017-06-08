@@ -42,6 +42,7 @@
     "iCheck": "icheck#^1.0.2",
     "animate.css": "^3.5.2",
     "select2": "^4.0.3",
-    "select2-bootstrap-theme": "^0.1.0-beta.10"
+    "select2-bootstrap-theme": "^0.1.0-beta.10",
+    "angularUtils-pagination": "angular-utils-pagination#^0.11.1"
   }
 }

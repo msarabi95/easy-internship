@@ -4,7 +4,7 @@
 angular.module("ei.staff.accounts", ["ei.months.models", "ei.accounts.models",
                                      "ei.utils", "ei.rotations.directives", "ei.months.directives",
                                      "ngRoute", "datatables", "datatables.bootstrap",
-                                     "ui.bootstrap", "ui.select"])
+                                     "ui.bootstrap", "ui.select", "angularUtils.directives.dirPagination"])
 
 .config(["$routeProvider", function ($routeProvider) {
     $routeProvider
@@ -13,7 +13,7 @@ angular.module("ei.staff.accounts", ["ei.months.models", "ei.accounts.models",
             controller: "InternListCtrl"
         })
         .when("/interns/summary/", {
-            templateUrl: "static/partials/staff/interns/plans-summary.html?v=0003",
+            templateUrl: "static/partials/staff/interns/plans-summary.html?v=0004",
             controller: "PlansSummaryCtrl"
         })
         .when("/interns/:id/", {

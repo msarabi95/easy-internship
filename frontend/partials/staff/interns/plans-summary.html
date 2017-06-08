@@ -64,7 +64,38 @@
       margin-right: inherit;
     }
 
+    .pagination {
+      position: relative;
+      top: 50%;
+      transform: translateY(-50%);
+    }
 
+    .pagination li a, .pagination li span {
+      padding-left: 8px;
+      padding-right: 8px;
+      padding-top: 3px;
+      padding-bottom: 3px;
+    }
+
+    .box-tools {
+      width: 400px;
+    }
+
+    .search-field {
+      width: 200px;
+    }
+
+    .pagination-buttons {
+      padding-right: 10px;
+    }
+
+    ul.ng-enter {
+      animation: fadeIn 200ms;
+    }
+
+    ul.ng-leave {
+      animation: fadeOut 200ms;
+    }
   </style>
 
   <div class="loading-spinner" ng-hide="batches.$promise.$$state.status !== 0" style="height: 150px;">
@@ -84,15 +115,17 @@
           <h4 class="box-title">{{ batch.name }}</h4>
 
           <div class="box-tools pull-right">
-            <input type="text" placeholder="Search..." ng-model="batch.search" style="margin-top: 5px;" class="search-field form-control input-sm" ng-show="batch.plans.$promise.$$state.status == 1">
-            <img class="loading-spinner" src="/static/loading.gif" ng-hide="batch.plans.$promise.$$state.status !== 0" height="20" />
+            <!-- TODO: Allow specifying the number of plans per page (+ sorting field?) -->
+            <input type="text" class="search-field form-control input-sm pull-right" placeholder="Search..." ng-model="batch.search" style="margin-top: 5px;" ng-show="batch.plans.$promise.$$state.status == 1">
+            <img class="loading-spinner pull-right" src="/static/loading.gif" ng-hide="batch.plans.$promise.$$state.status !== 0" height="20" />
+            <div class="pagination-buttons pull-right"><dir-pagination-controls pagination-id="batch.abbreviation"></dir-pagination-controls></div>
           </div>
         </div>
 
         <div class="box-body">
-
           <div ng-show="batch.plans.$promise.$$state.status == 1" style="background-color: #ecf0f5; border-radius: 3px; padding: 5px;" class="plans-background">
-            <div class="row plan" ng-repeat="plan in batch.plans | filter: {intern: {profile: {en_full_name: batch.search }}}" ng-init="row = $index" style="padding-left: 15px; padding-right: 15px;">
+            <div class="row plan" dir-paginate="plan in batch.plans | filter: {intern: {profile: {en_full_name: batch.search }}} | orderBy: 'intern.profile.en_full_name' | itemsPerPage: 10" ng-init="row = $index"
+                 pagination-id="batch.abbreviation" style="padding-left: 15px; padding-right: 15px;">
               <div class="col-xs-1">
                 <!--<hr style="border-color: lightgray; margin-top: 0; margin-bottom: 0;">-->
                 <h5 ng-style="row == 0 && {'margin-top': '50px'}" style="margin-bottom: 0;" class="text-bold text-center">{{ plan.intern.profile.en_full_name }}</h5>
@@ -134,6 +167,7 @@
 <script type="text/ng-template" id="ellipsis.html">
   <div style="background-color: #ecf0f5; border-radius: 3px; padding: 5px; width: 300px;">
     <div class="row">
+      <!-- TODO: Those whose plans start later than the rest of the batch will need more than 3 extra months -->
       <div class="col-xs-4" style="padding-left: 5px; padding-right: 5px;" ng-repeat="month in offsetMonths(plan.months, batch.start_month, plan.start_month) | limitTo: 3 : 12">
         <internship-month-box internship-month="month" show-month-label="true" size="'sm'"></internship-month-box>
       </div>
