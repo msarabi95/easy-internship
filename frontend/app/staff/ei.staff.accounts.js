@@ -4,7 +4,7 @@
 angular.module("ei.staff.accounts", ["ei.months.models", "ei.accounts.models",
                                      "ei.utils", "ei.rotations.directives", "ei.months.directives",
                                      "ngRoute", "datatables", "datatables.bootstrap",
-                                     "ui.bootstrap", "ui.select"])
+                                     "ui.bootstrap", "ui.select", "angularUtils.directives.dirPagination"])
 
 .config(["$routeProvider", function ($routeProvider) {
     $routeProvider
@@ -13,11 +13,11 @@ angular.module("ei.staff.accounts", ["ei.months.models", "ei.accounts.models",
             controller: "InternListCtrl"
         })
         .when("/interns/summary/", {
-            templateUrl: "static/partials/staff/interns/plans-summary.html",
+            templateUrl: "static/partials/staff/interns/plans-summary.html?v=0004",
             controller: "PlansSummaryCtrl"
         })
         .when("/interns/:id/", {
-            templateUrl: "static/partials/staff/interns/intern-detail.html?v=0005",
+            templateUrl: "static/partials/staff/interns/intern-detail.html?v=0007",
             controller: "InternDetailCtrl"
         });
 }])
@@ -58,194 +58,105 @@ angular.module("ei.staff.accounts", ["ei.months.models", "ei.accounts.models",
         ];
 }])
 
-.controller("InternDetailCtrl", ["$scope", "$routeParams", "$timeout", "$q", "loadWithRelated", "Internship", "Intern", "Profile", "User", "InternshipMonth",
-    "RotationRequest", "RequestedDepartment", "Specialty", "Department", "Hospital", "RotationRequestResponse", "RotationRequestForward",
-    "Rotation",
-    function ($scope, $routeParams, $timeout, $q, loadWithRelated, Internship, Intern, Profile, User, InternshipMonth, RotationRequest, RequestedDepartment,
-              Specialty, Department, Hospital, RotationRequestResponse, RotationRequestForward, Rotation) {
-        $scope.internship = loadWithRelated($routeParams.id, Internship, [
-            [{intern: Intern}, [
-                [{profile: Profile}, [
-                    {user: User}
-                ]]
-            ]]
-        ], true);
+.controller("InternDetailCtrl", ["$scope", "$routeParams", "Internship", function ($scope, $routeParams, Internship) {
+    $scope.internship = Internship.get({id: $routeParams.id});
 
-        $scope.internship.$promise.then(function () {
+    $scope.internship.$promise.then(function (internship) {
 
-            var startMonth = $scope.internship.start_month.split("-");
+        $scope.internship.unreviewed_rotation_requests = [];
+        $scope.internship.forwarded_rotation_requests = [];
+        $scope.internship.closed_rotation_requests = [];
 
-            startMonth = parseInt(startMonth[0]) * 12 + parseInt(startMonth[1]) - 1;
+        angular.forEach(internship.rotation_requests, function (rotation_request, index) {
 
-            $scope.internship.months = Array.apply(null, Array(15)).map(function (_, i) {return startMonth + i;});
+            var year = Math.floor(rotation_request.month/12);
+            var month = rotation_request.month % 12;
+            rotation_request.month = moment({year: year, month: month, monthId: rotation_request.month});
+            rotation_request.submission_datetime = moment(rotation_request.submission_datetime);
 
-            var promises = [];
+            if (!!rotation_request.response) {
 
-            angular.forEach($scope.internship.months, function (month_id, index) {
-                $scope.internship.months[index] = InternshipMonth.get_by_internship_and_id({internship_id: $scope.internship.id, month_id: month_id});
+                rotation_request.response.response_datetime = moment(rotation_request.response.response_datetime);
+                $scope.internship.closed_rotation_requests.push(rotation_request);
 
-                promises.push($scope.internship.months[index].$promise);
+            } else if (!!rotation_request.forward) {
 
-                $scope.internship.months[index].$promise.then(function (internshipMonth) {
+                rotation_request.forward.forward_datetime = moment(rotation_request.forward.forward_datetime);
+                $scope.internship.forwarded_rotation_requests.push(rotation_request);
 
-                    $scope.internship.months[index].occupied = (internshipMonth.current_rotation !== null);
-                    $scope.internship.months[index].requested = (internshipMonth.current_request !== null);
+            } else {
 
-                    if (internshipMonth.requested) {
-                        $scope.internship.months[index].current_request = RotationRequest.get({id: internshipMonth.current_request});
-                        $scope.internship.months[index].current_request.$promise.then(function (rotation_request) {
+                $scope.internship.unreviewed_rotation_requests.push(rotation_request);
 
-                            $scope.internship.months[index].current_request.specialty =
-                                Specialty.get({id: rotation_request.specialty});
-
-                            $scope.internship.months[index].current_request.requested_department =
-                                RequestedDepartment.get({id: rotation_request.requested_department});
-                            $scope.internship.months[index].current_request.requested_department.$promise.then(function (requested_department) {
-
-                                $scope.internship.months[index].current_request.requested_department.department =
-                                    Department.get({id: requested_department.department});
-                                $scope.internship.months[index].current_request.requested_department.department.$promise.then(function (department) {
-
-                                    $scope.internship.months[index].current_request.requested_department.department.hospital =
-                                        Hospital.get({id: department.hospital});
-                                })
-                            });
-                        });
-                    }
-
-                    if (internshipMonth.occupied) {
-                        $scope.internship.months[index].current_rotation = Rotation.get({id: internshipMonth.current_rotation});
-                        $scope.internship.months[index].current_rotation.$promise.then(function (rotation) {
-
-                            $scope.internship.months[index].current_rotation.specialty = Specialty.get({id: rotation.specialty});
-
-                            $scope.internship.months[index].current_rotation.department = Department.get({id: rotation.department});
-                            $scope.internship.months[index].current_rotation.department.$promise.then(function (department) {
-
-                                $scope.internship.months[index].current_rotation.department.hospital =
-                                    Hospital.get({id: department.hospital});
-                            })
-                        })
-                    }
-                });
-            });
-
-            $scope.internship.months.$promise = $q.all(promises);
-
-            $scope.months = $scope.internship.months; // a handy shortcut
-
-            console.log($scope.internship);
-
-            $scope.internship.rotation_requests = loadWithRelated($scope.internship.rotation_requests, RotationRequest);
-
-            $scope.internship.rotation_requests.$promise.then(function (rotation_requests) {
-
-                $scope.internship.unreviewed_rotation_requests = [];
-                $scope.internship.forwarded_rotation_requests = [];
-                $scope.internship.closed_rotation_requests = [];
-
-                angular.forEach(rotation_requests, function (rotation_request, index) {
-
-                    rotation_request.month = InternshipMonth.get_by_internship_and_id({month_id: rotation_request.month, internship_id: $scope.internship.id});
-                    var promises = [rotation_request.month.$promise];
-
-                    if (!!rotation_request.response) {
-                        rotation_request.response = RotationRequestResponse.get({id: rotation_request.response});
-                        rotation_request.specialty = Specialty.get({id: rotation_request.specialty});
-                        rotation_request.requested_department = loadWithRelated(rotation_request.requested_department, RequestedDepartment, [
-                            [{department: Department}, [
-                                {hospital: Hospital}
-                            ]]
-                        ], true);
-                        if (!!rotation_request.forward) {
-                            rotation_request.forward = RotationRequestForward.get({id: rotation_request.forward});
-                            promises.push(rotation_request.forward.$promise);
-                        }
-
-                        promises.push(rotation_request.response.$promise);
-                        promises.push(rotation_request.specialty.$promise);
-                        promises.push(rotation_request.requested_department.$promise);
-
-                        rotation_request.$promise = rotation_request.$promise.then(function () {
-                            return $q.all(promises);
-                        });
-
-                        $scope.internship.closed_rotation_requests.push(rotation_request);
-
-                    } else if (!!rotation_request.forward) {
-                        rotation_request.forward = RotationRequestForward.get({id: rotation_request.forward});
-                        rotation_request.specialty = Specialty.get({id: rotation_request.specialty});
-                        rotation_request.requested_department = loadWithRelated(rotation_request.requested_department, RequestedDepartment, [
-                            [{department: Department}, [
-                                {hospital: Hospital}
-                            ]]
-                        ], true);
-
-                        promises.push(rotation_request.forward.$promise);
-                        promises.push(rotation_request.specialty.$promise);
-                        promises.push(rotation_request.requested_department.$promise);
-
-                        rotation_request.$promise = rotation_request.$promise.then(function () {
-                            return $q.all(promises);
-                        });
-
-                        $scope.internship.forwarded_rotation_requests.push(rotation_request);
-                    } else {
-                        rotation_request.specialty = Specialty.get({id: rotation_request.specialty});
-                        rotation_request.requested_department = loadWithRelated(rotation_request.requested_department, RequestedDepartment, [
-                            [{department: Department}, [
-                                {hospital: Hospital}
-                            ]]
-                        ]);
-
-                        promises.push(rotation_request.specialty.$promise);
-                        promises.push(rotation_request.requested_department.$promise);
-
-                        rotation_request.$promise = rotation_request.$promise.then(function () {
-                            return $q.all(promises);
-                        });
-
-                        $scope.internship.unreviewed_rotation_requests.push(rotation_request);
-                    }
-                });
-            });
-
+            }
         });
+    });
 
-        $scope.moveToPastRequests = function (request) {
-            // Move request to *closed* requests
-            var index = $scope.internship.unreviewed_rotation_requests.indexOf(request);  // WARNING: indexOf not supported in all browsers (IE7 & 8)
-            if (index > -1) {
-                $scope.internship.unreviewed_rotation_requests.splice(index, 1);
-            } else {
-                index = $scope.internship.forwarded_rotation_requests.indexOf(request);
-                $scope.internship.forwarded_rotation_requests.splice(index, 1);
-            }
-            $scope.internship.closed_rotation_requests.push(request);
-        };
-
-        $scope.moveToForwardedRequests = function (request) {
-            // Move request to *forwarded* requests
-            var index = $scope.internship.unreviewed_rotation_requests.indexOf(request);  // WARNING: indexOf not supported in all browsers (IE7 & 8)
+    $scope.moveToPastRequests = function (request) {
+        // Move request to *closed* requests
+        var index = $scope.internship.unreviewed_rotation_requests.indexOf(request);  // WARNING: indexOf not supported in all browsers (IE7 & 8)
+        if (index > -1) {
             $scope.internship.unreviewed_rotation_requests.splice(index, 1);
-
-            $scope.internship.forwarded_rotation_requests.push(request);
-        };
-
-        $scope.getStatus = function (request) {
-            if (!!request.response) {
-                return request.response.is_approved ? "Approved" : "Declined";
-            } else if (!!request.forward) {
-                return "Forwarded";
-            }
-        };
-
-        $scope.getClass = function (request) {
-            var status = $scope.getStatus(request);
-            if (status == "Approved") {
-                return "success";
-            } else {
-                return "danger";
-            }
+        } else {
+            index = $scope.internship.forwarded_rotation_requests.indexOf(request);
+            $scope.internship.forwarded_rotation_requests.splice(index, 1);
         }
+        $scope.internship.closed_rotation_requests.push(request);
+    };
+
+    $scope.moveToForwardedRequests = function (request) {
+        // Move request to *forwarded* requests
+        var index = $scope.internship.unreviewed_rotation_requests.indexOf(request);  // WARNING: indexOf not supported in all browsers (IE7 & 8)
+        $scope.internship.unreviewed_rotation_requests.splice(index, 1);
+
+        $scope.internship.forwarded_rotation_requests.push(request);
+    };
+
+    $scope.getStatus = function (request) {
+        if (!!request.response) {
+            return request.response.is_approved ? "Approved" : "Declined";
+        } else if (!!request.forward) {
+            return "Forwarded";
+        }
+    };
+
+    $scope.getClass = function (request) {
+        var status = $scope.getStatus(request);
+        if (status == "Approved") {
+            return "success";
+        } else {
+            return "danger";
+        }
+    };
+
+    $scope.getMomentFromMonthId = function (monthId) {
+        var year = Math.floor(monthId/12);
+        var month = monthId % 12;
+        return moment({year: year, month: month, monthId: monthId});
+    }
+}])
+
+.controller("PlansSummaryCtrl", ["$scope", "Batch", function ($scope, Batch) {
+    $scope.batches = Batch.query();
+    $scope.batches.$promise.then(function (batches) {
+        angular.forEach(batches, function (batch, index) {
+            batch.plans = Batch.plans({id: batch.id});
+        })
+    });
+
+    $scope.offsetMonths = function (months, batchStartMonth, planStartMonth) {
+        var diff = planStartMonth.diff(batchStartMonth, 'months');
+        var offset = Array.apply(null, Array(diff)).map(function (value, index) {return index;}).concat(months);
+        return offset;
+    };
+
+    $scope.requiresEllipsis = function (months, batchStartMonth, planStartMonth) {
+        var offset = $scope.offsetMonths(months, batchStartMonth, planStartMonth);
+        var sliced = offset.slice(12); // Get all months after the twelfth month
+        var filtered = sliced.filter(function (month) {
+            return month.disabled === false;
+        });
+        // A plan requires an ellipsis if there is at least one entry/month that is not `disabled`
+        return filtered.length > 0;
+    };
 }]);

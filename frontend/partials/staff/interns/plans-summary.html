@@ -6,4 +6,172 @@
 <!-- Main content -->
 <section class="content">
 
+  <style>
+    .box {
+      margin-bottom: 10px;
+    }
+
+    .loading-spinner.ng-hide-remove {
+      animation: fadeIn 0.25s;
+    }
+    .search-field.ng-hide-remove {
+      animation: fadeIn 0.25s;
+    }
+
+    .loading-spinner.ng-hide-add {
+      animation: fadeOut 0.25s;
+    }
+
+    .batch.ng-enter {
+      animation: fadeInRight 1s;
+    }
+
+    .ellipsis-container {
+      align-items: stretch;
+    }
+
+    .ellipsis {
+      background: #ffffff;
+      border-radius: 15px;
+      box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+      color: dimgray;
+      width: 30px;
+      height: 30px;
+      text-align: center;
+      font-size: 17px;
+      padding: 4px;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    /*.plans-background {*/
+      /*max-height: 0;*/
+      /*transition: max-height 5s ease;*/
+    /*}*/
+
+    /*.plans-background.ng-hide-remove, .plans-background.ng-hide-add {*/
+      /**/
+    /*}*/
+
+    .popover {
+      max-width: none;
+    }
+
+    .popover-content .row {
+      margin-left: inherit;
+      margin-right: inherit;
+    }
+
+    .pagination {
+      position: relative;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .pagination li a, .pagination li span {
+      padding-left: 8px;
+      padding-right: 8px;
+      padding-top: 3px;
+      padding-bottom: 3px;
+    }
+
+    .box-tools {
+      width: 400px;
+    }
+
+    .search-field {
+      width: 200px;
+    }
+
+    .pagination-buttons {
+      padding-right: 10px;
+    }
+
+    ul.ng-enter {
+      animation: fadeIn 200ms;
+    }
+
+    ul.ng-leave {
+      animation: fadeOut 200ms;
+    }
+  </style>
+
+  <p><i>
+    Here is a summary of all interns' current internship plans. Changes in <span class="text-yellow">orange</span> or
+    <span class="text-red">red</span> color are pending review.<br>
+    Requests with the <i class="fa fa-external-link"></i> sign have been approved by the medical internship unit and
+    are awaiting their memos to be sent or the requested department or hospital to reply.
+  </i></p>
+
+  <div class="loading-spinner" ng-hide="batches.$promise.$$state.status !== 0" style="height: 150px;">
+    <img src="/static/loading.gif" height="50" style="position: relative; top: 50%; left: 50%; margin-left: -30px; margin-top: -30px;" />
+  </div>
+
+  <div class="row batch" ng-repeat="batch in batches">
+    <div class="col-xs-12">
+      <div class="box box-solid">
+        <div class="box-header">
+          <h4 class="box-title">{{ batch.name }}</h4>
+
+          <div class="box-tools pull-right">
+            <!-- TODO: Allow specifying the number of plans per page (+ sorting field?) -->
+            <input type="text" class="search-field form-control input-sm pull-right" placeholder="Search..." ng-model="batch.search" style="margin-top: 5px;" ng-show="batch.plans.$promise.$$state.status == 1">
+            <img class="loading-spinner pull-right" src="/static/loading.gif" ng-hide="batch.plans.$promise.$$state.status !== 0" height="20" />
+            <div class="pagination-buttons pull-right"><dir-pagination-controls pagination-id="batch.abbreviation"></dir-pagination-controls></div>
+          </div>
+        </div>
+
+        <div class="box-body">
+          <div ng-show="batch.plans.$promise.$$state.status == 1" style="background-color: #ecf0f5; border-radius: 3px; padding: 5px;" class="plans-background">
+            <div class="row plan" dir-paginate="plan in batch.plans | filter: {intern: {profile: {en_full_name: batch.search }}} | orderBy: 'intern.profile.en_full_name' | itemsPerPage: 10" ng-init="row = $index"
+                 pagination-id="batch.abbreviation" style="padding-left: 15px; padding-right: 15px;">
+              <div class="col-xs-1">
+                <!--<hr style="border-color: lightgray; margin-top: 0; margin-bottom: 0;">-->
+                <h5 ng-style="row == 0 && {'margin-top': '50px'}" style="margin-bottom: 0;" class="text-bold text-center">{{ plan.intern.profile.en_full_name }}</h5>
+                <h6 style="margin-top: 0; margin-bottom: 0;" class="text-center">
+                  <a href="#/interns/{{ plan.id }}/"><i class="fa fa-info-circle"></i></a>
+                  <a href="" style="color: firebrick; cursor: default;" ng-if="!plan.start_month.isSame(batch.start_month)" uib-tooltip="Plan starts {{ plan.start_month.format('MMMM YYYY')}}" tooltip-append-to-body="true" tooltip-placement="right">
+                    <i class="fa fa-exclamation-triangle"></i>
+                  </a>
+                </h6>
+                <h6 style="font-size: 0.6vw; word-break: break-all; color: dimgray; margin-top: 0; margin-bottom: 0;" class="text-center"><i>{{ plan.intern.profile.user.email }}</i></h6>
+              </div>
+              <div class="col-xs-11">
+                <div class="row" style="display: flex;">
+                  <div style="width: 96%;" class="col-xs-11">
+                    <div class="row">
+                      <div class="col-xs-1" ng-repeat="month in offsetMonths(plan.months, batch.start_month, plan.start_month) | limitTo: 12" style="padding-left: 5px; padding-right: 5px;">
+                        <internship-month-box ng-if="month.month !== undefined" internship-month="month" show-month-label="row == 0" size="'sm'"></internship-month-box>
+                      </div>
+                    </div>
+                  </div>
+                  <div style="width: 4%;" class="col-xs-1 ellipsis-container">
+                    <div class="ellipsis" ng-if="requiresEllipsis(plan.months, batch.start_month, plan.start_month)" uib-popover-template="'ellipsis.html'" popover-placement="left" popover-trigger="mouseenter">
+                      <i class="fa fa-ellipsis-h"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
 </section>
+
+<script type="text/ng-template" id="ellipsis.html">
+  <div style="background-color: #ecf0f5; border-radius: 3px; padding: 5px; width: 300px;">
+    <div class="row">
+      <!-- TODO: Those whose plans start later than the rest of the batch will need more than 3 extra months -->
+      <div class="col-xs-4" style="padding-left: 5px; padding-right: 5px;" ng-repeat="month in offsetMonths(plan.months, batch.start_month, plan.start_month) | limitTo: 3 : 12">
+        <internship-month-box internship-month="month" show-month-label="true" size="'sm'"></internship-month-box>
+      </div>
+    </div>
+  </div>
+</script>
