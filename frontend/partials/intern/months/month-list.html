@@ -17,7 +17,7 @@
           Each request you make is submitted to the medical internship unit for review and approval.<br>
           <span class="text-blue">Click on <span class="text-bold">Request a Rotation</span> for any of the months below and make your first request!</span>
 
-          <span ng-if="intern.is_ksauhs_intern || intern.is_agu_intern">
+          <span ng-if="internship.intern.is_ksauhs_intern || internship.intern.is_agu_intern">
             <br><br>
             Keep in mind that you have to satisfy the requirement of 2 months in each of <span class="text-bold">Internal Medicine, Surgery,
             Obstetrics and Gynecology, and Pediatrics</span>, having one general month at least in each specialty. In addition,
@@ -34,37 +34,44 @@
 
 <section class="content">
 
-<style type="text/css">
-  @media (min-width: 992px) {
-    div#grid-container {
-      margin-right: -110px;
-      margin-left: -110px;
+  <style type="text/css">
+    @media (min-width: 992px) {
+      div#grid-container {
+        margin-right: -110px;
+        margin-left: -110px;
+      }
     }
-  }
 
-  [ng-repeat].ng-enter {
-    animation: fadeIn 1s;
-  }
-</style>
+    .internship-month-col.ng-enter {
+      animation: flipInY 1000ms;
+    }
+    .internship-month-col.ng-enter-stagger {
+      animation-delay: 200ms;
+    }
 
+    .loading-spinner.ng-hide-add {
+      animation: fadeOut 500ms;
+    }
+  </style>
 
-<div ng-hide="months.$promise.$$state.status == 1" style="height: 150px;">
-  <img src="/static/loading.gif" height="50" style="position: absolute; top: 50%; left: 50%; margin-left: -15px; margin-top: -15px;" />
-</div>
-
-<div id="grid-container">
+  <div id="grid-container">
 
       <!-- Check out: -->
       <!-- http://stackoverflow.com/a/25838091 -->
-      <div class="row" ng-repeat="month in months track by $index" ng-if="$index % 5 == 0" ng-animate-children>
+      <div class="row" ng-repeat="month in internship.months track by $index" ng-if="$index % 5 == 0" ng-animate-children>
 
-        <div class="col-md-2" ng-class="{'col-md-offset-1': $index % 5 == 0}" ng-repeat="i in [$index, $index + 1, $index + 2, $index + 3, $index + 4]">
+        <div class="col-md-2 internship-month-col" ng-class="{'col-md-offset-1': $index % 5 == 0}" ng-repeat="i in [$index, $index + 1, $index + 2, $index + 3, $index + 4]">
 
-          <internship-month-box internship-month="months[i]"></internship-month-box>
+          <internship-month-box internship-month="internship.months[i]"></internship-month-box>
 
         </div>
       </div>
   </div>
+
+  <div class="loading-spinner" ng-hide="internship.$promise.$$state.status !== 0" style="height: 150px;">
+    <img src="/static/loading.gif" height="50" style="position: absolute; top: 50%; left: 50%; margin-left: -15px; margin-top: -15px;" />
+  </div>
+
 </section>
 
 <script type="text/ng-template" id="leave-summary-popover.html">
