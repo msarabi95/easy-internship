@@ -13,7 +13,7 @@ angular.module("ei.staff.accounts", ["ei.months.models", "ei.accounts.models",
             controller: "InternListCtrl"
         })
         .when("/interns/summary/", {
-            templateUrl: "static/partials/staff/interns/plans-summary.html?v=0005",
+            templateUrl: "static/partials/staff/interns/plans-summary.html?v=0006",
             controller: "PlansSummaryCtrl"
         })
         .when("/interns/:id/", {
@@ -141,25 +141,63 @@ angular.module("ei.staff.accounts", ["ei.months.models", "ei.accounts.models",
 
     $scope.batches.$promise.then(function (batches) {
         angular.forEach(batches, function (batch, index) {
-            $scope.pageChanged(batch, 1);
+            batch.search = function(query) {
+                // Note that query can be undefined for two reasons:
+                // 1. Because it is called as a getter and thus called with no arguments
+                // 2. Because the property should actually be set to undefined. This happens e.g. if the
+                //    input is invalid
+                if (arguments.length) {
+                    batch._query = query;
+                    $scope.updatePage(batch, 1);
+                } else {
+                    return batch._query;
+                }
+            };
+            $scope.updatePage(batch, 1);
         })
     });
 
-    $scope.getPlansPage = function (batch, page) {
+
+    function shallowClearAndCopy(src, dst) {
+        /* Create a shallow copy of an object and clear other fields from the destination */
+        /* https://github.com/angular/angular.js/blob/master/src/ngResource/resource.js#L30 */
+        dst = dst || {};
+        angular.forEach(dst, function(value, key) {
+            delete dst[key];
+        });
+        for (var key in src) {
+            if (src.hasOwnProperty(key) && !(key.charAt(0) === '$' && key.charAt(1) === '$')) {
+                dst[key] = src[key];
+            }
+        }
+        return dst;
+    }
+
+    $scope.getPlansPage = function (batch, page, query) {
         var defer = $q.defer();
-        Batch.plans({id: batch.id, page: page}, function (results, headers) {
-            var promiseResult = {
-                results: results,
-                count: headers('pagination-total')
-            };
-            defer.resolve(promiseResult);
+        var params = {id: batch.id, page: page};
+        if (!!query) {params.query = query;}
+
+        var value = Object.assign(
+            batch.plans || {},
+            {$promise: defer.promise}
+        );
+
+        Batch.plans(params, function (results, headers) {
+            var promise = value.$promise;
+            shallowClearAndCopy(results, value);
+            value.$promise = promise;
+            value.$resolved = true;
+            value.$totalCount = headers('pagination-total');
+
+            defer.resolve(results);
         });
 
-        return defer.promise;
+        return value;
     };
 
-    $scope.pageChanged = function (batch, newPageNumber) {
-        batch.plans = $scope.getPlansPage(batch, newPageNumber);
+    $scope.updatePage = function (batch, newPageNumber) {
+        batch.plans = $scope.getPlansPage(batch, newPageNumber, batch._query);
     };
 
     $scope.offsetMonths = function (months, batchStartMonth, planStartMonth) {
