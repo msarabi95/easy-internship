@@ -1,27 +1,26 @@
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse_lazy
+from django.db.models.functions import Lower
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import View, TemplateView
 from django.views.generic.edit import FormView
+from rest_framework import viewsets, permissions
+from rest_framework.decorators import list_route, detail_route
 from rest_framework.pagination import PageNumberPagination
-
+from rest_framework.response import Response
+from userena import settings as userena_settings
 from userena.models import UserenaSignup
 from userena.views import signup, profile_edit, profile_detail
-from userena import settings as userena_settings
 
-from rest_framework.decorators import list_route, detail_route
-from rest_framework.response import Response
-
-from accounts.models import Profile, Intern, University, Batch
+from accounts.filters import InternshipFilter
 from accounts.forms import ChooseUniversityForm, KSAUHSSignupForm, AGUSignupForm, OutsideSignupForm, \
     KSAUHSProfileEditForm, AGUProfileEditForm, OutsideProfileEditForm, ResendForm
+from accounts.models import Profile, Intern, University, Batch
 from accounts.permissions import IsStaff
 from accounts.serializers import ProfileSerializer, InternSerializer, UserSerializer, InternTableSerializer, \
     BatchSerializer
-from django.contrib.auth.models import User
-from rest_framework import viewsets, permissions
-
 from months.models import Internship
 from months.serializers import FullInternshipSerializer2
 
@@ -205,15 +204,22 @@ class BatchViewSet(viewsets.ReadOnlyModelViewSet):
             'intern__profile__user__leave_cancel_requests__response',
             'intern__university',
             'intern__batch',
+        ).order_by(
+            Lower('intern__profile__en_first_name'),
+            Lower('intern__profile__en_father_name'),
+            Lower('intern__profile__en_grandfather_name'),
+            Lower('intern__profile__en_last_name'),
         )
+
+        filtered = InternshipFilter({'intern__profile__en_full_name': request.query_params.get('query')}, plans)
 
         paginator = PageNumberPagination()
         paginator.page_size = 10
-        page = paginator.paginate_queryset(plans, request)
+        page = paginator.paginate_queryset(filtered.qs, request)
 
         if page is not None:
             serialized = FullInternshipSerializer2(page, many=True)
             return paginator.get_paginated_response(serialized.data)
 
-        serialized = FullInternshipSerializer2(plans, many=True)
+        serialized = FullInternshipSerializer2(filtered.qs, many=True)
         return Response(serialized.data)
