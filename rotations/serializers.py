@@ -175,6 +175,7 @@ class ShortRotationRequestSerializer(serializers.ModelSerializer):
 class AcceptanceListSerializer(serializers.Serializer):
     department = ShortDepartmentSerializer()
     month = MonthField()
+    type = serializers.CharField()
     acceptance_criterion = serializers.CharField()
     acceptance_is_open = serializers.BooleanField()
     acceptance_start_or_end_date = serializers.DateTimeField()
@@ -185,6 +186,7 @@ class AcceptanceListSerializer(serializers.Serializer):
     auto_declined = ShortRotationRequestSerializer(many=True)
     manual_accepted = ShortRotationRequestSerializer(many=True)
     manual_declined = ShortRotationRequestSerializer(many=True)
+    possible_conflict = serializers.BooleanField(read_only=True)
 
     def create(self, validated_data):
         pass
