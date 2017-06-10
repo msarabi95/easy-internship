@@ -162,6 +162,7 @@ class ShortRotationRequestSerializer(serializers.ModelSerializer):
     gpa = serializers.FloatField(source='internship.intern.gpa')
     is_elective = serializers.BooleanField()
     is_delete = serializers.BooleanField()
+    request_memo = serializers.FileField(read_only=True)
     response = ShortRotationRequestResponseSerializer(allow_null=True)
 
     class Meta:
