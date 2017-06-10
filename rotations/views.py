@@ -452,10 +452,16 @@ class RotationRequestForwardViewSet(viewsets.ReadOnlyModelViewSet):
 class AcceptanceListViewSet(viewsets.ViewSet):
     permission_classes = [permissions.IsAuthenticated, IsStaff]
 
-    def acceptance_list_factory(self, departments_and_months, rotation_requests, acceptance_settings, departments_cache):
+    def acceptance_list_factory(self, departments_and_months, list_type, rotation_requests, all_rotation_requests, acceptance_settings, departments_cache):
         # FIXME: A better way to get the department
-        return [AcceptanceList(filter(lambda d: d.id == department_id, departments_cache)[0], month, rotation_requests_cache=rotation_requests,
-                               acceptance_settings_cache=acceptance_settings) for department_id, month in set(departments_and_months)]
+        return [AcceptanceList(
+            filter(lambda d: d.id == department_id, departments_cache)[0],
+            month,
+            list_type,
+            rotation_requests_cache=rotation_requests,
+            all_rotation_requests_cache=all_rotation_requests,
+            acceptance_settings_cache=acceptance_settings
+        ) for department_id, month in set(departments_and_months)]
 
     def acceptance_setting_factory(self, departments, months,
                                    department_month_settings=None, month_settings=None,
@@ -465,18 +471,20 @@ class AcceptanceListViewSet(viewsets.ViewSet):
                                   department_settings, global_settings) for department in departments for month in set(months)]
 
     def list(self, request, *args, **kwargs):
-        rotation_requests = RotationRequest.objects.unreviewed()\
+        all_rotation_requests = RotationRequest.objects.unreviewed()\
             .filter(is_delete=False)\
             .filter(requested_department__department__hospital__is_kamc=True)\
             .filter(requested_department__department__requires_memo=False)
 
-        if request.query_params.get('university') == 'agu':
-            kw = {'internship__intern__batch__is_agu': True}
-        elif request.query_params.get('university') == 'outside':
-            kw = {'internship__intern__batch__is_ksauhs': False, 'internship__intern__batch__is_agu': False}
-        else:
-            kw = {'internship__intern__batch__is_ksauhs': True}
-        rotation_requests = rotation_requests.filter(**kw)
+        list_type = request.query_params.get('university')
+        if list_type not in ['ksauhs', 'agu', 'outside']:
+            raise RestValidationError(
+                "Please supply 'ksauhs', 'agu', or 'outside' as the value of the `university` parameter."
+            )
+        kw = \
+            {'internship__intern__batch__is_%s' % list_type: True} if list_type in ['ksauhs', 'agu'] else \
+            {'internship__intern__batch__is_ksauhs': False, 'internship__intern__batch__is_agu': False}
+        rotation_requests = all_rotation_requests.filter(**kw)
 
         departments_and_months = rotation_requests.values_list('requested_department__department', 'month')
         department_ids = rotation_requests.values_list('requested_department__department', flat=True)
@@ -492,29 +500,35 @@ class AcceptanceListViewSet(viewsets.ViewSet):
 
         acceptance_settings = self.acceptance_setting_factory(departments, months, dms, ms, ds, gs)
 
-        acceptance_lists = self.acceptance_list_factory(departments_and_months, rotation_requests\
-            .prefetch_related('internship__intern'), acceptance_settings, departments_cache=departments)
+        acceptance_lists = self.acceptance_list_factory(
+            departments_and_months,
+            list_type,
+            rotation_requests.prefetch_related('internship__intern'),
+            all_rotation_requests,
+            acceptance_settings,
+            departments_cache=departments
+        )
 
         sorted_acceptance_lists = sorted(acceptance_lists, key=lambda al: (al.month, al.department.name))
 
         return Response(AcceptanceListSerializer(sorted_acceptance_lists, many=True).data)
 
-    @list_route(methods=['get'], url_path=r'(?P<department_id>\d+)/(?P<month_id>\d+)', permission_classes=[permissions.IsAuthenticated, IsStaff])
-    def retrieve_list(self, request, department_id=None, month_id=None, *args, **kwargs):
+    @list_route(methods=['get'], url_path=r'(?P<department_id>\d+)/(?P<month_id>\d+)/(?P<list_type>ksauhs|agu|outside)/', permission_classes=[permissions.IsAuthenticated, IsStaff])
+    def retrieve_list(self, request, department_id, month_id, list_type, *args, **kwargs):
         department = get_object_or_404(Department, id=department_id)
         month = Month.from_int(int(month_id))
 
-        acceptance_list = AcceptanceList(department, month)
+        acceptance_list = AcceptanceList(department, month, list_type)
         return Response(AcceptanceListSerializer(acceptance_list).data)
 
-    @list_route(methods=['post'], url_path=r'(?P<department_id>\d+)/(?P<month_id>\d+)/respond', permission_classes=[permissions.IsAuthenticated, IsStaff])
-    def respond(self, request, department_id=None, month_id=None, *args, **kwargs):
+    @list_route(methods=['post'], url_path=r'(?P<department_id>\d+)/(?P<month_id>\d+)/(?P<list_type>ksauhs|agu|outside)/respond', permission_classes=[permissions.IsAuthenticated, IsStaff])
+    def respond(self, request, department_id, month_id, list_type, *args, **kwargs):
         department = get_object_or_404(Department, id=department_id)
         month = Month.from_int(int(month_id))
 
         serialized = AcceptanceListSerializer(
             data=request.data,
-            instance=AcceptanceList(department=department, month=month)
+            instance=AcceptanceList(department, month, list_type)
         )
         serialized.is_valid(raise_exception=True)
         acceptance_list = serialized.save()

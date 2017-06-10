@@ -310,13 +310,16 @@ class RotationRequestForward(models.Model):
 
 
 class AcceptanceList(object):
-    def __init__(self, department, month,
+    def __init__(self, department, month, type,
                  auto_accepted=None, auto_declined=None, manual_accepted=None, manual_declined=None,
-                 rotation_requests_cache=None, acceptance_settings_cache=None):
+                 rotation_requests_cache=None, all_rotation_requests_cache=None, acceptance_settings_cache=None):
         self.department = department
         self.month = month
+        assert type in ['ksauhs', 'agu', 'outside']
+        self.type = type
 
-        self.rotation_requests_cache = rotation_requests_cache
+        self.rotation_requests_cache = rotation_requests_cache  # Filtered by type
+        self.all_rotation_requests_cache = all_rotation_requests_cache  # Unfiltered
         self.acceptance_settings_cache = acceptance_settings_cache
 
         acceptance_setting = self.get_acceptance_setting()
@@ -328,17 +331,19 @@ class AcceptanceList(object):
         self.total_seats = acceptance_setting.total_seats
         self.unoccupied_seats = acceptance_setting.get_unoccupied_seats()
 
-        requests = self.get_sorted_rotation_requests()
-        self.booked_seats = len(requests)
+        self._requests = self.get_sorted_rotation_requests()
+        self.booked_seats = len(self._requests)
 
-        self.default_auto_accepted = requests[:self.unoccupied_seats]
-        self.default_auto_declined = requests[self.unoccupied_seats:]
+        self.default_auto_accepted = self._requests[:self.unoccupied_seats]
+        self.default_auto_declined = self._requests[self.unoccupied_seats:]
 
         self.auto_accepted = self.default_auto_accepted if not auto_accepted else auto_accepted
         self.auto_declined = self.default_auto_declined if not auto_declined else auto_declined
 
         self.manual_accepted = manual_accepted or []
         self.manual_declined = manual_declined or []
+
+        self.possible_conflict = self.get_possible_conflict()
 
         self.verify()
     
@@ -395,9 +400,23 @@ class AcceptanceList(object):
         else:
             order_field = \
                 "submission_datetime" if self.acceptance_criterion == FCFS_ACCEPTANCE else "-internship__intern__gpa"
-            return RotationRequest.objects.unreviewed().filter(is_delete=False)\
+            filter_kwargs = \
+                {'internship__intern__batch__is_%s' % self.type: True} if self.type in ['ksauhs', 'agu'] else \
+                {'internship__intern__batch__is_ksauhs': False, 'internship__intern__batch__is_agu' : False}
+            return RotationRequest.objects.unreviewed().filter(**filter_kwargs).filter(is_delete=False)\
                         .filter(requested_department__department=self.department, month=self.month)\
                         .order_by(order_field)
+
+    def get_possible_conflict(self):
+        if self.all_rotation_requests_cache:
+            filtered = filter(
+                lambda rr: rr.requested_department.department == self.department and rr.month == self.month,
+                self.all_rotation_requests_cache,
+            )
+            return len(self._requests) != len(filtered)
+        filtered = RotationRequest.objects.unreviewed().filter(is_delete=False)\
+                    .filter(requested_department__department=self.department, month=self.month)
+        return self._requests.count() != filtered.count()
 
     def respond_all(self):
         """

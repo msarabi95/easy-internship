@@ -127,9 +127,10 @@ angular.module("ei.rotations.models", ["ngResource", "ei.interceptors"])
 }])
 
 .factory("AcceptanceList", ["$resource", function ($resource) {
-    return $resource('/api/acceptance_lists/:department_id/:month_id/', {
+    return $resource('/api/acceptance_lists/:department_id/:month_id/:list_type/', {
         department_id: '@department.id',
-        month_id: '@month'
+        month_id: '@month',
+        list_type: '@type'
     }, {
         query: {
             method: 'get',
@@ -153,7 +154,7 @@ angular.module("ei.rotations.models", ["ngResource", "ei.interceptors"])
         },
         respond: {
             method: 'post',
-            url: '/api/acceptance_lists/:department_id/:month_id/respond/',
+            url: '/api/acceptance_lists/:department_id/:month_id/:list_type/respond/',
             params: {
                 month_id: '@month._i.monthId'
             },

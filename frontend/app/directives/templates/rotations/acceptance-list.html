@@ -1,6 +1,12 @@
 <hr style="border-color: lightgray;">
-<h4 class="text-bold">{{ list.department.name }} | {{ list.month.format('MMMM YYYY') }}
-  <small>(<ng-pluralize count="list.booked_seats" when="{1: '{} request', 'other': '{} requests'}"></ng-pluralize>)</small></h4>
+<h4 class="text-bold">
+  {{ list.department.name }} | {{ list.month.format('MMMM YYYY') }}
+  <small>(<ng-pluralize count="list.booked_seats" when="{1: '{} request', 'other': '{} requests'}"></ng-pluralize>)</small>
+  <span ng-if="list.possible_conflict" class="text-yellow">
+    <i class="fa fa-exclamation-triangle" uib-tooltip="There are requests from other universities for the same department and month. You might want to review them before confirming this list."></i>
+    Possible conflict
+  </span>
+</h4>
 <h4><small>
   <span class="text-bold">Acceptance criterion:</span> {{ list.acceptance_criterion }} |
   <span class="text-bold">Total seats:</span> {{ list.total_seats }} |
@@ -27,8 +33,8 @@
               <table class="table" ng-if="list.auto_accepted.length > 0">
                 <thead>
                   <th>Name</th>
-                  <th>Uni.</th>
-                  <th>Memo</th>
+                  <th ng-if="list.type == 'outside'">Uni.</th>
+                  <th ng-if="list.type == 'outside'">Memo</th>
                   <th ng-if="list.acceptance_criterion == 'FCFS'">Submitted</th>
                   <th ng-if="list.acceptance_criterion == 'GPA'">GPA</th>
                   <th></th>
@@ -36,8 +42,8 @@
                 <tbody>
                   <tr ng-repeat="request in list.auto_accepted">
                     <td>{{ request.intern_name }}</td>
-                    <td>{{ request.intern_university }}</td>
-                    <td>
+                    <td ng-if="list.type == 'outside'">{{ request.intern_university }}</td>
+                    <td ng-if="list.type == 'outside'">
                       <a ng-if="request.request_memo" href="{{ request.request_memo }}"><i class="fa fa-cloud-download"></i></a>
                       <span ng-if="!request.request_memo" class="text-gray">N/A</span>
                     </td>
@@ -63,8 +69,8 @@
                 <tbody>
                   <tr ng-repeat="request in list.manual_accepted">
                     <td>{{ request.intern_name }}</td>
-                    <td>{{ request.intern_university }}</td>
-                    <td>
+                    <td ng-if="list.type == 'outside'">{{ request.intern_university }}</td>
+                    <td ng-if="list.type == 'outside'">
                       <a ng-if="request.request_memo" href="{{ request.request_memo }}"><i class="fa fa-cloud-download"></i></a>
                       <span ng-if="!request.request_memo" class="text-gray">N/A</span>
                     </td>
@@ -103,8 +109,8 @@
                 <thead>
                   <th></th>
                   <th>Name</th>
-                  <th>Uni.</th>
-                  <th>Memo</th>
+                  <th ng-if="list.type == 'outside'">Uni.</th>
+                  <th ng-if="list.type == 'outside'">Memo</th>
                   <th ng-if="list.acceptance_criterion == 'FCFS'">Submitted</th>
                   <th ng-if="list.acceptance_criterion == 'GPA'">GPA</th>
                   <th></th>
@@ -115,8 +121,8 @@
                       <a href="" ng-click="moveRequest(request, 'auto_declined', 'manual_accepted')"><i class="fa fa-chevron-circle-left"></i></a>
                     </td>
                     <td>{{ request.intern_name }}</td>
-                    <td>{{ request.intern_university }}</td>
-                    <td>
+                    <td ng-if="list.type == 'outside'">{{ request.intern_university }}</td>
+                    <td ng-if="list.type == 'outside'">
                       <a ng-if="request.request_memo" href="{{ request.request_memo }}"><i class="fa fa-cloud-download"></i></a>
                       <span ng-if="!request.request_memo" class="text-gray">N/A</span>
                     </td>
@@ -144,8 +150,8 @@
                       <a href="" ng-click="moveRequest(request, 'manual_declined', 'auto_accepted')"><i class="fa fa-close"></i></a>
                     </td>
                     <td>{{ request.intern_name }}</td>
-                    <td>{{ request.intern_university }}</td>
-                    <td>
+                    <td ng-if="list.type == 'outside'">{{ request.intern_university }}</td>
+                    <td ng-if="list.type == 'outside'">
                       <a ng-if="request.request_memo" href="{{ request.request_memo }}"><i class="fa fa-cloud-download"></i></a>
                       <span ng-if="!request.request_memo" class="text-gray">N/A</span>
                     </td>

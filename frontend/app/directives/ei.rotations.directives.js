@@ -128,7 +128,7 @@ angular.module("ei.rotations.directives", ["ei.utils", "ui.bootstrap", "ngFileUp
             list: "=list",
             removeFromList: "&onResponse"
         },
-        templateUrl: "/static/app/directives/templates/rotations/acceptance-list.html?v=0003",
+        templateUrl: "/static/app/directives/templates/rotations/acceptance-list.html?v=0004",
         link: function (scope, element, attrs) {
             var CommentModalCtrl = ["$scope", "$uibModalInstance", "request", "options", function ($scope, $uibModalInstance, request, options) {
                 $scope.request = request;
