@@ -27,10 +27,28 @@ class LeaveSetting(models.Model):
     """
     intern = models.ForeignKey(User, limit_choices_to={'profile__role': Profile.INTERN}, related_name='leave_settings')
     type = models.ForeignKey(LeaveType, related_name='leave_settings')
-    max_days = models.PositiveIntegerField()
+    max_days = models.PositiveIntegerField(blank=True, null=True)
+
+    @property
+    def confirmed_days(self):
+        if self.max_days is None:
+            return None
+        return self.intern.leaves.filter(type=self.type).count()
+
+    @property
+    def pending_days(self):
+        if self.max_days is None:
+            return None
+        return self.intern.leave_requests.open().filter(type=self.type).count()
+
+    @property
+    def remaining_days(self):
+        if self.max_days is None:
+            return None
+        return self.max_days - (self.confirmed_days + self.pending_days)
 
     def __unicode__(self):
-        return "%s setting for %s" % (self.type.name, self.user.profile.get_en_full_name())
+        return "%s setting for %s" % (self.type.name, self.intern.profile.get_en_full_name())
 
 
 class LeaveRequestQuerySet(models.QuerySet):

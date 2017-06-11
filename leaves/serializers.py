@@ -12,6 +12,10 @@ class LeaveTypeSerializer(serializers.ModelSerializer):
 
 
 class LeaveSettingSerializer(serializers.ModelSerializer):
+    type = LeaveTypeSerializer()
+    confirmed_days = serializers.IntegerField()
+    pending_days = serializers.IntegerField()
+    remaining_days = serializers.IntegerField()
 
     class Meta:
         model = LeaveSetting
