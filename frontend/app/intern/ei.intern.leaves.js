@@ -8,7 +8,7 @@ angular.module("ei.leaves", ["ngRoute", "djng.forms", "ui.select", "ei.utils",
 
     $routeProvider
         .when("/planner/:month_id/request-leave/", {
-            templateUrl: "leaves/leave-request-form/",
+            templateUrl: "static/partials/intern/leaves/request-leave.html",
             controller: "LeaveRequestCreateCtrl"
         })
         .when("/planner/:month_id/leaves/history/", {
@@ -24,11 +24,19 @@ angular.module("ei.leaves", ["ngRoute", "djng.forms", "ui.select", "ei.utils",
 
 .controller("LeaveRequestCreateCtrl", ["$scope", "$http", "$routeParams", "$location", "djangoForm", "InternshipMonth", "LeaveType",
     function ($scope, $http, $routeParams, $location, djangoForm, InternshipMonth, LeaveType) {
-        $scope.month = InternshipMonth.get({month_id: $routeParams.month_id});
+        $scope.month = moment({
+            year: Math.floor($routeParams.month_id / 12),
+            month: ($routeParams.month_id % 12)
+        });
         $scope.leaveTypes = LeaveType.query();
 
-        $scope.startDateOptions = {showWeeks: false};
-        $scope.endDateOptions = {showWeeks: false};
+        $scope.startDateOptions = $scope.endDateOptions = {
+            minDate: $scope.month.toDate(),
+            maxDate: moment($scope.month).endOf('month').toDate(),
+            initDate: $scope.month.toDate(),
+            maxMode: 'day',
+            showWeeks: false
+        };
 
         $scope.$watch('leaveRequestData.start_date_as_date', function (newValue, oldValue) {
             if (newValue !== undefined) {
