@@ -34,30 +34,59 @@
             <div class="has-feedback form-group">
               <label class="control-label" for="id_type">Type</label>
 
-              <ui-select id="id_type" name="type" ng-model="leave_request.type" theme="bootstrap">
+              <ui-select id="id_type" name="type" ng-model="leave_request.type" theme="bootstrap" required>
                 <ui-select-match placeholder="Select or search for a leave type in the list...">{{ $select.selected.name }}</ui-select-match>
                 <ui-select-choices repeat="type.id as type in leaveTypes | filter: {name: $select.search}">
                   <div ng-bind-html="type.name | highlight: $select.search"></div>
                 </ui-select-choices>
               </ui-select>
 
-              <ul class="djng-form-control-feedback djng-field-errors" ng-show="leave_request_form.type.$dirty" ng-cloak><li ng-show="leave_request_form['type'].$error.required" class="invalid">This field is required.</li><li ng-show="leave_request_form['type'].$valid" class="valid"></li></ul><ul class="djng-form-control-feedback djng-field-errors" ng-show="leave_request_form.type.$pristine" ng-cloak><li ng-show="leave_request_form.type.$message" class="invalid" ng-bind="leave_request_form.type.$message"></li></ul>
+              <ul class="djng-form-control-feedback djng-field-errors" ng-show="leave_request_form.type.$dirty" ng-cloak>
+                <li ng-show="leave_request_form['type'].$error.required" class="invalid">This field is required.</li>
+                <li ng-show="leave_request_form['type'].$valid" class="valid"></li>
+              </ul>
+              <ul class="djng-form-control-feedback djng-field-errors" ng-show="leave_request_form.type.$pristine" ng-cloak>
+                <li ng-show="leave_request_form.type.$message" class="invalid" ng-bind="leave_request_form.type.$message"></li>
+              </ul>
             </div>
+
+            <uib-progress max="setting.max_days" ng-repeat="setting in leaveSettings" ng-show="setting.type.id == leave_request.type" style="display: table; width: 100%;">
+              <uib-bar value="setting.confirmed_days" uib-tooltip="Confirmed" type="primary" ng-hide="setting.confirmed_days < 1">{{ setting.confirmed_days }} days</uib-bar>
+              <uib-bar value="setting.pending_days" uib-tooltip="Pending" type="warning" ng-hide="setting.pending_days < 1">{{ setting.pending_days }} days</uib-bar>
+              <uib-bar value="setting.remaining_days" uib-tooltip="Remaining" type="primary" style="background-color: inherit; color: inherit;" ng-hide="setting.remaining_days < 1">{{ setting.remaining_days }} days</uib-bar>
+            </uib-progress>
+
+            <hr>
+
             <div class="row">
               <div class="col-sm-6">
                 <div class="has-feedback form-group">
                   <label class="control-label" for="id_start_date">Start date</label>
-                  <input class="form-control" id="id_start_date" name="start_date" ng-model="leave_request[&#39;start_date&#39;]" ng-required="true" type="hidden" />
-                  <div uib-datepicker ng-model="leave_request.start_date_as_date" datepicker-options="startDateOptions"></div>
-                  <ul class="djng-form-control-feedback djng-field-errors" ng-show="leave_request_form.start_date.$dirty" ng-cloak><li ng-show="leave_request_form['start_date'].$error.required" class="invalid">This field is required.</li><li ng-show="leave_request_form['start_date'].$error.date" class="invalid">Enter a valid date.</li><li ng-show="leave_request_form['start_date'].$valid" class="valid"></li></ul><ul class="djng-form-control-feedback djng-field-errors" ng-show="leave_request_form.start_date.$pristine" ng-cloak><li ng-show="leave_request_form.start_date.$message" class="invalid" ng-bind="leave_request_form.start_date.$message"></li></ul>
+                  <input class="form-control" id="id_start_date" name="start_date" ng-model="leave_request[&#39;start_date&#39;]" type="hidden" required />
+                  <div uib-datepicker ng-model="leave_request.start_date" datepicker-options="startDateOptions"></div>
+
+                  <ul class="djng-form-control-feedback djng-field-errors" ng-show="leave_request_form.start_date.$dirty" ng-cloak>
+                    <li ng-show="leave_request_form['start_date'].$error.required" class="invalid">This field is required.</li>
+                    <li ng-show="leave_request_form['start_date'].$valid" class="valid"></li>
+                  </ul>
+                  <ul class="djng-form-control-feedback djng-field-errors" ng-show="leave_request_form.start_date.$pristine" ng-cloak>
+                    <li ng-show="leave_request_form.start_date.$message" class="invalid" ng-bind="leave_request_form.start_date.$message"></li>
+                  </ul>
                 </div>
               </div>
               <div class="col-sm-6">
                 <div class="has-feedback form-group">
                   <label class="control-label" for="id_end_date">End date</label>
-                  <input class="form-control" id="id_end_date" name="end_date" ng-model="leave_request[&#39;end_date&#39;]" ng-required="true" type="hidden" />
-                  <div uib-datepicker ng-model="leave_request.end_date_as_date" datepicker-options="endDateOptions"></div>
-                  <ul class="djng-form-control-feedback djng-field-errors" ng-show="leave_request_form.end_date.$dirty" ng-cloak><li ng-show="leave_request_form['end_date'].$error.required" class="invalid">This field is required.</li><li ng-show="leave_request_form['end_date'].$error.date" class="invalid">Enter a valid date.</li><li ng-show="leave_request_form['end_date'].$valid" class="valid"></li></ul><ul class="djng-form-control-feedback djng-field-errors" ng-show="leave_request_form.end_date.$pristine" ng-cloak><li ng-show="leave_request_form.end_date.$message" class="invalid" ng-bind="leave_request_form.end_date.$message"></li></ul>
+                  <input class="form-control" id="id_end_date" name="end_date" ng-model="leave_request[&#39;end_date&#39;]" type="hidden" required />
+                  <div uib-datepicker ng-model="leave_request.end_date" datepicker-options="endDateOptions"></div>
+
+                  <ul class="djng-form-control-feedback djng-field-errors" ng-show="leave_request_form.end_date.$dirty" ng-cloak>
+                    <li ng-show="leave_request_form['end_date'].$error.required" class="invalid">This field is required.</li>
+                    <li ng-show="leave_request_form['end_date'].$valid" class="valid"></li>
+                  </ul>
+                  <ul class="djng-form-control-feedback djng-field-errors" ng-show="leave_request_form.end_date.$pristine" ng-cloak>
+                    <li ng-show="leave_request_form.end_date.$message" class="invalid" ng-bind="leave_request_form.end_date.$message"></li>
+                  </ul>
                 </div>
               </div>
             </div>
@@ -67,7 +96,7 @@
 
         <div class="modal-footer">
           <a type="button" class="btn btn-default pull-left" href="javascript:history.back()">Back</a>
-          <button type="button" class="btn btn-primary" ng-click="submit()" ng-disabled="leave_request_form.$invalid || submission.$$state.status === 0">Submit</button>
+          <button type="button" class="btn btn-primary" ng-click="submit()" ng-disabled="leave_request_form.$invalid || upload.$$state.status === 0">Submit</button>
           <hr>
           <p class="text-yellow text-center">Your request will be submitted for review by the medical internship unit.</p>
         </div>
