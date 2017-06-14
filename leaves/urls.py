@@ -1,6 +1,4 @@
-from django.conf.urls import url
 from leaves import views
-from leaves.views import LeaveRequestFormView
 
 api_urls = (
     (r'leave_types', views.LeaveTypeViewSet),
@@ -11,7 +9,3 @@ api_urls = (
     (r'leave_cancel_requests', views.LeaveCancelRequestViewSet),
     (r'leave_cancel_request_responses', views.LeaveCancelRequestResponseViewSet),
 )
-
-urlpatterns = [
-    url(r'^leave-request-form/$', LeaveRequestFormView.as_view()),
-]
