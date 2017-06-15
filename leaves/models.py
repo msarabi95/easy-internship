@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+from datetime import timedelta
+
 from accounts.models import Profile
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
@@ -33,13 +35,25 @@ class LeaveSetting(models.Model):
     def confirmed_days(self):
         if self.max_days is None:
             return None
-        return self.intern.leaves.filter(type=self.type).count()
+        elif not self.intern.leaves.filter(type=self.type).exists():
+            return 0
+        leaves = self.intern.leaves.filter(type=self.type)
+        delta = timedelta()
+        for leave in leaves:
+            delta += leave.end_date - leave.start_date + timedelta(days=1)
+        return delta.days
 
     @property
     def pending_days(self):
         if self.max_days is None:
             return None
-        return self.intern.leave_requests.open().filter(type=self.type).count()
+        elif not self.intern.leave_requests.open().filter(type=self.type).exists():
+            return 0
+        leave_requests = self.intern.leave_requests.open().filter(type=self.type)
+        delta = timedelta()
+        for request in leave_requests:
+            delta += request.end_date - request.start_date + timedelta(days=1)
+        return delta.days
 
     @property
     def remaining_days(self):

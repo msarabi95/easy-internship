@@ -50,11 +50,19 @@
               </ul>
             </div>
 
-            <uib-progress max="setting.max_days" ng-repeat="setting in leaveSettings" ng-show="setting.type.id == leave_request.type" style="display: table; width: 100%;">
-              <uib-bar value="setting.confirmed_days" uib-tooltip="Confirmed" type="primary" ng-hide="setting.confirmed_days < 1">{{ setting.confirmed_days }} days</uib-bar>
-              <uib-bar value="setting.pending_days" uib-tooltip="Pending" type="warning" ng-hide="setting.pending_days < 1">{{ setting.pending_days }} days</uib-bar>
-              <uib-bar value="setting.remaining_days" uib-tooltip="Remaining" type="primary" style="background-color: inherit; color: inherit;" ng-hide="setting.remaining_days < 1">{{ setting.remaining_days }} days</uib-bar>
-            </uib-progress>
+            <div ng-show="!!selectedSetting && !!selectedSetting.max_days">
+              <p class="text-center">
+                Out of a total of {{ selectedSetting.max_days }},
+                you have <span class="text-bold text-primary">{{ selectedSetting.remaining_days }} free days</span>
+                to use as {{ selectedSetting.type.name.toLowerCase() }}.
+              </p>
+              <uib-progress max="selectedSetting.max_days" style="width: 100%;">
+                <uib-bar value="selectedSetting.confirmed_days" uib-tooltip="Confirmed" type="primary" ng-hide="selectedSetting.confirmed_days < 1">{{ selectedSetting.confirmed_days }} days</uib-bar>
+                <uib-bar value="selectedSetting.pending_days" uib-tooltip="Pending" type="warning" ng-hide="selectedSetting.pending_days < 1">{{ selectedSetting.pending_days }} days</uib-bar>
+                <uib-bar value="getLeaveLength()" uib-tooltip="This leave" type="info" class="progress-bar-striped">{{ getLeaveLength() }} days</uib-bar>
+                <uib-bar value="getRemainingDays(leave_request.type)" uib-tooltip="Remaining" type="primary" style="background-color: inherit; color: inherit;" ng-hide="getRemainingDays(leave_request.type) < 1">{{ getRemainingDays(leave_request.type) }} days</uib-bar>
+              </uib-progress>
+            </div>
 
             <hr>
 

@@ -8,7 +8,7 @@ angular.module("ei.leaves", ["ngRoute", "ngFileUpload", "ui.select", "ei.utils",
 
     $routeProvider
         .when("/planner/:month_id/request-leave/", {
-            templateUrl: "static/partials/intern/leaves/request-leave.html?v=0001",
+            templateUrl: "static/partials/intern/leaves/request-leave.html?v=0002",
             controller: "LeaveRequestCreateCtrl"
         })
         .when("/planner/:month_id/leaves/history/", {
@@ -35,7 +35,10 @@ angular.module("ei.leaves", ["ngRoute", "ngFileUpload", "ui.select", "ei.utils",
         $scope.leaveTypes = LeaveType.query();
         $scope.leaveSettings = LeaveSetting.query();
 
-        $scope.leave_request = {};
+        $scope.leave_request = {
+            start_date: $scope.month.toDate(),
+            end_date: $scope.month.toDate()
+        };
 
         $scope.startDateOptions = $scope.endDateOptions = {
             minDate: $scope.month.toDate(),
@@ -43,6 +46,32 @@ angular.module("ei.leaves", ["ngRoute", "ngFileUpload", "ui.select", "ei.utils",
             initDate: $scope.month.toDate(),
             maxMode: 'day',
             showWeeks: false
+        };
+
+        $scope.$watch('leave_request.type', function (newValue, oldValue) {
+            if (newValue !== undefined && newValue !== oldValue) {
+                $scope.selectedSetting = $scope.leaveSettings.filter(function (setting) {
+                    return setting.type.id == newValue;
+                })[0];
+            }
+        });
+
+        $scope.getLeaveLength = function () {
+            if (!$scope.leave_request.start_date || !$scope.leave_request.end_date) {
+                return 0;
+            }
+            var startMoment = moment($scope.leave_request.start_date);
+            var endMoment = moment($scope.leave_request.end_date);
+            return moment.duration(endMoment.diff(startMoment)).add(moment.duration(1, 'day')).asDays();
+        };
+
+        $scope.getRemainingDays = function (type) {
+            if (!type) {
+                return 0;
+            }
+            var leaveSetting = $scope.leaveSettings.filter(function (setting) {return setting.type.id === type;})[0];
+            var leaveLength = $scope.getLeaveLength();
+            return leaveSetting.remaining_days - leaveLength;
         };
 
         $scope.submit = function () {
