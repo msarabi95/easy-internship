@@ -13,7 +13,7 @@ angular.module("ei.months.directives", ["ei.months.models", "ui.bootstrap"])
             showActionButtons: "=?showActionButtons",
             boxStyle: "=?boxStyle"
         },
-        templateUrl: "/static/app/directives/templates/months/internship-month-box.html?v=0007",
+        templateUrl: "/static/app/directives/templates/months/internship-month-box.html?v=0008",
         link: function (scope, element, attrs) {
 
             // Assert `size` is either 'lg' or 'sm'; default to 'lg' if not specified
@@ -101,7 +101,7 @@ angular.module("ei.months.directives", ["ei.months.models", "ui.bootstrap"])
             '    <span class="sr-only">Toggle Dropdown</span>' +
             '  </button>' +
             '  <ul class="dropdown-menu">' +
-            '    <li ng-repeat="button in buttons" ng-if="!$first" ng-class="{divider: button == DIVIDER}" ng-style="button == DIVIDER && {\'margin-top\': \'5px\', \'margin-bottom\': \'5px\'}">' +
+            '    <li ng-repeat="button in buttons track by $index" ng-if="!$first" ng-class="{divider: button == DIVIDER}" ng-style="button == DIVIDER && {\'margin-top\': \'5px\', \'margin-bottom\': \'5px\'}">' +
             '       <a ng-if="button !== DIVIDER" href="{{ renderUrl(button) }}">{{ renderLabel(button) }}</a>' +
             '    </li>' +
             '  </ul>' +

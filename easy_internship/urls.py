@@ -46,15 +46,12 @@ for app in api_urls:
         router.register(*urlconf)
 
 
-
 urlpatterns = [
     url(r'^$', views.index, name="index"),
 
     url(r'^api/', include(router.urls)),
     url(r'^messages/$', views.GetMessages.as_view()),
     url(r'^notifications/', get_nyt_pattern()),
-
-    url(r'^leaves/', include("leaves.urls")),
 
     url(r'^accounts/activate/(?P<activation_key>\w+)/$', 'userena.views.activate', {'success_url': '/'}),
     url(r'^accounts/resend/$', ResendConfirmationKey.as_view(), name="resend_activation"),
