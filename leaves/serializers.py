@@ -26,6 +26,7 @@ class LeaveSettingSerializer(serializers.ModelSerializer):
 
 class LeaveRequestSerializer(serializers.ModelSerializer):
     month = MonthField()
+    attachment = serializers.FileField(required=False)
     cancel_requests = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
     response = serializers.PrimaryKeyRelatedField(read_only=True)
 
@@ -77,8 +78,7 @@ class LeaveRequestSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LeaveRequest
-        fields = ('id', 'intern', 'month', 'type', 'rotation_request', 'start_date',
-                  'end_date', 'submission_datetime', 'cancel_requests', 'response')
+        fields = '__all__'
 
 
 class LeaveRequestResponseSerializer(serializers.ModelSerializer):

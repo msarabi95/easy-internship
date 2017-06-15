@@ -96,9 +96,9 @@ class LeaveRequest(models.Model):
     intern = models.ForeignKey(User, limit_choices_to={'profile__role': Profile.INTERN}, related_name='leave_requests')
     month = MonthField()
     type = models.ForeignKey(LeaveType, related_name='leave_requests')
-    rotation_request = models.ForeignKey(RotationRequest, related_name='leave_requests', blank=True, null=True)
     start_date = models.DateField()
     end_date = models.DateField()
+    attachment = models.FileField(upload_to='leave_request_attachments', null=True, blank=True)
     submission_datetime = models.DateTimeField(auto_now_add=True)
 
     objects = LeaveRequestQuerySet.as_manager()

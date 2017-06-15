@@ -2,13 +2,14 @@
  * Created by MSArabi on 11/17/16.
  */
 angular.module("ei.leaves", ["ngRoute", "ngFileUpload", "ui.select", "ei.utils", "ui.bootstrap", "ei.accounts.models",
-                             "ei.hospitals.models", "ei.months.models", "ei.rotations.models", "ei.leaves.models"])
+                             "ei.hospitals.models", "ei.months.models", "ei.rotations.models", "ei.leaves.models",
+                             "ei.rotations.directives"])
 
 .config(["$routeProvider", function ($routeProvider) {
 
     $routeProvider
         .when("/planner/:month_id/request-leave/", {
-            templateUrl: "static/partials/intern/leaves/request-leave.html?v=0002",
+            templateUrl: "static/partials/intern/leaves/request-leave.html?v=0003",
             controller: "LeaveRequestCreateCtrl"
         })
         .when("/planner/:month_id/leaves/history/", {
