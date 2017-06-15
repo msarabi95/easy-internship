@@ -43,7 +43,7 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
     });
 }])
 
-.controller("MonthDetailCtrl", ["$scope", "$location", "$routeParams", "Internship", function ($scope, $location, $routeParams, Internship) {
+.controller("MonthDetailCtrl", ["$scope", "$location", "$routeParams", "Internship", "RotationRequest", function ($scope, $location, $routeParams, Internship, RotationRequest) {
     $scope.internship = Internship.query(function (internships) {
         $scope.internship = internships[0];
         $scope.month = $scope.internship.months.filter(function (month, index) {
@@ -70,7 +70,7 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
     });
 
     $scope.record_response = function (is_approved, comments) {
-        $scope.month.current_rotation_request.$respond({is_approved: is_approved, comments: comments}, function () {
+        RotationRequest.respond({is_approved: is_approved, comments: comments}, {id: $scope.month.current_rotation_request.id}, function () {
             $location.path("/planner/" + $scope.month.month + "/history/");
         }, function (error) {
             toastr.error(error);
