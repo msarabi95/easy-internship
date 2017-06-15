@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+from datetime import timedelta
+
 from accounts.models import Profile
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
@@ -27,10 +29,40 @@ class LeaveSetting(models.Model):
     """
     intern = models.ForeignKey(User, limit_choices_to={'profile__role': Profile.INTERN}, related_name='leave_settings')
     type = models.ForeignKey(LeaveType, related_name='leave_settings')
-    max_days = models.PositiveIntegerField()
+    max_days = models.PositiveIntegerField(blank=True, null=True)
+
+    @property
+    def confirmed_days(self):
+        if self.max_days is None:
+            return None
+        elif not self.intern.leaves.filter(type=self.type).exists():
+            return 0
+        leaves = self.intern.leaves.filter(type=self.type)
+        delta = timedelta()
+        for leave in leaves:
+            delta += leave.end_date - leave.start_date + timedelta(days=1)
+        return delta.days
+
+    @property
+    def pending_days(self):
+        if self.max_days is None:
+            return None
+        elif not self.intern.leave_requests.open().filter(type=self.type).exists():
+            return 0
+        leave_requests = self.intern.leave_requests.open().filter(type=self.type)
+        delta = timedelta()
+        for request in leave_requests:
+            delta += request.end_date - request.start_date + timedelta(days=1)
+        return delta.days
+
+    @property
+    def remaining_days(self):
+        if self.max_days is None:
+            return None
+        return self.max_days - (self.confirmed_days + self.pending_days)
 
     def __unicode__(self):
-        return "%s setting for %s" % (self.type.name, self.user.profile.get_en_full_name())
+        return "%s setting for %s" % (self.type.name, self.intern.profile.get_en_full_name())
 
 
 class LeaveRequestQuerySet(models.QuerySet):
@@ -64,9 +96,9 @@ class LeaveRequest(models.Model):
     intern = models.ForeignKey(User, limit_choices_to={'profile__role': Profile.INTERN}, related_name='leave_requests')
     month = MonthField()
     type = models.ForeignKey(LeaveType, related_name='leave_requests')
-    rotation_request = models.ForeignKey(RotationRequest, related_name='leave_requests', blank=True, null=True)
     start_date = models.DateField()
     end_date = models.DateField()
+    attachment = models.FileField(upload_to='leave_request_attachments', null=True, blank=True)
     submission_datetime = models.DateTimeField(auto_now_add=True)
 
     objects = LeaveRequestQuerySet.as_manager()

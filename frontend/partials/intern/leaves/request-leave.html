@@ -1,0 +1,133 @@
+<div class="example-modal">
+  
+    <style>
+    [ng-repeat].alert.ng-enter {
+      animation: fadeIn 1s;
+    }
+
+    form[ng-show].ng-hide-remove {
+      animation: fadeInDown 0.5s;
+    }
+    form[ng-show].ng-hide-add {
+      animation: fadeOutUp 0.5s;
+    }
+  </style>
+  
+  <div class="modal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+
+        <div class="modal-header">
+          <h3 class="modal-title">Request a leave during {{ month.format('MMMM YYYY') }}</h3>
+        </div>
+
+        <div class="modal-body">
+          
+          <div class="alert alert-warning" ng-repeat="message in leave_request_form.$message" ng-animate>
+            <p>{{ message }}</p>
+          </div>
+          
+          <form name="leave_request_form" novalidate>
+
+            <p>Please select the leave type and the start and end dates of your requested leave.</p>
+
+            <div class="has-feedback form-group">
+              <label class="control-label" for="id_type">Type</label>
+
+              <ui-select id="id_type" name="type" ng-model="leave_request.type" theme="bootstrap" required>
+                <ui-select-match placeholder="Select or search for a leave type in the list...">{{ $select.selected.name }}</ui-select-match>
+                <ui-select-choices repeat="type.id as type in leaveTypes | filter: {name: $select.search}">
+                  <div ng-bind-html="type.name | highlight: $select.search"></div>
+                </ui-select-choices>
+              </ui-select>
+
+              <ul class="djng-form-control-feedback djng-field-errors" ng-show="leave_request_form.type.$dirty" ng-cloak>
+                <li ng-show="leave_request_form['type'].$error.required" class="invalid">This field is required.</li>
+                <li ng-show="leave_request_form['type'].$valid" class="valid"></li>
+              </ul>
+              <ul class="djng-form-control-feedback djng-field-errors" ng-show="leave_request_form.type.$pristine" ng-cloak>
+                <li ng-show="leave_request_form.type.$message" class="invalid" ng-bind="leave_request_form.type.$message"></li>
+              </ul>
+            </div>
+
+            <div ng-show="!!selectedSetting && !!selectedSetting.max_days">
+              <p class="text-center">
+                Out of a total of {{ selectedSetting.max_days }},
+                you have <span class="text-bold text-primary">{{ selectedSetting.remaining_days }} free days</span>
+                to use as {{ selectedSetting.type.name.toLowerCase() }}.
+              </p>
+              <uib-progress max="selectedSetting.max_days" style="width: 100%;">
+                <uib-bar value="selectedSetting.confirmed_days" uib-tooltip="Confirmed" type="primary" ng-hide="selectedSetting.confirmed_days < 1">{{ selectedSetting.confirmed_days }} days</uib-bar>
+                <uib-bar value="selectedSetting.pending_days" uib-tooltip="Pending" type="warning" ng-hide="selectedSetting.pending_days < 1">{{ selectedSetting.pending_days }} days</uib-bar>
+                <uib-bar value="getLeaveLength()" uib-tooltip="This leave" type="info" class="progress-bar-striped">{{ getLeaveLength() }} days</uib-bar>
+                <uib-bar value="getRemainingDays(leave_request.type)" uib-tooltip="Remaining" type="primary" style="background-color: inherit; color: inherit;" ng-hide="getRemainingDays(leave_request.type) < 1">{{ getRemainingDays(leave_request.type) }} days</uib-bar>
+              </uib-progress>
+            </div>
+
+            <hr>
+
+            <div class="row">
+              <div class="col-sm-6">
+                <div class="has-feedback form-group">
+                  <label class="control-label" for="id_start_date">Start date</label>
+                  <input class="form-control" id="id_start_date" name="start_date" ng-model="leave_request[&#39;start_date&#39;]" type="hidden" required />
+                  <div uib-datepicker ng-model="leave_request.start_date" datepicker-options="startDateOptions"></div>
+
+                  <ul class="djng-form-control-feedback djng-field-errors" ng-show="leave_request_form.start_date.$dirty" ng-cloak>
+                    <li ng-show="leave_request_form['start_date'].$error.required" class="invalid">This field is required.</li>
+                    <li ng-show="leave_request_form['start_date'].$valid" class="valid"></li>
+                  </ul>
+                  <ul class="djng-form-control-feedback djng-field-errors" ng-show="leave_request_form.start_date.$pristine" ng-cloak>
+                    <li ng-show="leave_request_form.start_date.$message" class="invalid" ng-bind="leave_request_form.start_date.$message"></li>
+                  </ul>
+                </div>
+              </div>
+              <div class="col-sm-6">
+                <div class="has-feedback form-group">
+                  <label class="control-label" for="id_end_date">End date</label>
+                  <input class="form-control" id="id_end_date" name="end_date" ng-model="leave_request[&#39;end_date&#39;]" type="hidden" required />
+                  <div uib-datepicker ng-model="leave_request.end_date" datepicker-options="endDateOptions"></div>
+
+                  <ul class="djng-form-control-feedback djng-field-errors" ng-show="leave_request_form.end_date.$dirty" ng-cloak>
+                    <li ng-show="leave_request_form['end_date'].$error.required" class="invalid">This field is required.</li>
+                    <li ng-show="leave_request_form['end_date'].$valid" class="valid"></li>
+                  </ul>
+                  <ul class="djng-form-control-feedback djng-field-errors" ng-show="leave_request_form.end_date.$pristine" ng-cloak>
+                    <li ng-show="leave_request_form.end_date.$message" class="invalid" ng-bind="leave_request_form.end_date.$message"></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <hr>
+
+            <div class="has-feedback form-group">
+              <label for="id_attachment">Attachment <small style="color: dimgray;">(as PDF, optional depending on your leave type)</small></label>
+              <input type="file" id="id_attachment" ngf-select accept="application/pdf" name="attachment" ng-model="leave_request[&#39;attachment&#39;]" /><!-- FIXME: validate PDF -->
+
+              <ul class="djng-form-control-feedback djng-field-errors" ng-show="leave_request_form.attachment.$dirty" ng-cloak>
+                <li ng-show="leave_request_form['attachment'].$valid" class="valid"></li>
+              </ul>
+              <ul class="djng-form-control-feedback djng-field-errors" ng-show="leave_request_form.attachment.$pristine" ng-cloak>
+                <li ng-show="leave_request_form.attachment.$message" class="invalid" ng-bind="leave_request_form.attachment.$message"></li>
+              </ul>
+            </div>
+
+          </form>
+
+        </div><!-- /.modal-body -->
+
+        <div class="modal-footer">
+          <a type="button" class="btn btn-default pull-left" href="javascript:history.back()">Back</a>
+          <button type="button" class="btn btn-primary" ng-click="submit()" ng-disabled="leave_request_form.$invalid || upload.$$state.status === 0">Submit</button>
+          <hr>
+          <p class="text-yellow text-center">Your request will be submitted for review by the medical internship unit.</p>
+        </div>
+
+      </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+  </div>
+</div>
+
+
+
