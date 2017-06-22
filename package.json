@@ -1,0 +1,27 @@
+{
+  "name": "easy_internship",
+  "version": "0.0.0",
+  "description": "Easy Internship",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/msarabi95/easy-internship.git"
+  },
+  "author": "MSArabi",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/msarabi95/easy-internship/issues"
+  },
+  "homepage": "https://github.com/msarabi95/easy-internship#readme",
+  "dependencies": {},
+  "devDependencies": {
+    "grunt": "^1.0.1",
+    "grunt-cache-breaker": "^2.0.1",
+    "grunt-contrib-jshint": "^1.1.0",
+    "grunt-contrib-nodeunit": "^1.0.0",
+    "grunt-contrib-uglify": "^3.0.1"
+  }
+}
