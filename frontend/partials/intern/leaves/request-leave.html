@@ -11,6 +11,20 @@
     form[ng-show].ng-hide-add {
       animation: fadeOutUp 0.5s;
     }
+
+    .return-date {
+      transition: max-height 500ms ease;
+      max-height: 100px;
+      overflow: hidden;
+    }
+
+    .return-date.ng-hide {
+      max-height: 0;
+    }
+
+    .return-date.ng-hide-remove {
+      animation: fadeIn 1000ms;
+    }
   </style>
   
   <div class="modal">
@@ -97,6 +111,36 @@
                   </ul>
                 </div>
               </div>
+            </div>
+
+            <div class="return-date" ng-show="leave_request.return_date">
+              <br>
+
+              <label class="control-label">
+                Return date <i class="fa fa-question-circle"
+                               uib-tooltip="This is the date which you are expected to return back to your rotation.
+                               The weekend is automatically skipped in case the last day in your leave is a Thursday.
+                               You can manually change the date below, however, if that's not the case."></i>
+              </label>
+              <p ng-hide="returnDatePickerIsVisible">
+                {{ leave_request.return_date.format('dddd, D MMM YYYY') }} <a href="" ng-click="showReturnDatePicker()"><u>Change</u></a>
+              </p>
+
+              <div class="row">
+                <div class="col-sm-offset-3 col-sm-6" style="padding-right: 30px; padding-left: 30px;">
+                  <input class="form-control" id="id_return_date" name="return_date" ng-model="leave_request[&#39;return_date&#39;]" type="hidden" required />
+                  <div ng-show-start="returnDatePickerIsVisible" uib-datepicker ng-model="leave_request.return_date" datepicker-options="returnDateOptions"></div>
+
+                  <ul class="djng-form-control-feedback djng-field-errors" ng-show="leave_request_form.return_date.$dirty" ng-cloak>
+                    <li ng-show="leave_request_form['return_date'].$error.required" class="invalid">This field is required.</li>
+                    <li ng-show="leave_request_form['return_date'].$valid" class="valid"></li>
+                  </ul>
+                  <ul ng-show-end class="djng-form-control-feedback djng-field-errors" ng-show="leave_request_form.return_date.$pristine" ng-cloak>
+                    <li ng-show="leave_request_form.return_date.$message" class="invalid" ng-bind="leave_request_form.return_date.$message"></li>
+                  </ul>
+                </div>
+              </div>
+
             </div>
 
             <hr>
