@@ -22,7 +22,7 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
             controller: "MasterRotaCtrl"
         })
         .when("/rotations/:department/:month_id/", {
-            templateUrl: "static/partials/staff/rotations/monthly-list.html",
+            templateUrl: "static/partials/staff/rotations/monthly-list.html?rel=1498746955401",
             controller: "MonthlyListCtrl"
         });
 
@@ -322,17 +322,24 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
         };
 }])
 
-.controller("MonthlyListCtrl", ["$scope", "$routeParams", "DTOptionsBuilder", "DTColumnBuilder", "Department", "Rotation", function ($scope, $routeParams, DTOptionsBuilder, DTColumnBuilder, Department, Rotation) {
+.controller("MonthlyListCtrl", ["$scope", "$routeParams", "DTOptionsBuilder", "DTColumnBuilder", "Batch", "Department", "Rotation", function ($scope, $routeParams, DTOptionsBuilder, DTColumnBuilder, Batch, Department, Rotation) {
     $scope.month = moment({year: Math.floor(parseInt($routeParams.month_id)/ 12), month: (parseInt($routeParams.month_id) % 12)});
     $scope.department = Department.get({id: $routeParams.department});
 
-    $scope.dtOptions = DTOptionsBuilder
-        .fromFnPromise(function() {
-            return Rotation.monthly_list({department: $routeParams.department, month: $routeParams.month_id}).$promise;
-        })
-        .withOption("order", [[ 1, "asc" ]])
-        .withOption("responsive", true)
-        .withBootstrap();
+    $scope.dtOptions = {};
+
+    $scope.batches = Batch.query(function (batches) {
+
+        angular.forEach(batches, function (batch) {
+            $scope.dtOptions['batch_' + String(batch.id)] = DTOptionsBuilder
+                .fromFnPromise(function() {
+                    return Batch.monthly_list({id: batch.id, department: $routeParams.department, month: $routeParams.month_id}).$promise;
+                })
+                .withOption("order", [[ 1, "asc" ]])
+                .withOption("responsive", true)
+                .withBootstrap();
+        });
+    });
 
     $scope.dtColumns = [
         DTColumnBuilder.newColumn(null).withTitle(null).notSortable()

@@ -9,11 +9,6 @@ angular.module("ei.rotations.models", ["ngResource", "ei.interceptors"])
             method: 'get',
             url: '/api/rotations/master_rota/',
             isArray: true
-        },
-        monthly_list: {
-            method: 'get',
-            url: '/api/rotations/monthly_list/',
-            isArray: true
         }
     });
 }])

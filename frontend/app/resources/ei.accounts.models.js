@@ -56,6 +56,11 @@ angular.module('ei.accounts.models', ["ngResource", "ei.interceptors"])
                 headers()['pagination-total'] = jsonData.count;
                 return jsonData.results;
             }
+        },
+        monthly_list: {
+            method: 'get',
+            url: '/api/batches/:id/monthly_list/',
+            isArray: true
         }
     })
 }]);
