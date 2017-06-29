@@ -221,7 +221,7 @@ class FullRotationSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         super(FullRotationSerializer, self).__init__(*args, **kwargs)
         from months.serializers import InternshipSerializer
-        self.fields['internship'] = InternshipSerializer()
+        self.fields['internship'] = InternshipSerializer(details=False)
 
     class Meta:
         model = Rotation
