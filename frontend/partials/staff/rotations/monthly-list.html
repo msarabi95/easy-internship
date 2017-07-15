@@ -33,10 +33,11 @@
             <thead>
               <th></th>
               <th>Name</th>
-              <th>Student Number</th>
-              <th>Badge Number</th>
+              <th>Number</th>
+              <th>Badge</th>
               <th>Email</th>
-              <th>Mobile Number</th>
+              <th>Mobile</th>
+              <th>Requested on</th>
               <th>Approved on</th>
             </thead>
             <tbody>
@@ -49,6 +50,7 @@
                 <td>{{ ::row.internship.intern.badge_number }}</td>
                 <td>{{ ::row.internship.intern.profile.user.email }}</td>
                 <td>{{ ::row.internship.intern.mobile_number }}</td>
+                <td>{{ ::row.request_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</td>
                 <td>{{ ::row.approval_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</td>
               </tr>
             </tbody>
@@ -59,6 +61,7 @@
               <small>
                 Sort by:
                 <a class="label label-default" ng-class="{'label-primary': batch.ordering == '$index'}" href="" ng-click="batch.ordering = '$index'">Name</a>
+                <a class="label label-default" ng-class="{'label-primary': batch.ordering == 'request_datetime'}" href="" ng-click="batch.ordering = 'request_datetime'">Requested on</a>
                 <a class="label label-default" ng-class="{'label-primary': batch.ordering == 'approval_datetime'}" href="" ng-click="batch.ordering = 'approval_datetime'">Approved on</a>
               </small>
               <small>

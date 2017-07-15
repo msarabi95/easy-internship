@@ -22,7 +22,7 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
             controller: "MasterRotaCtrl"
         })
         .when("/rotations/:department/:month_id/", {
-            templateUrl: "static/partials/staff/rotations/monthly-list.html?rel=1500115873932",
+            templateUrl: "static/partials/staff/rotations/monthly-list.html?rel=1500118799360",
             controller: "MonthlyListCtrl"
         });
 
@@ -341,6 +341,7 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
             });
             batch.monthly_list.$promise.then(function(rotations) {
                 angular.forEach(rotations, function(rotation, index) {
+                    rotation.request_datetime = moment(rotation.request_datetime);
                     rotation.approval_datetime = moment(rotation.approval_datetime);
                 });
             });
