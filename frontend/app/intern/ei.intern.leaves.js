@@ -9,7 +9,7 @@ angular.module("ei.leaves", ["ngRoute", "ngFileUpload", "ui.select", "ei.utils",
 
     $routeProvider
         .when("/planner/:month_id/request-leave/", {
-            templateUrl: "static/partials/intern/leaves/request-leave.html?v=0003",
+            templateUrl: "static/partials/intern/leaves/request-leave.html?rel=1498228344438",
             controller: "LeaveRequestCreateCtrl"
         })
         .when("/planner/:month_id/leaves/history/", {
@@ -49,6 +49,8 @@ angular.module("ei.leaves", ["ngRoute", "ngFileUpload", "ui.select", "ei.utils",
             showWeeks: false
         };
 
+        $scope.returnDateOptions = Object.assign({}, $scope.endDateOptions);
+
         $scope.$watch('leave_request.type', function (newValue, oldValue) {
             if (newValue !== undefined && newValue !== oldValue) {
                 $scope.selectedSetting = $scope.leaveSettings.filter(function (setting) {
@@ -56,6 +58,30 @@ angular.module("ei.leaves", ["ngRoute", "ngFileUpload", "ui.select", "ei.utils",
                 })[0];
             }
         });
+
+        $scope.$watch('leave_request.end_date', function (newValue, oldValue) {
+            if (newValue !== undefined && newValue !== oldValue) {
+                var endDate = moment(newValue);
+                var dayOfWeek = endDate.isoWeekday();  // https://momentjs.com/docs/#/get-set/iso-weekday/
+                const sunday = 7, thursday = 4, friday = 5;
+                // Add 1 to 3 days, depending on whether the end date is a Thursday, Friday, or another
+                // day of the week (to skip the weekend)
+                var add = (dayOfWeek === thursday || dayOfWeek === friday) ? (sunday - dayOfWeek) : 1;
+                $scope.leave_request.return_date = moment(newValue).add(add, 'days');
+                $scope.returnDateOptions.minDate = moment(newValue).add(1, 'days').toDate();
+
+                // TODO: enable selecting a few days from the next month if the leave ends on the last day of the month
+            }
+        });
+
+        $scope.showReturnDatePicker = function () {
+            $scope.returnDatePickerIsVisible = true;
+            angular.element(".return-date").css("max-height", "300px");
+        };
+
+        $scope.hideReturnDatePicker = function () {
+            $scope.returnDatePickerIsVisible = false;
+        };
 
         $scope.getLeaveLength = function () {
             if (!$scope.leave_request.start_date || !$scope.leave_request.end_date) {

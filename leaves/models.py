@@ -98,6 +98,7 @@ class LeaveRequest(models.Model):
     type = models.ForeignKey(LeaveType, related_name='leave_requests')
     start_date = models.DateField()
     end_date = models.DateField()
+    return_date = models.DateField()
     attachment = models.FileField(upload_to='leave_request_attachments', null=True, blank=True)
     submission_datetime = models.DateTimeField(auto_now_add=True)
 
@@ -178,6 +179,7 @@ class Leave(models.Model):
     type = models.ForeignKey(LeaveType, related_name='leaves')
     start_date = models.DateField()
     end_date = models.DateField()
+    return_date = models.DateField()
     request = models.OneToOneField(LeaveRequest, related_name='leave')
 
     objects = LeaveManager()

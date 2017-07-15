@@ -10,19 +10,70 @@
 
 <!-- Main content -->
 <section class="content">
-  <div class="row">
+  <div ng-hide="batches.$promise.$$state.status == 1" style="height: 150px;">
+    <img src="/static/loading.gif" height="50" style="position: relative; top: 50%; left: 50%; margin-left: -15px; margin-top: -15px;" />
+  </div>
+  <div class="row" ng-repeat="batch in batches">
     <div class="col-xs-12">
+
+      <h4>
+        {{ batch.name }}
+        <small ng-if="batch.monthly_list.length > 0" class="pull-right">
+          <a href="/api/batches/{{ batch.id }}/monthly_list/?department={{ department.id }}&month={{ month_id }}&excel=true">
+            <i class="fa fa-cloud-download"></i>
+            Download as Excel
+          </a>
+        </small>
+      </h4>
+
       <div class="box box-solid">
-        <div class="box-header with-border">
-          <h4 class="box-title">List of rotating interns</h4>
-        </div>
+        <div class="box-body no-padding">
 
-        <div class="box-body">
+          <table ng-if-start="batch.monthly_list.length > 0" class="table table-striped table-hover">
+            <thead>
+              <th></th>
+              <th>Name</th>
+              <th>Student Number</th>
+              <th>Badge Number</th>
+              <th>Email</th>
+              <th>Mobile Number</th>
+              <th>Approved on</th>
+            </thead>
+            <tbody>
+              <tr ng-repeat="row in batch.monthly_list | orderBy: batch.ordering : batch.reverse ">
+                <td>
+                  <img class="img-circle img-bordered-sm img-sm" ng-src="{{ ::row.internship.intern.profile.mugshot }}" alt="">
+                </td>
+                <td>{{ ::row.internship.intern.profile.en_full_name }}</td>
+                <td>{{ ::row.internship.intern.student_number }}</td>
+                <td>{{ ::row.internship.intern.badge_number }}</td>
+                <td>{{ ::row.internship.intern.profile.user.email }}</td>
+                <td>{{ ::row.internship.intern.mobile_number }}</td>
+                <td>{{ ::row.approval_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</td>
+              </tr>
+            </tbody>
+          </table>
 
-          <table datatable="" class="table" dt-options="dtOptions" dt-columns="dtColumns" style="width: 100%"></table>
+          <div ng-if-end class="row">
+            <div class="col-xs-12" style="padding-left: 25px; padding-right: 25px; padding-top: 10px; padding-bottom: 10px;">
+              <small>
+                Sort by:
+                <a class="label label-default" ng-class="{'label-primary': batch.ordering == '$index'}" href="" ng-click="batch.ordering = '$index'">Name</a>
+                <a class="label label-default" ng-class="{'label-primary': batch.ordering == 'approval_datetime'}" href="" ng-click="batch.ordering = 'approval_datetime'">Approved on</a>
+              </small>
+              <small>
+                |
+                <a class="label label-default" ng-class="{'label-primary': batch.reverse == false}" href="" ng-click="batch.reverse = false"><i class="fa fa-arrow-down"></i></a>
+                <a class="label label-default" ng-class="{'label-primary': batch.reverse == true}" href="" ng-click="batch.reverse = true"><i class="fa fa-arrow-up"></i></a>
+              </small>
+            </div>
+          </div>
+
+          <p ng-if="batch.monthly_list.length == 0" class="text-center text-gray" style="padding-top: 10px;"><i>No information to display</i></p>
 
         </div>
       </div>
+
     </div>
   </div>
 

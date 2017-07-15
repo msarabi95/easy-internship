@@ -27,7 +27,7 @@ from hospitals.models import Department, AcceptanceSetting, Hospital, Specialty,
 from rotations.serializers import RotationSerializer, RequestedDepartmentSerializer, RotationRequestSerializer, \
     RotationRequestResponseSerializer, RotationRequestForwardSerializer, AcceptanceListSerializer, \
     ShortRotationRequestForwardSerializer, ShortRotationRequestSerializer, \
-    UpdatedRotationRequestSerializer
+    UpdatedRotationRequestSerializer, FullRotationSerializer
 
 
 class RotationViewSet(viewsets.ReadOnlyModelViewSet):
@@ -69,32 +69,6 @@ class RotationViewSet(viewsets.ReadOnlyModelViewSet):
             rotation_counts.append(dept_counts)
 
         return Response(rotation_counts)
-
-    @list_route(methods=['get'], permission_classes=[permissions.IsAuthenticated, IsStaff])
-    def monthly_list(self, request):
-        """
-        Return the list of rotations for a given month and department
-        """
-        if len(request.query_params.keys()) == 0:
-            raise ParseError(detail="No query parameters were specified.")  # FIXME: Is this the most accurate error?
-
-        department = request.query_params.get('department')
-        month = request.query_params.get('month')
-
-        if department is None or month is None:
-            raise ParseError(detail="Both `department` and `month` query parameters should be specified.")
-
-        month = Month.from_int(int(month))
-        rotations = Rotation.objects.filter(
-            department=department,
-            month=month,
-        ).prefetch_related(
-            'internship__intern__profile',
-        )
-
-        serialized = RotationSerializer(rotations, many=True)
-
-        return Response(serialized.data)
 
 
 class RequestedDepartmentViewSet(viewsets.ReadOnlyModelViewSet):
