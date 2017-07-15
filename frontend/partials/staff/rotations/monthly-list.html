@@ -16,7 +16,15 @@
   <div class="row" ng-repeat="batch in batches">
     <div class="col-xs-12">
 
-      <h4>{{ batch.name }}</h4>
+      <h4>
+        {{ batch.name }}
+        <small ng-if="batch.monthly_list.length > 0" class="pull-right">
+          <a href="/api/batches/{{ batch.id }}/monthly_list/?department={{ department.id }}&month={{ month_id }}&excel=true">
+            <i class="fa fa-cloud-download"></i>
+            Download as Excel
+          </a>
+        </small>
+      </h4>
 
       <div class="box box-solid">
         <div class="box-body no-padding">

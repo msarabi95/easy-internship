@@ -324,6 +324,7 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
 
 .controller("MonthlyListCtrl", ["$scope", "$routeParams", "Batch", "Department", function ($scope, $routeParams, Batch, Department) {
     $scope.month = moment({year: Math.floor(parseInt($routeParams.month_id)/ 12), month: (parseInt($routeParams.month_id) % 12)});
+    $scope.month_id = $routeParams.month_id;
     $scope.department = Department.get({id: $routeParams.department});
 
     $scope.batches = Batch.query(function (batches) {
