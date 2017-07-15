@@ -6,8 +6,10 @@ from django.db.models.functions import Lower
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import View, TemplateView
 from django.views.generic.edit import FormView
+from month import Month
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import list_route, detail_route
+from rest_framework.exceptions import ParseError
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from userena import settings as userena_settings
@@ -21,8 +23,12 @@ from accounts.models import Profile, Intern, University, Batch
 from accounts.permissions import IsStaff
 from accounts.serializers import ProfileSerializer, InternSerializer, UserSerializer, InternTableSerializer, \
     BatchSerializer
+from accounts.utils import excel_file_as_http_response
+from hospitals.models import Department
 from months.models import Internship
 from months.serializers import FullInternshipSerializer2
+from rotations.models import Rotation
+from rotations.serializers import FullRotationSerializer
 
 
 class SignupWrapper(View):
@@ -222,4 +228,41 @@ class BatchViewSet(viewsets.ReadOnlyModelViewSet):
             return paginator.get_paginated_response(serialized.data)
 
         serialized = FullInternshipSerializer2(filtered.qs, many=True)
+        return Response(serialized.data)
+
+    @detail_route(methods=['get'], permission_classes=[permissions.IsAuthenticated, IsStaff])
+    def monthly_list(self, request, pk, *args, **kwargs):
+        """
+        Return the list of rotations for a given month and department
+        """
+        batch = get_object_or_404(Batch, id=pk)
+
+        if len(request.query_params.keys()) == 0:
+            raise ParseError(detail="No query parameters were specified.")  # FIXME: Is this the most accurate error?
+
+        department = request.query_params.get('department')
+        month = request.query_params.get('month')
+
+        if department is None or month is None:
+            raise ParseError(detail="Both `department` and `month` query parameters should be specified.")
+
+        month = Month.from_int(int(month))
+        department = Department.objects.get(id=department)
+        rotations = Rotation.objects.filter(
+            internship__intern__batch=batch,
+            department=department,
+            month=month,
+        ).prefetch_related(
+            'internship__intern__profile',
+        ).order_by(
+            Lower('internship__intern__profile__en_first_name'),
+            Lower('internship__intern__profile__en_father_name'),
+            Lower('internship__intern__profile__en_grandfather_name'),
+            Lower('internship__intern__profile__en_last_name'),
+        )
+
+        if request.query_params.get('excel'):
+            return excel_file_as_http_response(batch, department, month, rotations)
+
+        serialized = FullRotationSerializer(rotations, many=True)
         return Response(serialized.data)

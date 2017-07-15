@@ -107,13 +107,18 @@ class InternshipMonthSerializer(serializers.Serializer):
 
 
 class InternshipSerializer(serializers.ModelSerializer):
+
+    def __init__(self, details=True, *args, **kwargs):
+        super(InternshipSerializer, self).__init__(*args, **kwargs)
+        if details:
+            self.fields['months'] = InternshipMonthSerializer(many=True)
+            self.fields['rotation_requests'] = RotationRequestSerializer2(many=True)
+
     intern = FullInternSerializer()
-    months = InternshipMonthSerializer(many=True)
-    rotation_requests = RotationRequestSerializer2(many=True)
 
     class Meta:
         model = Internship
-        fields = ('id', 'intern', 'start_month', 'months', 'rotation_requests',)
+        fields = '__all__'
 
 
 class FullInternshipSerializer2(serializers.ModelSerializer):

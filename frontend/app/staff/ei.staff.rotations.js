@@ -22,7 +22,7 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
             controller: "MasterRotaCtrl"
         })
         .when("/rotations/:department/:month_id/", {
-            templateUrl: "static/partials/staff/rotations/monthly-list.html",
+            templateUrl: "static/partials/staff/rotations/monthly-list.html?rel=1500115873932",
             controller: "MonthlyListCtrl"
         });
 
@@ -322,31 +322,28 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
         };
 }])
 
-.controller("MonthlyListCtrl", ["$scope", "$routeParams", "DTOptionsBuilder", "DTColumnBuilder", "Department", "Rotation", function ($scope, $routeParams, DTOptionsBuilder, DTColumnBuilder, Department, Rotation) {
+.controller("MonthlyListCtrl", ["$scope", "$routeParams", "Batch", "Department", function ($scope, $routeParams, Batch, Department) {
     $scope.month = moment({year: Math.floor(parseInt($routeParams.month_id)/ 12), month: (parseInt($routeParams.month_id) % 12)});
+    $scope.month_id = $routeParams.month_id;
     $scope.department = Department.get({id: $routeParams.department});
 
-    $scope.dtOptions = DTOptionsBuilder
-        .fromFnPromise(function() {
-            return Rotation.monthly_list({department: $routeParams.department, month: $routeParams.month_id}).$promise;
-        })
-        .withOption("order", [[ 1, "asc" ]])
-        .withOption("responsive", true)
-        .withBootstrap();
+    $scope.batches = Batch.query(function (batches) {
+        angular.forEach(batches, function (batch) {
+            // Set default values for table display
+            batch.ordering = '$index';
+            batch.reverse = false;
 
-    $scope.dtColumns = [
-        DTColumnBuilder.newColumn(null).withTitle(null).notSortable()
-            .renderWith(function (data, type, full, meta) {
-                return '<img src="' + data.internship.intern.profile.mugshot + '" class="img-circle img-bordered-sm img-sm"/>';
-            }),
-        DTColumnBuilder.newColumn('internship.intern.profile.en_full_name').withTitle('Name'),
-        DTColumnBuilder.newColumn('internship.intern.student_number').withTitle('Student Number'),
-        DTColumnBuilder.newColumn('internship.intern.badge_number').withTitle('Badge Number'),
-        //DTColumnBuilder.newColumn('internship.intern.profile.user.email').withTitle('Email'),
-        DTColumnBuilder.newColumn('internship.intern.mobile_number').withTitle('Mobile Number'),
-        DTColumnBuilder.newColumn(null).withTitle(null).notSortable()
-            .renderWith(function (data, type, full, meta) {
-                return '<a class="btn btn-default btn-flat" href="#/interns/' + data.internship.id + '/">View details</a>';
-            })
-    ];
+            // Fetch info
+            batch.monthly_list = Batch.monthly_list({
+                id: batch.id,
+                department: $routeParams.department,
+                month: $routeParams.month_id
+            });
+            batch.monthly_list.$promise.then(function(rotations) {
+                angular.forEach(rotations, function(rotation, index) {
+                    rotation.approval_datetime = moment(rotation.approval_datetime);
+                });
+            });
+        });
+    });
 }]);
