@@ -22,7 +22,7 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
             controller: "MasterRotaCtrl"
         })
         .when("/rotations/:department/:month_id/", {
-            templateUrl: "static/partials/staff/rotations/monthly-list.html?rel=1498756221883",
+            templateUrl: "static/partials/staff/rotations/monthly-list.html?rel=1500115873932",
             controller: "MonthlyListCtrl"
         });
 
@@ -329,7 +329,21 @@ angular.module("ei.staff.rotations", ["ei.hospitals.models", "ei.months.models",
 
     $scope.batches = Batch.query(function (batches) {
         angular.forEach(batches, function (batch) {
-            batch.monthly_list = Batch.monthly_list({id: batch.id, department: $routeParams.department, month: $routeParams.month_id});
+            // Set default values for table display
+            batch.ordering = '$index';
+            batch.reverse = false;
+
+            // Fetch info
+            batch.monthly_list = Batch.monthly_list({
+                id: batch.id,
+                department: $routeParams.department,
+                month: $routeParams.month_id
+            });
+            batch.monthly_list.$promise.then(function(rotations) {
+                angular.forEach(rotations, function(rotation, index) {
+                    rotation.approval_datetime = moment(rotation.approval_datetime);
+                });
+            });
         });
     });
 }]);

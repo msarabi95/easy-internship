@@ -223,6 +223,8 @@ class FullRotationSerializer(serializers.ModelSerializer):
         from months.serializers import InternshipSerializer
         self.fields['internship'] = InternshipSerializer(details=False)
 
+    approval_datetime = serializers.DateTimeField(source='rotation_request.response.response_datetime')
+
     class Meta:
         model = Rotation
         fields = '__all__'
