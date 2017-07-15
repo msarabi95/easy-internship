@@ -8,7 +8,7 @@ def excel_file_as_http_response(batch, department, month, rotations):
     output = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet; charset=utf-8'
     )
-    file_name = "Intern List.xlsx"
+    file_name = "%s - %s - %s.xlsx" % (month.first_day().strftime('%B %Y'), department.name, batch.abbreviation)
     output['Content-Disposition'] = 'attachment; filename=' + file_name
     wb = openpyxl.Workbook()
     ws = wb.active
@@ -62,28 +62,33 @@ def excel_file_as_http_response(batch, department, month, rotations):
     extended_cells = ws[extended_range]
     for x, row in enumerate(extended_cells):
         for y, cell in enumerate(row):
-            # if cell == row[-1]:
-            #     cell.border = styles.Border(
-            #         left=styles.Side(border_style='thin', color='FFFFFF'),
-            #         top=styles.Side(border_style='thin', color='FFFFFF'),
-            #         bottom=styles.Side(border_style='thin', color='FFFFFF'),
-            #     )
-            # elif row == extended_cells[-1]:
-            #     cell.border = styles.Border(
-            #         left=styles.Side(border_style='thin', color='FFFFFF'),
-            #         top=styles.Side(border_style='thin', color='FFFFFF'),
-            #         right=styles.Side(border_style='thin', color='FFFFFF'),
-            #     )
-            # else:
-            cell.border = white_border
-            if cell == row[-1]:
+            if cell == row[-1] and row == extended_cells[-1]:
+                # This is the right-most, lower-most cell
                 cell.border = styles.Border(
+                    top=styles.Side(border_style='thin', color="FFFFFF"),
+                    left=styles.Side(border_style='thin', color="FFFFFF"),
+                    bottom=styles.Side(border_style=None),
                     right=styles.Side(border_style=None),
                 )
-            if row == extended_cells[-1]:
+            elif cell == row[-1]:
+                # This is the right-most column
                 cell.border = styles.Border(
+                    top=styles.Side(border_style='thin', color="FFFFFF"),
+                    bottom=styles.Side(border_style='thin', color="FFFFFF"),
+                    left=styles.Side(border_style='thin', color="FFFFFF"),
+                    right=styles.Side(border_style=None),
+                )
+            elif row == extended_cells[-1]:
+                # This is the lower-most row
+                cell.border = styles.Border(
+                    top=styles.Side(border_style='thin', color="FFFFFF"),
+                    left=styles.Side(border_style='thin', color="FFFFFF"),
+                    right=styles.Side(border_style='thin', color="FFFFFF"),
                     bottom=styles.Side(border_style=None),
                 )
+            else:
+                # All other cells
+                cell.border = white_border
 
     def style_range(ws, cell_range, alignment=None, font=None, fill=None, border=None):
         """
