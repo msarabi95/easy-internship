@@ -16,9 +16,11 @@ Including another URLconf
 from django.conf import settings
 from django.conf.urls import include, url
 from django.contrib import admin
+from django.views.static import serve as static_serve
 from django_nyt.urls import get_pattern as get_nyt_pattern
 from rest_framework import routers
 
+from userena import views as userena_views
 from accounts.views import SignupWrapper, ProfileEditWrapper, ProfileDetailWrapper, ResendConfirmationKey, \
     ResendConfirmationKeyComplete
 from accounts.forms import ChangeInternEmailForm
@@ -53,10 +55,10 @@ urlpatterns = [
     url(r'^messages/$', views.GetMessages.as_view()),
     url(r'^notifications/', get_nyt_pattern()),
 
-    url(r'^accounts/activate/(?P<activation_key>\w+)/$', 'userena.views.activate', {'success_url': '/'}),
+    url(r'^accounts/activate/(?P<activation_key>\w+)/$', userena_views.activate, {'success_url': '/'}),
     url(r'^accounts/resend/$', ResendConfirmationKey.as_view(), name="resend_activation"),
     url(r'^accounts/resend/complete/$', ResendConfirmationKeyComplete.as_view(), name="resend_activation_complete"),
-    url(r'^accounts/(?P<username>[\@\.\w-]+)/email/$', 'userena.views.email_change', {'email_form': ChangeInternEmailForm}),
+    url(r'^accounts/(?P<username>[\@\.\w-]+)/email/$', userena_views.email_change, {'email_form': ChangeInternEmailForm}),
     url(r'^accounts/(?P<username>[\@\.\w-]+)/edit/$', ProfileEditWrapper.as_view()),
     url(r'^accounts/(?P<username>(?!(signout|signup|signin)/)[\@\.\w-]+)/$', ProfileDetailWrapper.as_view()),
     url(r'^accounts/signup/$', SignupWrapper.as_view()),
@@ -70,7 +72,7 @@ if settings.DEBUG:
     import debug_toolbar
     # media files (user-uploaded files)
     urlpatterns += [
-        url(r'^media/(?P<path>.*)$', 'django.views.static.serve', {
+        url(r'^media/(?P<path>.*)$', static_serve, {
         'document_root': settings.MEDIA_ROOT})
     ]
 
