@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.fields import empty
 
 from accounts.serializers import FullInternSerializer
 from easy_internship.serializers import MonthField
@@ -108,8 +109,8 @@ class InternshipMonthSerializer(serializers.Serializer):
 
 class InternshipSerializer(serializers.ModelSerializer):
 
-    def __init__(self, details=True, *args, **kwargs):
-        super(InternshipSerializer, self).__init__(*args, **kwargs)
+    def __init__(self, instance=None, data=empty, details=True, *args, **kwargs):
+        super(InternshipSerializer, self).__init__(instance, data, *args, **kwargs)
         if details:
             self.fields['months'] = InternshipMonthSerializer(many=True)
             self.fields['rotation_requests'] = RotationRequestSerializer2(many=True)
