@@ -490,3 +490,13 @@ class SeatSetting(object):
     occupied_seats = property(get_occupied_seats)
     booked_seats = property(get_booked_seats)
     available_seats = property(get_available_seats)
+
+
+class SeatAvailability(DepartmentMonthSettings):
+    """
+    Currently this is just a proxy for `DepartmentMonthSettings` model in order to customize the admin interface; but
+    later all the information related to seat availabilities should be moved here instead.
+    """
+    class Meta:
+        proxy = True
+        verbose_name_plural = "Seat availabilities"
