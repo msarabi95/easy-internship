@@ -19,7 +19,7 @@ angular.module("ei.leaves.models", ["ngResource", "ei.interceptors"])
             transformResponse: [function (data, headersGetter) {
                 var transformed = angular.fromJson(data);
                 
-                for (var i = 0; i < data.length; i++) {
+                for (var i = 0; i < transformed.length; i++) {
                     // Convert month to moment
                     transformed[i].month = moment({
                         year: Math.floor(transformed[i].month / 12),
