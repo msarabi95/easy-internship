@@ -1,0 +1,76 @@
+<div class="box box-solid box-info">
+  <div class="box-header">
+    <h5 class="box-title">Request #{{ request.id }}</h5>
+  </div>
+  <div class="box-body">
+
+    <dl class="dl-horizontal">
+
+      <dt>Intern</dt>
+      <dd>{{ request.intern_name }}</dd>
+
+      <dt>GPA</dt>
+      <dd>{{ request.gpa }}</dd>
+
+      <dt></dt>
+      <dd><a class="btn btn-xs btn-primary" href="#/interns/{{ request.internship_id }}"><i class="fa fa-info-circle"></i> View full details</a></dd>
+
+      <hr>
+
+      <dt>Month</dt>
+      <dd>{{ request.month.format('MMMM YYYY') }}</dd>
+
+      <hr>
+
+      <dt>Justification</dt>
+      <dd>
+        <div class="box box-solid box-default" style="margin-bottom: 0;" ng-if="request.justification">
+          <div class="box-body bg-gray-light">
+            <p style="white-space: pre-wrap;">{{ request.justification }}</p>
+          </div>
+        </div>
+        <span ng-if="!request.justification">No justification was provided.</span>
+      </dd>
+
+      <dt style="width: inherit;">Submission date and time</dt>
+      <dd>{{ request.submission_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
+
+    </dl>
+
+    <hr>
+
+    <h4>Response</h4>
+
+    <div class="row">
+      <div class="col-xs-12">
+        <div class="form-group">
+          <textarea class="form-control" rows="3" placeholder="Comment (optional)" ng-model="response['comments' + request.id]"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-6">
+        <button type="button" class="btn btn-block btn-flat btn-success" ng-if="!flags['approveFlag']" ng-click="flag('approveFlag')">
+          <i class="fa fa-check"></i>
+          Approve
+        </button>
+        <button type="button" class="btn btn-block btn-flat btn-warning" ng-if="flags['approveFlag']" ng-click="respond(request, 1, response['comments' + request.id])">
+          Confirm
+        </button>
+      </div>
+
+      <div class="col-md-6">
+        <button type="button" class="btn btn-block btn-flat btn-danger" ng-if="!flags['declineFlag']" ng-click="flag('declineFlag')">
+          <i class="fa fa-remove"></i>
+          Decline
+        </button>
+        <button type="button" class="btn btn-block btn-flat btn-warning" ng-if="flags['declineFlag']" ng-click="respond(request, 0, response['comments' + request.id])">
+          Confirm
+        </button>
+      </div>
+    </div>
+
+
+  </div>
+</div>
