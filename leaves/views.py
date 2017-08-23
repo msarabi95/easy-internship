@@ -27,7 +27,7 @@ class LeaveSettingViewSet(viewsets.ReadOnlyModelViewSet):
 
 class LeaveRequestViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin):
     serializer_class = LeaveRequestSerializer
-    queryset = LeaveRequest.objects.all()
+    queryset = LeaveRequest.objects.open()
     permission_classes = [permissions.IsAuthenticated]
 
     def get_serializer_class(self):
@@ -60,7 +60,7 @@ class LeaveRequestViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin
         messages.success(request._request, "Your request has been submitted successfully.")
 
 
-class LeaveRequestResponseViewSet(viewsets.ReadOnlyModelViewSet):
+class LeaveRequestResponseViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin):
     serializer_class = LeaveRequestResponseSerializer
     queryset = LeaveRequestResponse.objects.all()
     permission_classes = [permissions.IsAuthenticated]

@@ -6,7 +6,7 @@ angular.module("ei.staff.leaves", ["ngRoute", "ei.leaves.models", "ei.leaves.dir
 .config(["$routeProvider", function ($routeProvider) {
     $routeProvider
         .when("/leaves/", {
-            templateUrl: "/static/partials/staff/leaves/leave-request-list.html",
+            templateUrl: "/static/partials/staff/leaves/leave-request-list.html?v=0001",
             controller: "LeaveRequestListCtrl"
         })
 }])
@@ -14,5 +14,10 @@ angular.module("ei.staff.leaves", ["ngRoute", "ei.leaves.models", "ei.leaves.dir
 .controller("LeaveRequestListCtrl", ["$scope", "LeaveRequest", function ($scope, LeaveRequest) {
     $scope.requests = LeaveRequest.query();
 
-
+    $scope.removeRequest = function (request) {
+        var index = $scope.requests.indexOf(request);
+        if (index > -1) {
+            $scope.requests.splice(index, 1);
+        }
+    };
 }]);

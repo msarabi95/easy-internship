@@ -83,6 +83,7 @@ class LeaveRequestSerializer(serializers.ModelSerializer):
 
 class LeaveRequestSerializer2(serializers.ModelSerializer):
     intern_name = serializers.CharField(source='intern.profile.get_en_full_name')
+    internship_id = serializers.IntegerField(source='intern.profile.intern.internship.id')
     month = MonthField()
     type = LeaveTypeSerializer()
     attachment = serializers.FileField(required=False)
@@ -93,6 +94,7 @@ class LeaveRequestSerializer2(serializers.ModelSerializer):
 
 
 class LeaveRequestResponseSerializer(serializers.ModelSerializer):
+    comments = serializers.CharField(required=False)
 
     class Meta:
         model = LeaveRequestResponse

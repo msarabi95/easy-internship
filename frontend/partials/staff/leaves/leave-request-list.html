@@ -51,6 +51,7 @@
               <div class="row">
                 <div class="col-md-offset-2 col-md-8">
                   <leave-request-response-card ng-repeat="request in requests | orderBy: ordering.option : ordering.reverse"
+                                               on-response="removeRequest(request)"
                                                leave-request="request"></leave-request-response-card>
                 </div>
               </div>
