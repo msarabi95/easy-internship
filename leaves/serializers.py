@@ -81,6 +81,17 @@ class LeaveRequestSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class LeaveRequestSerializer2(serializers.ModelSerializer):
+    intern_name = serializers.CharField(source='intern.profile.get_en_full_name')
+    month = MonthField()
+    type = LeaveTypeSerializer()
+    attachment = serializers.FileField(required=False)
+
+    class Meta:
+        model = LeaveRequest
+        fields = '__all__'
+
+
 class LeaveRequestResponseSerializer(serializers.ModelSerializer):
 
     class Meta:

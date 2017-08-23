@@ -3,7 +3,8 @@ from django_nyt.utils import subscribe, notify
 from leaves.models import LeaveType, LeaveSetting, LeaveRequest, LeaveRequestResponse, LeaveCancelRequest, \
     LeaveCancelRequestResponse, Leave
 from leaves.serializers import LeaveTypeSerializer, LeaveSettingSerializer, LeaveRequestSerializer, \
-    LeaveRequestResponseSerializer, LeaveCancelRequestSerializer, LeaveCancelRequestResponseSerializer, LeaveSerializer
+    LeaveRequestResponseSerializer, LeaveCancelRequestSerializer, LeaveCancelRequestResponseSerializer, LeaveSerializer, \
+    LeaveRequestSerializer2
 from rest_framework import viewsets, mixins, permissions
 
 
@@ -28,6 +29,11 @@ class LeaveRequestViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin
     serializer_class = LeaveRequestSerializer
     queryset = LeaveRequest.objects.all()
     permission_classes = [permissions.IsAuthenticated]
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return LeaveRequestSerializer2
+        return LeaveRequestSerializer
 
     def get_queryset(self):
         if self.request.user.has_perm("leaves.leave_request.view_all"):
