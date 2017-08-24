@@ -52,7 +52,7 @@ class LeaveRequestViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin
         # Notify medical internship unit of the request
         notify(
             "A new leave request has been submitted by %s" % (request.user.profile.get_en_full_name()),
-            "rotation_request_submitted",
+            "leave_request_submitted",
             url="/interns/%d/" % leave_request.intern.profile.intern.internship.id,
         )  # FIXME: avoid sending a lot of simultaneous notifications
 

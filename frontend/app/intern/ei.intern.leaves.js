@@ -108,6 +108,7 @@ angular.module("ei.leaves", ["ngRoute", "ngFileUpload", "ui.select", "ei.utils",
             data.month = $scope.month.year() * 12 + ($scope.month.month());
             data.start_date = moment(data.start_date).format('YYYY-MM-DD');
             data.end_date = moment(data.end_date).format('YYYY-MM-DD');
+            data.return_date = moment(data.return_date).format('YYYY-MM-DD');
 
             // Submit
             $scope.upload = Upload.upload({

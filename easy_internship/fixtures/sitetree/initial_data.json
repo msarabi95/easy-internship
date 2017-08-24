@@ -131,7 +131,7 @@
         "access_restricted": false,
         "access_perm_type": 1,
         "parent": null,
-        "sort_order": 15,
+        "sort_order": 16,
         "access_permissions": []
     }
 },
@@ -179,7 +179,7 @@
         "access_restricted": false,
         "access_perm_type": 1,
         "parent": null,
-        "sort_order": 14,
+        "sort_order": 15,
         "access_permissions": []
     }
 },
@@ -230,5 +230,30 @@
         "sort_order": 7,
         "access_permissions": []
     }
+},
+{
+    "model": "sitetree.treeitem",
+    "pk": 16,
+    "fields": {
+        "title": "Leave requests",
+        "hint": "",
+        "url": "#/leaves/",
+        "urlaspattern": false,
+        "tree": 2,
+        "hidden": false,
+        "alias": null,
+        "description": "",
+        "inmenu": true,
+        "inbreadcrumbs": true,
+        "insitetree": true,
+        "access_loggedin": false,
+        "access_guest": false,
+        "access_restricted": false,
+        "access_perm_type": 1,
+        "parent": null,
+        "sort_order": 14,
+        "access_permissions": []
+    }
 }
 ]
+##[jetbrains/Users/MSArabi/Sources/easy_internship/easy_internship/fixtures/sitetree/initial_data.json
