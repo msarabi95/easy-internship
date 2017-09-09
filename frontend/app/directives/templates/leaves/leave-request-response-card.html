@@ -1,82 +1,91 @@
-<div class="box box-solid box-info">
-  <div class="box-header">
-    <h5 class="box-title">Request #{{ request.id }}</h5>
-  </div>
-  <div class="box-body">
+<div class="example-modal">
 
-    <dl class="dl-horizontal">
+  <style>
+    @media (min-width: 992px) {
+      .response-footer .comment-column {
+        padding-right: 5px;
+      }
 
-      <dt>Intern</dt>
-      <dd>
-        {{ request.intern_name }}
-      </dd>
+      .response-footer .comment-column .form-group {
+        margin-bottom: 0;
+      }
 
-      <dt></dt>
-      <dd>
-        <a class="btn btn-xs btn-primary" href="#/interns/{{ request.internship_id }}"><i class="fa fa-info-circle"></i> View full details</a>
-      </dd>
+      .response-footer .comment-column textarea {
+        height: 65px;
+      }
 
-      <hr>
+      .response-footer .buttons-column {
+        padding-left: 5px;
+      }
+    }
 
-      <dt>Leave type</dt>
-      <dd>
-        {{ request.type.name }}
-      </dd>
+    .response-footer .buttons-column .btn-group-vertical {
+      width: 100%;
+    }
+  </style>
 
-      <dt>Month</dt>
-      <dd>{{ request.month.format('MMMM YYYY') }}</dd>
-
-      <dt>Start date</dt>
-      <dd>
-        {{ request.start_date.format('dddd, D MMMM YYYY') }}
-      </dd>
-
-      <dt>End date</dt>
-      <dd>
-        {{ request.end_date.format('dddd, D MMMM YYYY') }}
-      </dd>
-
-      <hr>
-
-      <dt style="width: inherit;">Submission date and time</dt>
-      <dd>{{ request.submission_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
-
-    </dl>
-
-    <hr>
-
-    <h4>Response</h4>
-
-    <div class="row">
-      <div class="col-xs-12">
-        <div class="form-group">
-          <textarea class="form-control" rows="3" placeholder="Comment (optional)" ng-model="response['comments' + request.id]"></textarea>
+  <div class="modal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="row">
+            <div class="col-md-9">
+              <h4 class="modal-title">
+                <b>{{ request.type.name }} request</b>
+                <br>
+                <small><i>{{ request.intern_name }} <a href="#/interns/{{ request.internship_id }}"><i class="fa fa-info-circle"></i></a></i></small>
+              </h4>
+            </div>
+            <div class="col-md-3">
+              <h3 class="pull-right" style="margin: 0;">
+                <!-- TODO: Properly display start and end dates if months (or years) don't match -->
+                <span class="label label-warning" style="font-weight: 500;">{{ request.start_date.format('D') }} <i class="fa fa-long-arrow-right"></i> {{ request.end_date.format('D MMM YYYY') }}</span>
+              </h3>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+        <div class="modal-body">
+          <dl class="dl-horizontal">
 
-    <div class="row">
-      <div class="col-md-6">
-        <button type="button" class="btn btn-block btn-flat btn-success" ng-if="!flags['approveFlag']" ng-click="flag('approveFlag')">
-          <i class="fa fa-check"></i>
-          Approve
-        </button>
-        <button type="button" class="btn btn-block btn-flat btn-warning" ng-if="flags['approveFlag']" ng-click="respond(request, 1, response['comments' + request.id])">
-          Confirm
-        </button>
-      </div>
+        <dt style="width: inherit;">Submission date and time</dt>
+        <dd>{{ request.submission_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
 
-      <div class="col-md-6">
-        <button type="button" class="btn btn-block btn-flat btn-danger" ng-if="!flags['declineFlag']" ng-click="flag('declineFlag')">
-          <i class="fa fa-remove"></i>
-          Decline
-        </button>
-        <button type="button" class="btn btn-block btn-flat btn-warning" ng-if="flags['declineFlag']" ng-click="respond(request, 0, response['comments' + request.id])">
-          Confirm
-        </button>
-      </div>
-    </div>
+      </dl>
+        </div>
+        <div class="modal-footer response-footer">
+
+          <div class="row">
+            <div class="col-md-9 comment-column">
+              <div class="form-group">
+                <textarea class="form-control" rows="3" placeholder="Comment (optional)" ng-model="response['comments' + request.id]"></textarea>
+              </div>
+            </div>
+
+            <div class="col-md-3 buttons-column">
+
+              <div class="btn-group-vertical">
+                <button type="button" class="btn btn-block btn-success" ng-if="!flags['approveFlag']" ng-click="flag('approveFlag')">
+                  <i class="fa fa-check"></i>
+                  Approve
+                </button>
+                <button type="button" class="btn btn-block btn-warning" ng-if="flags['approveFlag']" ng-click="respond(request, 1, response['comments' + request.id])">
+                  Confirm
+                </button>
+                <button type="button" class="btn btn-block btn-danger" ng-if="!flags['declineFlag']" ng-click="flag('declineFlag')">
+                  <i class="fa fa-remove"></i>
+                  Decline
+                </button>
+                <button type="button" class="btn btn-block btn-warning" ng-if="flags['declineFlag']" ng-click="respond(request, 0, response['comments' + request.id])">
+                  Confirm
+                </button>
+              </div>
+
+            </div>
+          </div>
 
 
-  </div>
-</div>
+        </div>
+      </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+  </div><!-- /.modal -->
+</div><!-- /.example-modal -->
