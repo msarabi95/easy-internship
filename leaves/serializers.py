@@ -86,6 +86,7 @@ class LeaveRequestSerializer2(serializers.ModelSerializer):
     internship_id = serializers.IntegerField(source='intern.profile.intern.internship.id')
     month = MonthField()
     type = LeaveTypeSerializer()
+    setting = LeaveSettingSerializer()
     attachment = serializers.FileField(required=False)
 
     class Meta:

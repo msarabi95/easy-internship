@@ -45,12 +45,20 @@
           </div>
         </div>
         <div class="modal-body">
-          <dl class="dl-horizontal">
 
-        <dt style="width: inherit;">Submission date and time</dt>
-        <dd>{{ request.submission_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
+          <div class="row">
+            <div class="col-md-7">
 
-      </dl>
+            </div>
+            <div class="col-md-5">
+              <canvas id="doughnut" class="chart chart-doughnut"
+                chart-data="data" chart-labels="labels" chart-options="options" chart-colors="['#3c8dbc', '#f39c12', '#f5f5f5']">
+              </canvas>
+            </div>
+          </div>
+
+          <p style="margin-bottom: 0;" class="text-gray"><i><b>Request submitted on:</b> {{ request.submission_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</i></p>
+
         </div>
         <div class="modal-footer response-footer">
 

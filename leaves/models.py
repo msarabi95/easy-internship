@@ -102,6 +102,10 @@ class LeaveRequest(models.Model):
     attachment = models.FileField(upload_to='leave_request_attachments', null=True, blank=True)
     submission_datetime = models.DateTimeField(auto_now_add=True)
 
+    @property
+    def setting(self):
+        return self.intern.leave_settings.get(type=self.type)  # FIXME: optimize viewset queryset for performance
+
     objects = LeaveRequestQuerySet.as_manager()
 
     def respond(self, is_approved, comments=""):
