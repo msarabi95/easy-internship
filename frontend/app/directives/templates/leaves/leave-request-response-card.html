@@ -22,6 +22,19 @@
     .response-footer .buttons-column .btn-group-vertical {
       width: 100%;
     }
+
+    .doughnut-column {
+      border-left: 1px dotted lightgray;
+    }
+
+    .details-column {
+      position: relative;
+    }
+
+    .request-datetime {
+      position: absolute;
+      bottom: 0;
+    }
   </style>
 
   <div class="modal">
@@ -46,18 +59,48 @@
         </div>
         <div class="modal-body">
 
-          <div class="row">
-            <div class="col-md-7">
+          <div class="row" style="display: flex;">
+            <div class="col-md-8 details-column">
+
+              <!-- Modified from original at: http://freefrontend.com/css-timelines/#horizontal-timelines -->
+              <link rel="stylesheet" href="/static/styles/horizontal-timeline.css">
+
+              <ul class="horizontal-timeline" id="timeline">
+                <li class="li complete">
+                  <div class="timestamp">
+                    <span class="date">{{ request.start_date.format('D MMM YYYY') }}</span>
+                  </div>
+                  <div class="status">
+                    <h5> Start date </h5>
+                  </div>
+                </li>
+                <li class="li complete">
+                  <div class="timestamp">
+                    <span class="date">{{ request.end_date.format('D MMM YYYY') }}</span>
+                  </div>
+                  <div class="status">
+                    <h5> End date </h5>
+                  </div>
+                </li>
+                <li class="li">
+                  <div class="timestamp">
+                    <span class="date">{{ request.return_date.format('D MMM YYYY') }}</span>
+                  </div>
+                  <div class="status">
+                    <h5> Actual return </h5>
+                  </div>
+                </li>
+               </ul>
+
+              <p class="request-datetime text-gray"><i><b>Request submitted on:</b> {{ request.submission_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</i></p>
 
             </div>
-            <div class="col-md-5">
+            <div class="col-md-4 doughnut-column">
               <canvas id="doughnut" class="chart chart-doughnut"
                 chart-data="data" chart-labels="labels" chart-options="options" chart-colors="['#3c8dbc', '#f39c12', '#f5f5f5']">
               </canvas>
             </div>
           </div>
-
-          <p style="margin-bottom: 0;" class="text-gray"><i><b>Request submitted on:</b> {{ request.submission_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</i></p>
 
         </div>
         <div class="modal-footer response-footer">

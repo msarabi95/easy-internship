@@ -10,7 +10,7 @@ angular.module("ei.leaves.directives", ["ei.leaves.models", "chart.js"])
             request: "=leaveRequest",
             moveToPastRequests: "&onResponse"
         },
-        templateUrl: "/static/app/directives/templates/leaves/leave-request-response-card.html?rel=1504978182705",
+        templateUrl: "/static/app/directives/templates/leaves/leave-request-response-card.html?rel=1505014661159",
         link: function (scope, element, attrs) {
 
             scope.response = {};
@@ -24,11 +24,11 @@ angular.module("ei.leaves.directives", ["ei.leaves.models", "chart.js"])
             scope.options = {
                 title: {display: true, text: scope.request.intern_name.split(" ")[0] + "'s " + scope.request.type.name + "s"},
                 legend: {display: true, position: 'bottom', labels: {
-                    boxWidth: 10,
-                    fontSize: 10
+                    boxWidth: 8,
+                    fontSize: 8
                 }},
                 layout: {padding: 0},
-                cutoutPercentage: 60
+                cutoutPercentage: 65
             };
 
             scope.flag = function (flagName) {
