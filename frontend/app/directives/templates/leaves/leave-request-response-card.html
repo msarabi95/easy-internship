@@ -1,6 +1,7 @@
 <div class="example-modal">
 
-  <style>
+  <link rel="stylesheet" href="/static/styles/horizontal-timeline.css">
+  <style type="text/css">
     @media (min-width: 992px) {
       .response-footer .comment-column {
         padding-right: 5px;
@@ -63,8 +64,6 @@
             <div class="col-md-8 details-column">
 
               <!-- Modified from original at: http://freefrontend.com/css-timelines/#horizontal-timelines -->
-              <link rel="stylesheet" href="/static/styles/horizontal-timeline.css">
-
               <ul class="horizontal-timeline" id="timeline">
                 <li class="li complete">
                   <div class="timestamp">
@@ -90,9 +89,15 @@
                     <h5> Actual return </h5>
                   </div>
                 </li>
-               </ul>
+              </ul>
 
-              <p class="request-datetime text-gray"><i><b>Request submitted on:</b> {{ request.submission_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</i></p>
+              <hr>
+
+              <p class="text-center">
+                <button class="btn btn-xs btn-default" uib-tooltip="Leave duration"><i class="fa fa-calendar" aria-hidden="true"></i> {{ request.duration }} <ng-pluralize count="request.duration" when="{1: 'day', 'other': 'days'}"></ng-pluralize></button>
+                <a class="btn btn-xs btn-primary" uib-tooltip="Download attachment" href="{{ request.attachment }}" target="_blank" ng-if="request.attachment"><i class="fa fa-cloud-download" aria-hidden="true"></i> Attachment</a>
+                <button class="btn btn-xs btn-default" uib-tooltip="Request submitted on"><i class="fa fa-clock-o"></i> {{ request.submission_datetime.format('D MMMM YYYY, hh:mm a') }}</button>
+              </p>
 
             </div>
             <div class="col-md-4 doughnut-column">

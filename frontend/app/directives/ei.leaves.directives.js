@@ -10,7 +10,7 @@ angular.module("ei.leaves.directives", ["ei.leaves.models", "chart.js"])
             request: "=leaveRequest",
             moveToPastRequests: "&onResponse"
         },
-        templateUrl: "/static/app/directives/templates/leaves/leave-request-response-card.html?rel=1505014661159",
+        templateUrl: "/static/app/directives/templates/leaves/leave-request-response-card.html?rel=1506114197759",
         link: function (scope, element, attrs) {
 
             scope.response = {};
@@ -55,4 +55,4 @@ angular.module("ei.leaves.directives", ["ei.leaves.models", "chart.js"])
 
         }
     }
-}])
+}]);

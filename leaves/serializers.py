@@ -88,6 +88,7 @@ class LeaveRequestSerializer2(serializers.ModelSerializer):
     type = LeaveTypeSerializer()
     setting = LeaveSettingSerializer()
     attachment = serializers.FileField(required=False)
+    duration = serializers.IntegerField()
 
     class Meta:
         model = LeaveRequest

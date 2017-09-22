@@ -106,6 +106,13 @@ class LeaveRequest(models.Model):
     def setting(self):
         return self.intern.leave_settings.get(type=self.type)  # FIXME: optimize viewset queryset for performance
 
+    @property
+    def duration(self):
+        """
+        Leave duration in days
+        """
+        return (self.end_date - self.start_date).days + 1
+
     objects = LeaveRequestQuerySet.as_manager()
 
     def respond(self, is_approved, comments=""):
