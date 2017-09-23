@@ -56,16 +56,29 @@ angular.module("ei.months.models", ["ngResource", "ei.interceptors"])
                     for (var j = 0; j < internship.months.length; j++) {
                         var month = internship.months[j];
 
-                        for (var k = 0; k < month.current_leave_requests.length; k++) {
-                            var currentLeaveRequest = month.current_leave_requests[k];
+                        for (var k = 0; k < month.current_leaves.length; k++) {
+                            var currentLeave = month.current_leaves[k];
 
                             // Convert start and end dates into moment
-                            currentLeaveRequest.start_date = moment(transformed.start_date);
-                            currentLeaveRequest.end_date = moment(transformed.end_date);
-                            currentLeaveRequest.return_date = moment(transformed.return_date);
+                            currentLeave.start_date = moment(currentLeave.start_date);
+                            currentLeave.end_date = moment(currentLeave.end_date);
+                            currentLeave.return_date = moment(currentLeave.return_date);
 
                             // Convert submission datetime into moment
-                            currentLeaveRequest.submission_datetime = moment(transformed.submission_datetime);
+                            currentLeave.request.submission_datetime = moment(currentLeave.request.submission_datetime);
+                            currentLeave.request.response.response_datetime = moment(currentLeave.request.response.response_datetime);
+                        }
+
+                        for (var l = 0; l < month.current_leave_requests.length; l++) {
+                            var currentLeaveRequest = month.current_leave_requests[l];
+
+                            // Convert start and end dates into moment
+                            currentLeaveRequest.start_date = moment(currentLeaveRequest.start_date);
+                            currentLeaveRequest.end_date = moment(currentLeaveRequest.end_date);
+                            currentLeaveRequest.return_date = moment(currentLeaveRequest.return_date);
+
+                            // Convert submission datetime into moment
+                            currentLeaveRequest.submission_datetime = moment(currentLeaveRequest.submission_datetime);
                         }
                     }
                 }

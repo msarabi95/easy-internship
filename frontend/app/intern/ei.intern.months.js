@@ -13,7 +13,7 @@ angular.module("ei.months", ["ei.hospitals.models", "ei.months.models", "ei.rota
             controller: "MonthListCtrl"
         })
         .when("/planner/:month_id/", {
-            templateUrl: "static/partials/intern/months/month-detail.html?rel=1506162894757",
+            templateUrl: "static/partials/intern/months/month-detail.html?rel=1506164909645",
             controller: "MonthDetailCtrl"
         })
         .when("/planner/:month_id/request-freeze/", {
