@@ -2,12 +2,35 @@ from accounts.models import Profile, Intern, Batch
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
+from leaves.serializers import LeaveSerializer, LeaveSettingSerializer, LeaveRequestSerializer
+
 
 class UserSerializer(serializers.ModelSerializer):
+    leave_settings = LeaveSettingSerializer(many=True)
+    leaves = LeaveSerializer(many=True)
+    open_leave_requests = serializers.SerializerMethodField()
+    closed_leave_requests = serializers.SerializerMethodField()
+    cancelled_leaves = serializers.SerializerMethodField()
+
+    def get_open_leave_requests(self, user):
+        leave_requests = user.leave_requests.open()
+        serialized = LeaveRequestSerializer(leave_requests, many=True)
+        return serialized.data
+
+    def get_closed_leave_requests(self, user):
+        leave_requests = user.leave_requests.closed()
+        serialized = LeaveRequestSerializer(leave_requests, many=True)
+        return serialized.data
+
+    def get_cancelled_leaves(self, user):
+        cancelled_leaves = user.leave_requests.cancelled()
+        serialized = LeaveRequestSerializer(cancelled_leaves, many=True)
+        return serialized.data
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email')
+        fields = ('id', 'username', 'email', 'leave_settings',
+                  'leaves', 'open_leave_requests', 'closed_leave_requests', 'cancelled_leaves',)
 
 
 class ProfileSerializer(serializers.ModelSerializer):

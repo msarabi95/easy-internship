@@ -84,6 +84,12 @@ class LeaveRequestQuerySet(models.QuerySet):
         """
         return self.filter(response__isnull=False)
 
+    def cancelled(self):
+        """
+        Return leave requests that have been approved then cancelled
+        """
+        return self.filter(cancel_requests__response__is_approved=True)
+
     def current_for_month(self, month):
         """
         Return the current open requests for a specific month.

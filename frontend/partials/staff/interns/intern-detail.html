@@ -145,6 +145,47 @@
               </div>
             </div>
 
+            <hr>
+
+            <h4 class="text-bold">Leaves</h4>
+
+            <div>
+              <h5 class="text-bold text-primary">Leave balance</h5>
+
+              <div ng-repeat="setting in internship.intern.profile.user.leave_settings">
+                <h6 class="text-bold">{{ setting.type.name }}</h6>
+                <uib-progress max="setting.max_days" style="width: 100%;">
+                  <uib-bar value="setting.confirmed_days" uib-tooltip="Confirmed" type="primary" ng-hide="setting.confirmed_days < 1">{{ setting.confirmed_days }} days</uib-bar>
+                  <uib-bar value="setting.pending_days" uib-tooltip="Pending" type="warning" ng-hide="setting.pending_days < 1">{{ setting.pending_days }} days</uib-bar>
+                  <uib-bar value="setting.remaining_days" uib-tooltip="Remaining" type="primary" style="background-color: inherit; color: inherit;" ng-hide="setting.remaining_days < 1">{{ setting.remaining_days }} days</uib-bar>
+                </uib-progress>
+              </div>
+
+              <h5 class="text-bold">Active leaves</h5>
+
+              <ul>
+                <li ng-repeat="leave in internship.intern.profile.user.leaves"><span class="text-primary">{{ leave.type.name }}</span> from {{ leave.start_date }} to {{ leave.end_date }}</li>
+              </ul>
+
+              <h5 class="text-bold">Open leave requests</h5>
+
+              <ul>
+                <li ng-repeat="leave_request in internship.intern.profile.user.open_leave_requests"><span class="text-yellow">{{ leave_request.type.name }}</span> from {{ leave_request.start_date }} to {{ leave_request.end_date }}</li>
+              </ul>
+
+              <h5 class="text-bold">Cancelled leaves</h5>
+
+              <ul>
+                <li ng-repeat="leave_request in internship.intern.profile.user.cancelled_leaves"><span class="text-yellow">{{ leave_request.type.name }}</span> from {{ leave_request.start_date }} to {{ leave_request.end_date }}</li>
+              </ul>
+
+              <h5 class="text-bold">Previous leave requests</h5>
+
+              <ul>
+                <li ng-repeat="leave_request in internship.intern.profile.user.closed_leave_requests"><span class="">{{ leave_request.type.name }}</span> from {{ leave_request.start_date }} to {{ leave_request.end_date }}</li>
+              </ul>
+            </div>
+
 
             <hr>
 
