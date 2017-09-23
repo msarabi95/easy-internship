@@ -10,8 +10,8 @@
             xpopover-append-to-body="true"
             xclass="badge"
             xng-class="{'bg-yellow': month.current_leave_requests.length > 0, 'bg-light-blue': month.current_leave_requests.length == 0}">
-        <i class="fa fa-plane"
-           ng-class="{'text-yellow': month.current_leave_requests.length > 0, 'text-light-blue': month.current_leave_requests.length == 0}"></i>
+        <i class="fa fa-plane text-yellow" ng-if="month.has_leave_requests"></i>
+        <i class="fa fa-plane text-primary" ng-if="month.has_leaves"></i>
       </span>
       <!-- See bottom of this file for templates -->
     </div>

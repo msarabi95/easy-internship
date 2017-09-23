@@ -29,6 +29,7 @@ angular.module("ei.leaves.models", ["ngResource", "ei.interceptors"])
                     // Convert start and end dates into moment
                     transformed[i].start_date = moment(transformed[i].start_date);
                     transformed[i].end_date = moment(transformed[i].end_date);
+                    transformed[i].return_date = moment(transformed[i].return_date);
 
                     // Convert submission datetime into moment
                     transformed[i].submission_datetime = moment(transformed[i].submission_datetime);
@@ -51,6 +52,7 @@ angular.module("ei.leaves.models", ["ngResource", "ei.interceptors"])
                 // Convert start and end dates into moment
                 transformed.start_date = moment(transformed.start_date);
                 transformed.end_date = moment(transformed.end_date);
+                transformed.return_date = moment(transformed.return_date);
 
                 // Convert submission datetime into moment
                 transformed.submission_datetime = moment(transformed.submission_datetime);
@@ -65,6 +67,7 @@ angular.module("ei.leaves.models", ["ngResource", "ei.interceptors"])
 
                 data.start_date = data.start_date.toDate();
                 data.end_date = data.end_date.toDate();
+                data.return_date = data.return_date.toDate();
 
                 return angular.toJson(data);
             }]

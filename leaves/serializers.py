@@ -24,11 +24,20 @@ class LeaveSettingSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class LeaveRequestResponseSerializer(serializers.ModelSerializer):
+    comments = serializers.CharField(required=False)
+
+    class Meta:
+        model = LeaveRequestResponse
+        fields = '__all__'
+
+
 class LeaveRequestSerializer(serializers.ModelSerializer):
     month = MonthField()
+    type = LeaveTypeSerializer()
     attachment = serializers.FileField(required=False)
     cancel_requests = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
-    response = serializers.PrimaryKeyRelatedField(read_only=True)
+    response = LeaveRequestResponseSerializer(read_only=True)
 
     def validate(self, data):
         """
@@ -86,23 +95,19 @@ class LeaveRequestSerializer2(serializers.ModelSerializer):
     internship_id = serializers.IntegerField(source='intern.profile.intern.internship.id')
     month = MonthField()
     type = LeaveTypeSerializer()
+    setting = LeaveSettingSerializer()
     attachment = serializers.FileField(required=False)
+    duration = serializers.IntegerField()
 
     class Meta:
         model = LeaveRequest
         fields = '__all__'
 
 
-class LeaveRequestResponseSerializer(serializers.ModelSerializer):
-    comments = serializers.CharField(required=False)
-
-    class Meta:
-        model = LeaveRequestResponse
-        fields = '__all__'
-
-
 class LeaveSerializer(serializers.ModelSerializer):
     month = MonthField()
+    type = LeaveTypeSerializer()
+    request = LeaveRequestSerializer()
 
     class Meta:
         model = Leave

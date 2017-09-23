@@ -37,15 +37,19 @@ class InternshipMonth(object):
         self.leave_request_history = self._closed(self._month(self.intern.leave_requests.all()))
         self.leave_cancel_request_history = self._closed(self._month(self.intern.leave_cancel_requests.all()))
 
+        self.occupied = self.current_rotation is not None
+        self.disabled = self._is_disabled()
+        self.frozen = self.current_freeze is not None
+        self.empty = not (self.occupied or self.disabled or self.frozen)
+
         self.has_rotation_request = self.current_rotation_request is not None
         self.has_rotation_cancel_request = self.current_rotation_cancel_request is not None
         self.has_freeze_request = self.current_freeze_request is not None
         self.has_freeze_cancel_request = self.current_freeze_cancel_request is not None
 
-        self.occupied = self.current_rotation is not None
-        self.disabled = self._is_disabled()
-        self.frozen = self.current_freeze is not None
-        self.empty = not (self.occupied or self.disabled or self.frozen)
+        self.has_leaves = bool(self.current_leaves)
+        self.has_leave_requests = bool(self.current_leave_requests)
+        self.has_leave_cancel_requests = bool(self.current_leave_cancel_requests)
 
     def _current_for_month(self, items, allow_many=False):
         """

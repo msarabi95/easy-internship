@@ -84,6 +84,12 @@ class LeaveRequestQuerySet(models.QuerySet):
         """
         return self.filter(response__isnull=False)
 
+    def cancelled(self):
+        """
+        Return leave requests that have been approved then cancelled
+        """
+        return self.filter(cancel_requests__response__is_approved=True)
+
     def current_for_month(self, month):
         """
         Return the current open requests for a specific month.
@@ -101,6 +107,17 @@ class LeaveRequest(models.Model):
     return_date = models.DateField()
     attachment = models.FileField(upload_to='leave_request_attachments', null=True, blank=True)
     submission_datetime = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def setting(self):
+        return self.intern.leave_settings.get(type=self.type)  # FIXME: optimize viewset queryset for performance
+
+    @property
+    def duration(self):
+        """
+        Leave duration in days
+        """
+        return (self.end_date - self.start_date).days + 1
 
     objects = LeaveRequestQuerySet.as_manager()
 

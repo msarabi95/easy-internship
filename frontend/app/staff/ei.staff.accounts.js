@@ -17,7 +17,7 @@ angular.module("ei.staff.accounts", ["ei.months.models", "ei.accounts.models",
             controller: "PlansSummaryCtrl"
         })
         .when("/interns/:id/", {
-            templateUrl: "static/partials/staff/interns/intern-detail.html?v=0007",
+            templateUrl: "static/partials/staff/interns/intern-detail.html?rel=1506173489731",
             controller: "InternDetailCtrl"
         });
 }])

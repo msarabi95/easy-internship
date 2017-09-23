@@ -1,82 +1,147 @@
-<div class="box box-solid box-info">
-  <div class="box-header">
-    <h5 class="box-title">Request #{{ request.id }}</h5>
-  </div>
-  <div class="box-body">
+<div class="example-modal">
 
-    <dl class="dl-horizontal">
+  <link rel="stylesheet" href="/static/styles/horizontal-timeline.css">
+  <style type="text/css">
+    @media (min-width: 992px) {
+      .response-footer .comment-column {
+        padding-right: 5px;
+      }
 
-      <dt>Intern</dt>
-      <dd>
-        {{ request.intern_name }}
-      </dd>
+      .response-footer .comment-column .form-group {
+        margin-bottom: 0;
+      }
 
-      <dt></dt>
-      <dd>
-        <a class="btn btn-xs btn-primary" href="#/interns/{{ request.internship_id }}"><i class="fa fa-info-circle"></i> View full details</a>
-      </dd>
+      .response-footer .comment-column textarea {
+        height: 65px;
+      }
 
-      <hr>
+      .response-footer .buttons-column {
+        padding-left: 5px;
+      }
+    }
 
-      <dt>Leave type</dt>
-      <dd>
-        {{ request.type.name }}
-      </dd>
+    .response-footer .buttons-column .btn-group-vertical {
+      width: 100%;
+    }
 
-      <dt>Month</dt>
-      <dd>{{ request.month.format('MMMM YYYY') }}</dd>
+    .doughnut-column {
+      border-left: 1px dotted lightgray;
+    }
 
-      <dt>Start date</dt>
-      <dd>
-        {{ request.start_date.format('dddd, D MMMM YYYY') }}
-      </dd>
+    .details-column {
+      position: relative;
+    }
 
-      <dt>End date</dt>
-      <dd>
-        {{ request.end_date.format('dddd, D MMMM YYYY') }}
-      </dd>
+    .request-datetime {
+      position: absolute;
+      bottom: 0;
+    }
+  </style>
 
-      <hr>
-
-      <dt style="width: inherit;">Submission date and time</dt>
-      <dd>{{ request.submission_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
-
-    </dl>
-
-    <hr>
-
-    <h4>Response</h4>
-
-    <div class="row">
-      <div class="col-xs-12">
-        <div class="form-group">
-          <textarea class="form-control" rows="3" placeholder="Comment (optional)" ng-model="response['comments' + request.id]"></textarea>
+  <div class="modal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="row">
+            <div class="col-md-9">
+              <h4 class="modal-title">
+                <b>{{ request.type.name }} request</b>
+                <br>
+                <small><i>{{ request.intern_name }} <a href="#/interns/{{ request.internship_id }}"><i class="fa fa-info-circle"></i></a></i></small>
+              </h4>
+            </div>
+            <div class="col-md-3">
+              <h3 class="pull-right" style="margin: 0;">
+                <!-- TODO: Properly display start and end dates if months (or years) don't match -->
+                <span class="label label-warning" style="font-weight: 500;">{{ request.start_date.format('D') }} <i class="fa fa-long-arrow-right"></i> {{ request.end_date.format('D MMM YYYY') }}</span>
+              </h3>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+        <div class="modal-body">
 
-    <div class="row">
-      <div class="col-md-6">
-        <button type="button" class="btn btn-block btn-flat btn-success" ng-if="!flags['approveFlag']" ng-click="flag('approveFlag')">
-          <i class="fa fa-check"></i>
-          Approve
-        </button>
-        <button type="button" class="btn btn-block btn-flat btn-warning" ng-if="flags['approveFlag']" ng-click="respond(request, 1, response['comments' + request.id])">
-          Confirm
-        </button>
-      </div>
+          <div class="row" style="display: flex;">
+            <div class="col-md-8 details-column">
 
-      <div class="col-md-6">
-        <button type="button" class="btn btn-block btn-flat btn-danger" ng-if="!flags['declineFlag']" ng-click="flag('declineFlag')">
-          <i class="fa fa-remove"></i>
-          Decline
-        </button>
-        <button type="button" class="btn btn-block btn-flat btn-warning" ng-if="flags['declineFlag']" ng-click="respond(request, 0, response['comments' + request.id])">
-          Confirm
-        </button>
-      </div>
-    </div>
+              <!-- Modified from original at: http://freefrontend.com/css-timelines/#horizontal-timelines -->
+              <ul class="horizontal-timeline" id="timeline">
+                <li class="li complete">
+                  <div class="timestamp">
+                    <span class="date">{{ request.start_date.format('D MMM YYYY') }}</span>
+                  </div>
+                  <div class="status">
+                    <h5> Start date </h5>
+                  </div>
+                </li>
+                <li class="li complete">
+                  <div class="timestamp">
+                    <span class="date">{{ request.end_date.format('D MMM YYYY') }}</span>
+                  </div>
+                  <div class="status">
+                    <h5> End date </h5>
+                  </div>
+                </li>
+                <li class="li">
+                  <div class="timestamp">
+                    <span class="date">{{ request.return_date.format('D MMM YYYY') }}</span>
+                  </div>
+                  <div class="status">
+                    <h5> Actual return </h5>
+                  </div>
+                </li>
+              </ul>
+
+              <hr>
+
+              <p class="text-center">
+                <button class="btn btn-xs btn-default" uib-tooltip="Leave duration"><i class="fa fa-calendar" aria-hidden="true"></i> {{ request.duration }} <ng-pluralize count="request.duration" when="{1: 'day', 'other': 'days'}"></ng-pluralize></button>
+                <a class="btn btn-xs btn-primary" uib-tooltip="Download attachment" href="{{ request.attachment }}" target="_blank" ng-if="request.attachment"><i class="fa fa-cloud-download" aria-hidden="true"></i> Attachment</a>
+                <button class="btn btn-xs btn-default" uib-tooltip="Request submitted on"><i class="fa fa-clock-o"></i> {{ request.submission_datetime.format('D MMMM YYYY, hh:mm a') }}</button>
+              </p>
+
+            </div>
+            <div class="col-md-4 doughnut-column">
+              <canvas id="doughnut" class="chart chart-doughnut"
+                chart-data="data" chart-labels="labels" chart-options="options" chart-colors="['#3c8dbc', '#f39c12', '#f5f5f5']">
+              </canvas>
+            </div>
+          </div>
+
+        </div>
+        <div class="modal-footer response-footer">
+
+          <div class="row">
+            <div class="col-md-9 comment-column">
+              <div class="form-group">
+                <textarea class="form-control" rows="3" placeholder="Comment (optional)" ng-model="response['comments' + request.id]"></textarea>
+              </div>
+            </div>
+
+            <div class="col-md-3 buttons-column">
+
+              <div class="btn-group-vertical">
+                <button type="button" class="btn btn-block btn-success" ng-if="!flags['approveFlag']" ng-click="flag('approveFlag')">
+                  <i class="fa fa-check"></i>
+                  Approve
+                </button>
+                <button type="button" class="btn btn-block btn-warning" ng-if="flags['approveFlag']" ng-click="respond(request, 1, response['comments' + request.id])">
+                  Confirm
+                </button>
+                <button type="button" class="btn btn-block btn-danger" ng-if="!flags['declineFlag']" ng-click="flag('declineFlag')">
+                  <i class="fa fa-remove"></i>
+                  Decline
+                </button>
+                <button type="button" class="btn btn-block btn-warning" ng-if="flags['declineFlag']" ng-click="respond(request, 0, response['comments' + request.id])">
+                  Confirm
+                </button>
+              </div>
+
+            </div>
+          </div>
 
 
-  </div>
-</div>
+        </div>
+      </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+  </div><!-- /.modal -->
+</div><!-- /.example-modal -->
