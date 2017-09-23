@@ -219,7 +219,7 @@
           </div>
 
           <!-- Leaves -->
-          <!--<div ng-if="month.current_leaves.length > 0 || month.current_leave_requests.length > 0">
+          <div ng-if="month.has_leaves || month.has_leave_requests">
             <hr>
             <h4 class="text-bold">Details of your leaves</h4>
 
@@ -233,16 +233,16 @@
                     <dd class="text-light-blue text-bold">{{ leave.type.name }}</dd>
 
                     <dt>Start date</dt>
-                    <dd>{{ moment(leave.start_date).format('Do of MMMM') }}</dd>
+                    <dd>{{ leave.start_date.format('Do of MMMM') }}</dd>
 
                     <dt>End date</dt>
-                    <dd>{{ moment(leave.end_date).format('Do of MMMM') }}</dd>
+                    <dd>{{ leave.end_date.format('Do of MMMM') }}</dd>
 
                     <dt>Request date and time</dt>
-                    <dd>{{ moment(leave.request.submission_datetime).format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
+                    <dd>{{ leave.request.submission_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
 
                     <dt>Approval date and time</dt>
-                    <dd>{{ moment(leave.request.response.response_datetime).format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
+                    <dd>{{ leave.request.response.response_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
                   </dl>
                   <a class="btn btn-xs btn-flat btn-danger pull-right" href="#/planner/{{ month.month }}/leaves/{{ leave.id }}/cancel/">Cancel this leave</a>
                 </div>
@@ -258,17 +258,17 @@
                     <dd class="text-yellow text-bold">{{ leave_request.type.name }}</dd>
 
                     <dt>Start date</dt>
-                    <dd>{{ moment(leave_request.start_date).format('Do of MMMM') }}</dd>
+                    <dd>{{ leave_request.start_date.format('Do of MMMM') }}</dd>
 
                     <dt>End date</dt>
-                    <dd>{{ moment(leave_request.end_date).format('Do of MMMM') }}</dd>
+                    <dd>{{ leave_request.end_date.format('Do of MMMM') }}</dd>
 
                     <dt>Request date and time</dt>
-                    <dd>{{ moment(leave_request.submission_datetime).format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
+                    <dd>{{ leave_request.submission_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
                   </dl>
                 </div>
               </div>
-            </div>-->
+            </div>
 
         </div><!-- /.modal-body -->
 

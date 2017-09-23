@@ -100,6 +100,10 @@ class InternshipMonthSerializer(serializers.Serializer):
     has_freeze_request = serializers.BooleanField(read_only=True)
     has_freeze_cancel_request = serializers.BooleanField(read_only=True)
 
+    has_leaves = serializers.BooleanField(read_only=True)
+    has_leave_requests = serializers.BooleanField(read_only=True)
+    has_leave_cancel_requests = serializers.BooleanField(read_only=True)
+
     def create(self, validated_data):
         pass
 
