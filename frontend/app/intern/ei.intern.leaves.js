@@ -148,18 +148,33 @@ angular.module("ei.leaves", ["ngRoute", "ngFileUpload", "ui.select", "ei.utils",
 
 }])
 
-.controller("LeaveRequestCancelCtrl", ["$scope", "$routeParams", "loadWithRelated", "InternshipMonth", "Leave", "LeaveType",
-    function ($scope, $routeParams, loadWithRelated, InternshipMonth, Leave, LeaveType) {
+.controller("LeaveRequestCancelCtrl", ["$scope", "$routeParams", "$location", "InternshipMonth", "Leave", "LeaveCancelRequest",
+    function ($scope, $routeParams, $location, InternshipMonth, Leave, LeaveCancelRequest) {
         $scope.month = InternshipMonth.get({month_id: $routeParams.month_id});
-        $scope.leave = loadWithRelated($routeParams.leave_id, Leave, [{type: LeaveType}]);
+        $scope.leave = Leave.get({id: $routeParams.leave_id});
 
         $scope.submit = function () {
 
-            //$scope.month.$cancel_rotation({}, function (data) {
-            //    $location.path("/planner");
-            //}, function (error) {
-            //    toastr.error(error.statusText);
-            //});
+            var leaveCancelRequest = new LeaveCancelRequest({
+                intern: $scope.month.intern,
+                month: $scope.month.month,
+                leave_request: $scope.leave.request.id
+            });
+            leaveCancelRequest.$save(function() {
+                $location.path("/planner");
+            }, function(error) {
+                try {
+                    // We expect some validation errors
+                    for (var i = 0; i < error.data.non_field_errors.length; i++) {
+                        toastr.warning(error.data.non_field_errors[i]);
+                    }
+                } catch (e) {
+                    // If we can't find the validation messages, then probably the error is something else.
+                    // Just display the status text
+                    toastr.error(error.statusText);
+                }
+
+            });
 
         };
 }]);

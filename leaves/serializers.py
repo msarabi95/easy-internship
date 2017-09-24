@@ -117,6 +117,17 @@ class LeaveSerializer(serializers.ModelSerializer):
 class LeaveCancelRequestSerializer(serializers.ModelSerializer):
     month = MonthField()
 
+    def validate(self, data):
+        """
+        Check that no other open request already exists for the same leave.
+        """
+        leave_request = data['leave_request']
+
+        if leave_request.cancel_requests.open().exists():
+            raise serializers.ValidationError("An open cancellation request already exists for this leave.")
+
+        return data
+
     class Meta:
         model = LeaveCancelRequest
         fields = '__all__'

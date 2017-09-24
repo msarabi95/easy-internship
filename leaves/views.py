@@ -82,7 +82,7 @@ class LeaveViewSet(viewsets.ReadOnlyModelViewSet):
         return self.queryset.filter(intern=self.request.user)
 
 
-class LeaveCancelRequestViewSet(viewsets.ReadOnlyModelViewSet):
+class LeaveCancelRequestViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin):
     serializer_class = LeaveCancelRequestSerializer
     queryset = LeaveCancelRequest.objects.all()
     permission_classes = [permissions.IsAuthenticated]
@@ -91,6 +91,25 @@ class LeaveCancelRequestViewSet(viewsets.ReadOnlyModelViewSet):
         if self.request.user.has_perm("leaves.leave_cancel_request.view_all"):
             return self.queryset.all()
         return self.queryset.filter(intern=self.request.user)
+
+    def perform_create(self, serializer):
+        leave_request = serializer.save()
+        self.notify_and_message(self.request, leave_request)
+
+    def notify_and_message(self, request, leave_request):
+        # Subscribe user to receive update notifications on the request
+        subscribe(request.user.settings_set.first(), "leave_cancel_request_approved", object_id=leave_request.id)
+        subscribe(request.user.settings_set.first(), "leave_cancel_request_declined", object_id=leave_request.id)
+
+        # Notify medical internship unit of the request
+        notify(
+            "A new leave cancellation request has been submitted by %s" % (request.user.profile.get_en_full_name()),
+            "leave_cancel_request_submitted",
+            url="/interns/%d/" % leave_request.intern.profile.intern.internship.id,
+        )  # FIXME: avoid sending a lot of simultaneous notifications
+
+        # Display success message to user
+        messages.success(request._request, "Your request has been submitted successfully.")
 
 
 class LeaveCancelRequestResponseViewSet(viewsets.ReadOnlyModelViewSet):
