@@ -2,7 +2,8 @@ from accounts.models import Profile, Intern, Batch
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from leaves.serializers import LeaveSerializer, LeaveSettingSerializer, LeaveRequestSerializer
+from leaves.serializers import LeaveSerializer, LeaveSettingSerializer, LeaveRequestSerializer, \
+    LeaveCancelRequestSerializer
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -10,7 +11,8 @@ class UserSerializer(serializers.ModelSerializer):
     leaves = LeaveSerializer(many=True)
     open_leave_requests = serializers.SerializerMethodField()
     closed_leave_requests = serializers.SerializerMethodField()
-    cancelled_leaves = serializers.SerializerMethodField()
+    open_leave_cancel_requests = serializers.SerializerMethodField()
+    closed_leave_cancel_requests = serializers.SerializerMethodField()
 
     def get_open_leave_requests(self, user):
         leave_requests = user.leave_requests.open()
@@ -22,15 +24,21 @@ class UserSerializer(serializers.ModelSerializer):
         serialized = LeaveRequestSerializer(leave_requests, many=True)
         return serialized.data
 
-    def get_cancelled_leaves(self, user):
-        cancelled_leaves = user.leave_requests.cancelled()
-        serialized = LeaveRequestSerializer(cancelled_leaves, many=True)
+    def get_open_leave_cancel_requests(self, user):
+        cancel_requests = user.leave_cancel_requests.open()
+        serialized = LeaveCancelRequestSerializer(cancel_requests, many=True)
+        return serialized.data
+
+    def get_closed_leave_cancel_requests(self, user):
+        cancel_requests = user.leave_cancel_requests.closed()
+        serialized = LeaveCancelRequestSerializer(cancel_requests, many=True)
         return serialized.data
 
     class Meta:
         model = User
         fields = ('id', 'username', 'email', 'leave_settings',
-                  'leaves', 'open_leave_requests', 'closed_leave_requests', 'cancelled_leaves',)
+                  'leaves', 'open_leave_requests', 'closed_leave_requests',
+                  'open_leave_cancel_requests', 'closed_leave_cancel_requests',)
 
 
 class ProfileSerializer(serializers.ModelSerializer):

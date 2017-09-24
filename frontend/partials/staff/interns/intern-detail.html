@@ -469,29 +469,113 @@
 
             <div>
 
-              <h5 class="text-bold">Active leaves</h5>
+              <h5 class="text-bold">Approved leaves</h5>
 
-              <ul>
-                <li ng-repeat="leave in internship.intern.profile.user.leaves"><span class="text-primary">{{ leave.type.name }}</span> from {{ leave.start_date }} to {{ leave.end_date }}</li>
+              <ul ng-if="internship.intern.profile.user.leaves.length > 0">
+                <li ng-repeat="leave in internship.intern.profile.user.leaves">
+                  <span class="text-primary text-bold">{{ leave.type.name }}</span>
+                  from
+                  <span class="text-bold">{{ leave.start_date.format('D MMMM YYYY') }}</span>
+                  to
+                  <span class="text-bold">{{ leave.end_date.format('D MMMM YYYY') }}</span>
+                  <br>
+                  (<i><u>Submitted:</u> {{ leave.request.submission_datetime.format('D MMMM YYYY, hh:mm a') }}</i>, <i><u>Approved:</u> {{ leave.request.response.response_datetime.format('D MMMM YYYY, hh:mm a') }}</i>)
+                </li>
               </ul>
+
+              <p ng-if="internship.intern.profile.user.leaves.length == 0">
+                {{ internship.intern.profile.en_first_name }} does not have any approved leaves.
+              </p>
 
               <h5 class="text-bold">Open leave requests</h5>
 
-              <ul>
-                <li ng-repeat="leave_request in internship.intern.profile.user.open_leave_requests"><span class="text-yellow">{{ leave_request.type.name }}</span> from {{ leave_request.start_date }} to {{ leave_request.end_date }}</li>
+              <ul ng-if="internship.intern.profile.user.open_leave_requests.length > 0">
+                <li ng-repeat="leave_request in internship.intern.profile.user.open_leave_requests">
+                  <span class="text-yellow text-bold">
+                    {{ leave_request.type.name }}
+                  </span>
+                  from
+                  <span class="text-bold">{{ leave_request.start_date.format('D MMMM YYYY') }}</span>
+                  to
+                  <span class="text-bold">{{ leave_request.end_date.format('D MMMM YYYY') }}</span>
+                  <br>
+                  (<i><u>Submitted:</u> {{ leave_request.submission_datetime.format('D MMMM YYYY, hh:mm a') }}</i>)
+                </li>
               </ul>
 
-              <h5 class="text-bold">Cancelled leaves</h5>
-
-              <ul>
-                <li ng-repeat="leave_request in internship.intern.profile.user.cancelled_leaves"><span class="text-yellow">{{ leave_request.type.name }}</span> from {{ leave_request.start_date }} to {{ leave_request.end_date }}</li>
-              </ul>
+              <p ng-if="internship.intern.profile.user.open_leave_requests.length == 0">
+                {{ internship.intern.profile.en_first_name }} does not have any open leave requests.
+              </p>
 
               <h5 class="text-bold">Previous leave requests</h5>
 
-              <ul>
-                <li ng-repeat="leave_request in internship.intern.profile.user.closed_leave_requests"><span class="">{{ leave_request.type.name }}</span> from {{ leave_request.start_date }} to {{ leave_request.end_date }}</li>
+              <ul ng-if="internship.intern.profile.user.closed_leave_requests.length > 0">
+                <li ng-repeat="leave_request in internship.intern.profile.user.closed_leave_requests">
+                  <span class="text-bold" ng-class="{'text-green': leave_request.response.is_approved === true, 'text-red': leave_request.response.is_approved === false}">
+                    {{ leave_request.type.name }}
+                  </span>
+                  from
+                  <span class="text-bold">{{ leave_request.start_date.format('D MMMM YYYY') }}</span>
+                  to
+                  <span class="text-bold">{{ leave_request.end_date.format('D MMMM YYYY') }}</span>
+                  <br>
+                  (<i><u>Submitted:</u> {{ leave_request.submission_datetime.format('D MMMM YYYY, hh:mm a') }},
+                    <u ng-if="leave_request.response.is_approved === true" class="">Approved:</u>
+                    <u ng-if="leave_request.response.is_approved === false" class="">Declined:</u>
+                    {{ leave_request.response.response_datetime.format('D MMMM YYYY, hh:mm a') }}<!-- This comment is to prevent adding an auto space
+                 --><span ng-if="leave_request.response.comments">, <u>Comments:</u> {{ leave_request.response.comments }}</span><!--
+                --></i>)
+                </li>
               </ul>
+
+              <p ng-if="internship.intern.profile.user.closed_leave_requests.length == 0">
+                {{ internship.intern.profile.en_first_name }} does not have any previous leave requests.
+              </p>
+
+              <h5 class="text-bold">Open leave cancellation requests</h5>
+
+              <ul ng-if="internship.intern.profile.user.open_leave_cancel_requests.length > 0">
+                <li ng-repeat="cancel_request in internship.intern.profile.user.open_leave_cancel_requests">
+                  <span class="text-red">
+                    cancel of {{ cancel_request.type.name }}
+                  </span>
+                  from
+                  <span class="text-bold">{{ cancel_request.start_date.format('D MMMM YYYY') }}</span>
+                  to
+                  <span class="text-bold">{{ cancel_request.end_date.format('D MMMM YYYY') }}</span>
+                  <br>
+                  (<i><u>Submitted:</u>{{ cancel_request.submission_datetime.format('D MMMM YYYY, hh:mm a') }}</i>
+                </li>
+              </ul>
+
+              <p ng-if="internship.intern.profile.user.open_leave_cancel_requests.length == 0">
+                {{ internship.intern.profile.en_first_name }} does not have any open leave cancellation requests.
+              </p>
+              
+              <h5 class="text-bold">Previous leave cancellation requests</h5>
+
+              <ul ng-if="internship.intern.profile.user.closed_leave_cancel_requests.length > 0">
+                <li ng-repeat="cancel_request in internship.intern.profile.user.closed_leave_cancel_requests">
+                  <span class="text-red">
+                    cancel of {{ cancel_request.type.name }}
+                  </span>
+                  from
+                  <span class="text-bold">{{ cancel_request.start_date.format('D MMMM YYYY') }}</span>
+                  to
+                  <span class="text-bold">{{ cancel_request.end_date.format('D MMMM YYYY') }}</span>
+                  <br>
+                  (<i><u>Submitted:</u> {{ cancel_request.submission_datetime.format('D MMMM YYYY, hh:mm a') }},
+                    <u ng-if="cancel_request.response.is_approved === true" class="">Approved:</u>
+                    <u ng-if="cancel_request.response.is_approved === false" class="">Declined:</u>
+                    {{ cancel_request.response.response_datetime.format('D MMMM YYYY, hh:mm a') }}<!-- This comment is to prevent adding an auto space
+                 --><span ng-if="cancel_request.response.comments">, <u>Comments:</u> {{ cancel_request.response.comments }}</span><!--
+                --></i>)
+                </li>
+              </ul>
+
+              <p ng-if="internship.intern.profile.user.closed_leave_cancel_requests.length == 0">
+                {{ internship.intern.profile.en_first_name }} does not have any previous leave cancellation requests.
+              </p>
             </div>
 
           </div><!-- /.modal-body -->

@@ -86,6 +86,52 @@ angular.module("ei.months.models", ["ngResource", "ei.interceptors"])
                 return transformed;
             }]
         },
+        get: {
+            method: 'get',
+            transformResponse: [function (data, headersGetter) {
+                var transformed = angular.fromJson(data);
+
+                var userLeaves = transformed.intern.profile.user.leaves;
+                for (var i = 0; i < userLeaves.length; i++) {
+                    userLeaves[i].start_date = moment(userLeaves[i].start_date);
+                    userLeaves[i].end_date = moment(userLeaves[i].end_date);
+                    userLeaves[i].request.submission_datetime = moment(userLeaves[i].request.submission_datetime);
+                    userLeaves[i].request.response.response_datetime = moment(userLeaves[i].request.response_datetime);
+                }
+                
+                var openLeaveRequests = transformed.intern.profile.user.open_leave_requests;
+                for (var j = 0; j < openLeaveRequests.length; j++) {
+                    openLeaveRequests[j].start_date = moment(openLeaveRequests[j].start_date);
+                    openLeaveRequests[j].end_date = moment(openLeaveRequests[j].end_date);
+                    openLeaveRequests[j].submission_datetime = moment(openLeaveRequests[j].submission_datetime);
+                }
+                
+                var closedLeaveRequests = transformed.intern.profile.user.closed_leave_requests;
+                for (var k = 0; k < closedLeaveRequests.length; k++) {
+                    closedLeaveRequests[k].start_date = moment(closedLeaveRequests[k].start_date);
+                    closedLeaveRequests[k].end_date = moment(closedLeaveRequests[k].end_date);
+                    closedLeaveRequests[k].submission_datetime = moment(closedLeaveRequests[k].submission_datetime);
+                    closedLeaveRequests[k].response.response_datetime = moment(closedLeaveRequests[k].response.response_datetime);
+                }
+                
+                var openLeaveCancelRequests = transformed.intern.profile.user.open_leave_cancel_requests;
+                for (var l = 0; l < openLeaveCancelRequests.length; l++) {
+                    openLeaveCancelRequests[l].start_date = moment(openLeaveCancelRequests[l].start_date);
+                    openLeaveCancelRequests[l].end_date = moment(openLeaveCancelRequests[l].end_date);
+                    openLeaveCancelRequests[l].submission_datetime = moment(openLeaveCancelRequests[l].submission_datetime);
+                }
+                
+                var closedLeaveCancelRequests = transformed.intern.profile.user.closed_leave_cancel_requests;
+                for (var m = 0; m < closedLeaveCancelRequests.length; m++) {
+                    closedLeaveCancelRequests[m].start_date = moment(closedLeaveCancelRequests[m].start_date);
+                    closedLeaveCancelRequests[m].end_date = moment(closedLeaveCancelRequests[m].end_date);
+                    closedLeaveCancelRequests[m].submission_datetime = moment(closedLeaveCancelRequests[m].submission_datetime);
+                    closedLeaveCancelRequests[m].response.response_datetime = moment(closedLeaveCancelRequests[m].response.response_datetime);
+                }
+
+                return transformed;
+            }]
+        },
         with_unreviewed_requests: {
             method: 'get',
             url: '/api/internships/with_unreviewed_requests/',
