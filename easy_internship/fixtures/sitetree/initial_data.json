@@ -235,7 +235,7 @@
     "model": "sitetree.treeitem",
     "pk": 16,
     "fields": {
-        "title": "Leave requests",
+        "title": "{{ \"<i class='fa fa-plane'></i> Leave requests\" }}",
         "hint": "",
         "url": "#/leaves/",
         "urlaspattern": false,
@@ -256,4 +256,3 @@
     }
 }
 ]
-##[jetbrains/Users/MSArabi/Sources/easy_internship/easy_internship/fixtures/sitetree/initial_data.json
