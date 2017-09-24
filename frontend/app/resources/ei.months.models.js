@@ -67,6 +67,12 @@ angular.module("ei.months.models", ["ngResource", "ei.interceptors"])
                             // Convert submission datetime into moment
                             currentLeave.request.submission_datetime = moment(currentLeave.request.submission_datetime);
                             currentLeave.request.response.response_datetime = moment(currentLeave.request.response.response_datetime);
+
+
+                            for (var x = 0; x < currentLeave.request.cancel_requests.length; x++) {
+                                var cancelRequest = currentLeave.request.cancel_requests[x];
+                                cancelRequest.submission_datetime = moment(cancelRequest.submission_datetime);
+                            }
                         }
 
                         for (var l = 0; l < month.current_leave_requests.length; l++) {

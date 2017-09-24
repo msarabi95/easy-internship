@@ -24,6 +24,32 @@ class LeaveSettingSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class LeaveCancelRequestSerializer(serializers.ModelSerializer):
+    month = MonthField()
+
+    def validate(self, data):
+        """
+        Check that no other open request already exists for the same leave.
+        """
+        leave_request = data['leave_request']
+
+        if leave_request.cancel_requests.open().exists():
+            raise serializers.ValidationError("An open cancellation request already exists for this leave.")
+
+        return data
+
+    class Meta:
+        model = LeaveCancelRequest
+        fields = '__all__'
+
+
+class LeaveCancelRequestResponseSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = LeaveCancelRequestResponse
+        fields = '__all__'
+
+
 class LeaveRequestResponseSerializer(serializers.ModelSerializer):
     comments = serializers.CharField(required=False)
 
@@ -36,7 +62,7 @@ class LeaveRequestSerializer(serializers.ModelSerializer):
     month = MonthField()
     type = LeaveTypeSerializer()
     attachment = serializers.FileField(required=False)
-    cancel_requests = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
+    cancel_requests = LeaveCancelRequestSerializer(read_only=True, many=True)
     response = LeaveRequestResponseSerializer(read_only=True)
 
     def validate(self, data):
@@ -111,30 +137,4 @@ class LeaveSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Leave
-        fields = '__all__'
-
-
-class LeaveCancelRequestSerializer(serializers.ModelSerializer):
-    month = MonthField()
-
-    def validate(self, data):
-        """
-        Check that no other open request already exists for the same leave.
-        """
-        leave_request = data['leave_request']
-
-        if leave_request.cancel_requests.open().exists():
-            raise serializers.ValidationError("An open cancellation request already exists for this leave.")
-
-        return data
-
-    class Meta:
-        model = LeaveCancelRequest
-        fields = '__all__'
-
-
-class LeaveCancelRequestResponseSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = LeaveCancelRequestResponse
         fields = '__all__'

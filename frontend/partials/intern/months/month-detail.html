@@ -244,7 +244,18 @@
                     <dt>Approval date and time</dt>
                     <dd>{{ leave.request.response.response_datetime.format('dddd, D MMMM YYYY, hh:mm a') }}</dd>
                   </dl>
-                  <a class="btn btn-xs btn-flat btn-danger pull-right" href="#/planner/{{ month.month }}/leaves/{{ leave.id }}/cancel/">Cancel this leave</a>
+                  <!-- Display the leave cancellation button if no cancellation requests exist or the last has been declined. -->
+                  <a ng-if="leave.request.cancel_requests.length == 0  || leave.request.cancel_requests[leave.request.cancel_requests.length - 1].response.is_approved == false"
+                      class="btn btn-xs btn-flat btn-danger pull-right"
+                      href="#/planner/{{ month.month }}/leaves/{{ leave.id }}/cancel/">
+                    Cancel this leave
+                  </a>
+                  <!-- Display the cancellation pending label if at least one unreviewed cancellation request exists (it should be the last one) -->
+                  <h4><span ng-if="leave.request.cancel_requests.length > 0 && !leave.request.cancel_requests[leave.request.cancel_requests.length - 1].response"
+                      class="label label-warning pull-right">
+                    Cancellation pending
+                    (<i><u>Submitted:</u> {{ leave.request.cancel_requests[0].submission_datetime.format('D MMM YYYY, hh:mm a') }}</i>)
+                  </span></h4>
                 </div>
               </div>
             </div>
