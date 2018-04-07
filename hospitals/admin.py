@@ -28,6 +28,7 @@ class DepartmentAdmin(admin.ModelAdmin):
         return qs.filter(hospital__is_kamc=True)
 
     list_display = ['name', 'specialty', 'hospital']
+    list_filter = ['hospital', 'specialty']
 
 
 @admin.register(SeatAvailability)
