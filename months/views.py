@@ -63,7 +63,7 @@ class InternshipMonthViewSet(viewsets.ReadOnlyModelViewSet):
 
         rr = internship.rotation_requests.create(
             month=month,
-            specialty=requested_department.department_specialty,
+            specialty=requested_department.department.specialty,
             requested_department=requested_department,
             is_delete=True,
         )
@@ -392,7 +392,7 @@ class FreezeCancelRequestResponseViewSet(viewsets.ModelViewSet):
         if self.request.user.has_perm("months.freeze_cancel_request_response.view_all"):
             return self.queryset.all()
         return self.queryset.filter(request__intern=self.request.user)
-    
+
     def create(self, request, *args, **kwargs):
         # Check that the responding user has sufficient permissions
         if not request.user.has_perm("months.freeze_cancel_request_response.create"):
@@ -409,7 +409,7 @@ class FreezeCancelRequestResponseViewSet(viewsets.ModelViewSet):
 
         # Delete freeze (if approved) and notify intern
         if bool(request.data['is_approved']):
-            
+
             freeze = Freeze.objects.get(
                 intern=freeze_cancel_request.intern,
                 month=freeze_cancel_request.month,
