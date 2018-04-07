@@ -5,6 +5,12 @@ from hospitals.models import Hospital, Specialty, Department, MonthSettings, \
 
 @admin.register(Hospital)
 class HospitalAdmin(admin.ModelAdmin):
+    def get_queryset(self, request):
+        qs = super(HospitalAdmin, self).get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        return qs.filter(is_kamc=False)
+
     list_display = ['name', 'abbreviation', 'is_kamc']
 
 
@@ -15,6 +21,12 @@ class SpecialtyAdmin(admin.ModelAdmin):
 
 @admin.register(Department)
 class DepartmentAdmin(admin.ModelAdmin):
+    def get_queryset(self, request):
+        qs = super(DepartmentAdmin, self).get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        return qs.filter(hospital__is_kamc=True)
+
     list_display = ['name', 'specialty', 'hospital']
 
 
