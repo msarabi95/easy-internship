@@ -172,7 +172,10 @@ class RotationRequest(models.Model):
     month = MonthField()
     specialty = models.ForeignKey('hospitals.Specialty', related_name="rotation_requests")  # TODO: Is this field really necessary?
     requested_department = models.OneToOneField(RequestedDepartment)
-    is_delete = models.BooleanField(default=False)  # Flag to determine if this is a "delete" request
+    is_delete = models.BooleanField(
+        verbose_name="Is a Cancel Request?",
+        default=False
+    )  # Flag to determine if this is a "delete" request
     # FIXME: Maybe department & specialty should be optional with delete=True
     is_elective = models.BooleanField(default=False)
     request_memo = models.FileField(null=True, blank=True, upload_to='request_memos')  # required for outside interns
@@ -346,7 +349,7 @@ class AcceptanceList(object):
         self.possible_conflict = self.get_possible_conflict()
 
         self.verify()
-    
+
     def verify(self):
         # Verification
         # (1) All contents should be instances of RotationRequest
