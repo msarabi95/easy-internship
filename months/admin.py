@@ -7,6 +7,7 @@ from months.models import Internship
 class RotationInline(admin.TabularInline):
     model = Rotation
     extra = 0
+    readonly_fields = '__all__'
 
 class RotationRequestInline(admin.TabularInline):
     model = RotationRequest
