@@ -27,6 +27,17 @@ class DepartmentAdmin(admin.ModelAdmin):
             return qs
         return qs.filter(hospital__is_kamc=True)
 
+    def get_queryset(self, request):
+        qs = super(DepartmentAdmin, self).get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        return qs.filter(hospital__is_kamc=True)
+
+    def get_list_filter(self, request):
+        if request.user.is_superuser:
+            return ['hospital', 'specialty']
+        return ['specialty']
+
     list_display = ['name', 'specialty', 'hospital']
     list_filter = ['hospital', 'specialty']
 
