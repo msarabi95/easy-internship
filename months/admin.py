@@ -41,7 +41,7 @@ class InternshipAdmin(admin.ModelAdmin):
                      "intern__profile__en_first_name",
                      "intern__profile__en_father_name",
                      "intern__profile__en_last_name"]
-    inlines = [RotationRequestInline]
+    inlines = [RotationInline, RotationRequestInline]
     list_filter = [CompletePlanFilter]
 
 admin.site.register(Internship, InternshipAdmin)
