@@ -10,13 +10,22 @@ class RotationInline(admin.TabularInline):
     readonly_fields = ['month', 'specialty', 'department', 'is_elective']
     exclude = ['rotation_request']
 
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request):
+        return False
+
 class RotationRequestInline(admin.TabularInline):
     model = RotationRequest
     extra = 0
     readonly_fields = ['month', 'specialty', 'requested_department']
-#    def get_readonly_fields(self, request, obj=None):
-#        return ['requested_department', 'specialty']
 
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request):
+        return False
 
 class CompletePlanFilter(admin.SimpleListFilter):  # Temporary!
     title = "Complete plan?"
