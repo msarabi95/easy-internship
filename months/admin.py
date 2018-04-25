@@ -19,7 +19,7 @@ class RotationInline(admin.TabularInline):
 class RotationRequestInline(admin.TabularInline):
     model = RotationRequest
     extra = 0
-    readonly_fields = ['month', 'specialty', 'requested_department']
+    readonly_fields = ['is_delete', 'month', 'specialty', 'requested_department']
 
     def has_add_permission(self, request):
         return False
