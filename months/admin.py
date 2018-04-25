@@ -7,7 +7,8 @@ from months.models import Internship
 class RotationInline(admin.TabularInline):
     model = Rotation
     extra = 0
-    readonly_fields = '__all__'
+    readonly_fields = ['month', 'specialty', 'department', 'is_elective']
+    exclude = ['rotation_request']
 
 class RotationRequestInline(admin.TabularInline):
     model = RotationRequest
