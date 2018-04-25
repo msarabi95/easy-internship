@@ -13,7 +13,7 @@ class RotationInline(admin.TabularInline):
     def has_add_permission(self, request):
         return False
 
-    def has_delete_permission(self, request):
+    def has_delete_permission(self, request, obj=None):
         return False
 
 class RotationRequestInline(admin.TabularInline):
@@ -24,7 +24,7 @@ class RotationRequestInline(admin.TabularInline):
     def has_add_permission(self, request):
         return False
 
-    def has_delete_permission(self, request):
+    def has_delete_permission(self, request, obj=None):
         return False
 
 class CompletePlanFilter(admin.SimpleListFilter):  # Temporary!
