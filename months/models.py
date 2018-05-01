@@ -37,15 +37,15 @@ class InternshipMonth(object):
         self.leave_request_history = self._closed(self._month(self.intern.leave_requests.all()))
         self.leave_cancel_request_history = self._closed(self._month(self.intern.leave_cancel_requests.all()))
 
-        self.occupied = self.current_rotation is not None
-        self.disabled = self._is_disabled()
-        self.frozen = self.current_freeze is not None
-        self.empty = not (self.occupied or self.disabled or self.frozen)
-
         self.has_rotation_request = self.current_rotation_request is not None
         self.has_rotation_cancel_request = self.current_rotation_cancel_request is not None
         self.has_freeze_request = self.current_freeze_request is not None
         self.has_freeze_cancel_request = self.current_freeze_cancel_request is not None
+
+        self.occupied = self.current_rotation is not None
+        self.disabled = self._is_disabled()
+        self.frozen = self.current_freeze is not None
+        self.empty = not (self.occupied or self.disabled or self.frozen)
 
         self.has_leaves = bool(self.current_leaves)
         self.has_leave_requests = bool(self.current_leave_requests)
@@ -146,7 +146,7 @@ class Internship(models.Model):
         1- The internship plan doesn't exceed 12 months.
         2- Each specialty doesn't exceed its required months in non-elective rotations.
         3- Not more than 2 months are used for electives. (Electives can be any specialty)
-        
+
         For outside interns, checks that rotation count does not exceed 6 months.
         """
         errors = []
