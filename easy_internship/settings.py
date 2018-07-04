@@ -28,6 +28,7 @@ DEBUG = secrets.DEBUG
 
 ALLOWED_HOSTS = secrets.ALLOWED_HOSTS
 
+ADMINS = secrets.ADMINS
 
 # Application definition
 
@@ -170,10 +171,51 @@ EMAIL_HOST_USER = secrets.EMAIL_HOST_USER
 EMAIL_HOST_PASSWORD = secrets.EMAIL_HOST_PASSWORD
 
 DEFAULT_FROM_EMAIL = secrets.DEFAULT_FROM_EMAIL
+SERVER_EMAIL = secrets.SERVER_EMAIL
 
 # Sites
 
 SITE_ID = secrets.SITE_ID
+
+# Logging
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'my_logs', 'debug.log'),  # FIXME: should create file if it doesn't exist
+            'formatter': 'verbose'
+        },
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler',
+            'formatter': 'simple'
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        'django.request': {
+            'handlers': ['mail_admins'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+    },
+}
 
 # Userena & Guardian
 
@@ -209,4 +251,3 @@ INTERNAL_IPS = ['127.0.0.1', 'localhost']
 SUPPORT_EMAIL_ADDRESS = secrets.SUPPORT_EMAIL_ADDRESS
 CKEDITOR_UPLOAD_PATH = secrets.CKEDITOR_UPLOAD_PATH
 CKEDITOR_IMAGE_BACKEND = "pillow"
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '111.222.333.444', 'mywebsite.com']
