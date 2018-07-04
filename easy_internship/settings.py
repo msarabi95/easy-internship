@@ -194,7 +194,7 @@ LOGGING = {
         'file': {
             'level': 'ERROR',
             'class': 'logging.FileHandler',
-            'filename': os.path.join(BASE_DIR, 'my_logs', 'debug.log'),  # FIXME: should create file if it doesn't exist
+            'filename': secrets.LOG_FILENAME,
             'formatter': 'verbose'
         },
         'mail_admins': {
