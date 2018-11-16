@@ -7,7 +7,7 @@ from months.models import Internship
 class RotationInline(admin.TabularInline):
     model = Rotation
     extra = 0
-    readonly_fields = ['month', 'specialty', 'department', 'is_elective']
+    readonly_fields = ['month', 'specialty', 'department']
     exclude = ['rotation_request']
 
     def has_add_permission(self, request):

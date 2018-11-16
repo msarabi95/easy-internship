@@ -1,3 +1,4 @@
+from django import forms
 from django.contrib import admin
 from hospitals.models import Hospital, Specialty, Department, MonthSettings, \
     AcceptanceSetting, SeatAvailability
@@ -42,6 +43,18 @@ class DepartmentAdmin(admin.ModelAdmin):
     list_filter = ['hospital', 'specialty']
 
 
+class SeatAvailabilityAdminForm(forms.ModelForm):
+    
+    def __init__(self, *args, **kwargs):
+        super(SeatAvailabilityAdminForm, self).__init__(*args, **kwargs)
+        self.fields['department'].queryset = Department.objects.filter(hospital__is_kamc=True)
+        self.fields['department'].label = "Department (KAMC & KASCH)"
+
+    class Meta:
+        model = SeatAvailability
+        exclude = ['acceptance_criterion', 'acceptance_start_date', 'acceptance_end_date']
+
+
 @admin.register(SeatAvailability)
 class SeatAvailabilityAdmin(admin.ModelAdmin):
     list_display = [
@@ -51,6 +64,7 @@ class SeatAvailabilityAdmin(admin.ModelAdmin):
     list_editable = ['total_seats']
     search_fields = ['department__name', 'department__specialty__name', 'department__hospital__name']
     list_filter = ['department__specialty', 'department__hospital', 'month']
+    form = SeatAvailabilityAdminForm
 
     def get_queryset(self, request):
         """
