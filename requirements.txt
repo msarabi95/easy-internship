@@ -18,7 +18,7 @@ django-post-office==2.0.8
 django-protractor-new==0.9.1
 django-sitetree==1.5.1
 django-userena==2.0.1
-djangorestframework==3.4.0
+djangorestframework==3.11.2
 djangorestframework-filters==0.10.1
 docutils==0.13.1
 docxtpl==0.2.4
