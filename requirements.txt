@@ -13,7 +13,7 @@ django-ckeditor==5.2.1
 django-debug-toolbar==1.8
 django-filter==1.0.0
 django-guardian==1.4.1
-django-monthfield @ git+https://github.com/clearspark/django-monthfield@8ca8872bf9370b339aa37c83de2e8817315bece0
+git+https://github.com/clearspark/django-monthfield.git@8ca8872bf9370b339aa37c83de2e8817315bece0#egg=django-monthfield
 django-nyt==0.9.9
 django-post-office==2.0.8
 django-protractor-new==0.9.1
