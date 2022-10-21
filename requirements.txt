@@ -24,7 +24,7 @@ djangorestframework-filters==0.10.1
 docutils==0.13.1
 docxtpl==0.2.4
 easy-thumbnails==2.3
-ecdsa==0.13
+ecdsa==0.13.3
 enum34==1.1.6
 et-xmlfile==1.0.1
 Fabric==1.12.0
