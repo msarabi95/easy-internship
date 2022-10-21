@@ -7,7 +7,7 @@ RUN apt-get install npm -y
 COPY . /
 COPY easy_internship/secrets.template.py easy_internship/secrets.py
 
-ENV VIRTUAL_ENV="$PWD/.venv"
+ENV VIRTUAL_ENV=$PWD/.venv
 RUN python2 -m virtualenv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
