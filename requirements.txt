@@ -7,12 +7,13 @@ colorama==0.3.9
 coverage==4.1
 decorator==4.0.11
 Django==1.9.7
-django-angular==0.8.2
+django-angular==0.8.2  # *** confirm it's installed ***
 django-bootstrap3==7.0.1
 django-ckeditor==5.2.1
 django-debug-toolbar==1.8
 django-filter==1.0.0
 django-guardian==1.4.1
+django-monthfield @ git+https://github.com/clearspark/django-monthfield@8ca8872bf9370b339aa37c83de2e8817315bece0
 django-nyt==0.9.9
 django-post-office==2.0.8
 django-protractor-new==0.9.1
@@ -55,7 +56,7 @@ python-dateutil==2.6.0
 python-docx==0.8.6
 pytz==2017.2
 requests==2.17.3
-rules==1.1.1
+rules==1.1.1  # *** confirm it's installed ***
 scandir==1.5
 selenium==2.53.6
 simplegeneric==0.8.1

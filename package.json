@@ -16,7 +16,6 @@
     "url": "https://github.com/msarabi95/easy-internship/issues"
   },
   "homepage": "https://github.com/msarabi95/easy-internship#readme",
-  "dependencies": {},
   "devDependencies": {
     "grunt": "^1.0.1",
     "grunt-cache-breaker": "^2.0.1",
