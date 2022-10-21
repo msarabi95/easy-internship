@@ -18,4 +18,4 @@ RUN npm install -g bower
 RUN ln -s /usr/bin/nodejs /usr/bin/node
 RUN bower install
 RUN python2 manage.py collectstatic --no-input
-CMD ['python2', 'manage.py', 'runserver', '0.0.0.0']
+CMD ["python2", "manage.py", "runserver", "0.0.0.0"]
