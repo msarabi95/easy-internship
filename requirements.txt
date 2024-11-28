@@ -11,7 +11,7 @@ django-angular==0.8.2  # *** confirm it's installed ***
 django-bootstrap3==7.0.1
 django-ckeditor==5.2.1
 django-debug-toolbar==1.8
-django-filter==1.0.0
+django-filter==2.4.0
 django-guardian==1.4.1
 git+https://github.com/clearspark/django-monthfield.git@8ca8872bf9370b339aa37c83de2e8817315bece0#egg=django-monthfield
 django-nyt==0.9.9
