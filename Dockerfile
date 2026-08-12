@@ -4,7 +4,7 @@ LABEL maintainer="Saeed"
 RUN echo "deb http://archive.debian.org/debian jessie main" > /etc/apt/sources.list \
     && echo "deb http://archive.debian.org/debian-security jessie/updates main" >> /etc/apt/sources.list \
     && apt-get -o Acquire::Check-Valid-Until=false update \
-    && apt-get install -y --no-install-recommends npm \
+    && apt-get install -y --allow-unauthenticated --no-install-recommends npm \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
